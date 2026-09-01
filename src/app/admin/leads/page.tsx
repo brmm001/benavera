@@ -84,6 +84,7 @@ export default function AdminLeadsPage() {
     try {
       const res = await fetch(`/api/admin/leads?type=all&status=${statusFilter}&search=${encodeURIComponent(search)}`);
       if (res.status === 401) {
+        try { await fetch('/api/admin/auth/logout', { method: 'POST' }); } catch {}
         setAuthenticated(false);
         setLoading(false);
         router.replace('/admin/login');
@@ -96,15 +97,20 @@ export default function AdminLeadsPage() {
         setClinicLeads(data.clinicLeads || []);
         setMetrics(data.metrics || null);
       } else {
+        try { await fetch('/api/admin/auth/logout', { method: 'POST' }); } catch {}
         setAuthenticated(false);
         router.replace('/admin/login');
       }
     } catch (e) {
       console.error('[Admin] Erro ao carregar dados:', e);
+      try { await fetch('/api/admin/auth/logout', { method: 'POST' }); } catch {}
+      setAuthenticated(false);
+      router.replace('/admin/login');
     } finally {
       setLoading(false);
     }
   }, [statusFilter, search, router]);
+
 
   useEffect(() => {
     fetchLeads();
@@ -177,12 +183,14 @@ export default function AdminLeadsPage() {
     }
   };
 
-  // Se ainda estiver checando autenticação ou não autenticado
-  if (!authenticated) {
+  // Se ainda estiver checando autenticação ou redirecionando
+  if (authenticated === null || authenticated === false) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: 'white', gap: '1rem' }}>
         <Loader2 className="animate-spin text-indigo-400" size={32} />
-        <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Verificando autenticação...</p>
+        <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>
+          {authenticated === null ? 'Verificando autenticação...' : 'Redirecionando para login...'}
+        </p>
       </div>
     );
   }
