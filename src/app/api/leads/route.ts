@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rateLimit';
-import { sanitizeString, maskPII, getClientIP, isAuthorizedAdmin } from '@/lib/security';
+import { sanitizeString, maskPII, getClientIP } from '@/lib/security';
 import {
   savePatientLead,
   saveClinicLead,
@@ -151,23 +151,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET /api/leads — Consulta protegida de leads
-export async function GET(request: NextRequest) {
-  if (!isAuthorizedAdmin(request)) {
-    return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
-  }
-
-  try {
-    const patientLeads = await getPatientLeads();
-    const clinicLeads = await getClinicLeads();
-
-    return NextResponse.json({
-      patientLeads,
-      clinicLeads,
-      total: patientLeads.length + clinicLeads.length,
-    });
-  } catch (error) {
-    console.error('[Benavera Lead] Erro ao buscar leads:', error);
-    return NextResponse.json({ error: 'Erro ao carregar leads.' }, { status: 500 });
-  }
-}

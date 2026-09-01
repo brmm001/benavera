@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isAuthorizedAdmin } from '@/lib/security';
+
 import { getPatientLeads, getClinicLeads } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
