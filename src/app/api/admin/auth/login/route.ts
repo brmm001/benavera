@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getAdminPassword,
-  getAdminSecretToken,
-  timingSafeCompare,
+  signAdminToken,
   getClientIP,
 } from '@/lib/security';
-import { checkRateLimit } from '@/lib/rateLimit';
 
 import { cookies } from 'next/headers';
 
@@ -13,20 +11,19 @@ export async function POST(request: NextRequest) {
   try {
     const clientIP = getClientIP(request);
     
-    // Rate limit desativado
-
     const body = (await request.json()) as { password?: string };
     const providedPassword = typeof body.password === 'string' ? body.password : '';
     const expectedPassword = getAdminPassword();
 
-    if (!providedPassword || !timingSafeCompare(providedPassword, expectedPassword)) {
+    // Uma simples checagem de senha
+    if (!providedPassword || providedPassword !== expectedPassword) {
       return NextResponse.json(
         { success: false, error: 'Credenciais inválidas ou acesso não autorizado.' },
         { status: 401 }
       );
     }
 
-    const secretToken = getAdminSecretToken();
+    const secretToken = await signAdminToken();
     
     // Utilizar cookies() do next/headers é a forma mais confiável no App Router
     const cookieStore = await cookies();

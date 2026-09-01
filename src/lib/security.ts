@@ -53,24 +53,12 @@ export function maskPII(str: string | undefined): string {
   return parts.map((p) => (p.length > 1 ? `${p[0]}***` : p)).join(' ');
 }
 
-/**
- * Comparação segura de strings em tempo constante para evitar ataques de temporização (Timing Attacks).
- */
-export function timingSafeCompare(a: string, b: string): boolean {
-  if (typeof a !== 'string' || typeof b !== 'string') return false;
-  
-  // Hash as strings localmente usando uma técnica segura que não depende do Node.js crypto.timingSafeEqual
-  // Isto evita crashes em ambientes serverless como Vercel/Render onde o Buffer/crypto pode ter quirks
-  let mismatch = a.length === b.length ? 0 : 1;
-  const len = Math.max(a.length, b.length);
-  
-  for (let i = 0; i < len; i++) {
-    const charA = i < a.length ? a.charCodeAt(i) : 0;
-    const charB = i < b.length ? b.charCodeAt(i) : 0;
-    mismatch |= (charA ^ charB);
-  }
-  
-  return mismatch === 0 && a.length === b.length;
+import { SignJWT, jwtVerify } from 'jose';
+
+// Chave secreta em Uint8Array para uso do jose
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.ADMIN_SECRET || 'benavera-admin-secret-2026-very-long-string-for-security';
+  return new TextEncoder().encode(secret);
 }
 
 /**
@@ -81,36 +69,29 @@ export function getAdminPassword(): string {
 }
 
 /**
- * Retorna o segredo de assinatura de sessão administrativa.
+ * Gera um token JWT seguro para o administrador
  */
-export function getAdminSecretToken(): string {
-  const password = getAdminPassword();
-  const secretSalt = process.env.ADMIN_SECRET || 'benavera-admin-secret-salt-2026';
-  return crypto.createHash('sha256').update(`${password}:${secretSalt}`).digest('hex');
+export async function signAdminToken(): Promise<string> {
+  return new SignJWT({ role: 'admin' })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(getJwtSecret());
 }
 
 /**
- * Valida autorização administrativa via Header ou Cookie seguro.
+ * Valida um token JWT e retorna verdadeiro se for válido
  */
-export function isAuthorizedAdmin(request: NextRequest): boolean {
-  const validToken = getAdminSecretToken();
-  const rawAdminSecret = process.env.ADMIN_SECRET || 'benavera-admin-secret-2026';
-
-  const headerSecret = request.headers.get('x-admin-secret');
-  const cookieSecret = request.cookies.get('benavera_admin_token')?.value;
-
-  console.log('[DEBUG AUTH] validToken:', validToken);
-  console.log('[DEBUG AUTH] cookieSecret:', cookieSecret);
-
-  if (cookieSecret && timingSafeCompare(cookieSecret, validToken)) {
-    return true;
+export async function verifyAdminToken(token: string | undefined): Promise<boolean> {
+  if (!token) return false;
+  
+  try {
+    const { payload } = await jwtVerify(token, getJwtSecret());
+    return payload.role === 'admin';
+  } catch (error) {
+    console.log('[DEBUG AUTH] Token JWT inválido ou expirado');
+    return false;
   }
-  if (headerSecret && (timingSafeCompare(headerSecret, rawAdminSecret) || timingSafeCompare(headerSecret, validToken))) {
-    return true;
-  }
-
-  console.log('[DEBUG AUTH] Failed! cookieSecret vs validToken mismatch or missing');
-  return false;
 }
 
 /**

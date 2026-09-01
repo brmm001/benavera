@@ -9,25 +9,6 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-
-  // Se já estiver autenticado, redireciona diretamente para /admin/leads
-  useEffect(() => {
-    async function checkExistingAuth() {
-      try {
-        const res = await fetch('/api/admin/leads?type=all&status=all');
-        if (res.ok) {
-          router.replace('/admin/leads');
-          return;
-        }
-      } catch {
-        // Ignora erro de rede na checagem inicial
-      } finally {
-        setCheckingAuth(false);
-      }
-    }
-    checkExistingAuth();
-  }, [router]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -60,13 +41,7 @@ export default function AdminLoginPage() {
     }
   }
 
-  if (checkingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-4 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100">

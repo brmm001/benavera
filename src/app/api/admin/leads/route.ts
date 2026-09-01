@@ -7,10 +7,7 @@ import {
 } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorizedAdmin(request)) {
-    return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
-  }
-
+  // A autorização agora é garantida 100% pelo middleware.ts
   try {
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type') || 'all';
