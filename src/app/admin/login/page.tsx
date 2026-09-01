@@ -30,7 +30,10 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        router.push(data.redirectUrl || '/admin/leads');
+        // Usa window.location.href em vez de router.push para FORÇAR um hard reload.
+        // Isso burla o cache do Next.js App Router (que muitas vezes cacheia o redirecionamento
+        // não-autenticado anterior e te joga de volta pro login, causando um "loop").
+        window.location.href = data.redirectUrl || '/admin/leads';
       } else {
         setError(data.error || 'Credenciais inválidas ou acesso não autorizado.');
       }

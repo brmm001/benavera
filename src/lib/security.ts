@@ -86,10 +86,12 @@ export async function verifyAdminToken(token: string | undefined): Promise<boole
   if (!token) return false;
   
   try {
-    const { payload } = await jwtVerify(token, getJwtSecret());
+    const { payload } = await jwtVerify(token, getJwtSecret(), {
+      clockTolerance: 120, // 2 minutos de tolerância para desincronização de relógio entre Edge e Node
+    });
     return payload.role === 'admin';
   } catch (error) {
-    console.log('[DEBUG AUTH] Token JWT inválido ou expirado');
+    console.log('[DEBUG AUTH] Token JWT inválido ou expirado:', error);
     return false;
   }
 }
