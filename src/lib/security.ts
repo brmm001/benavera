@@ -1,4 +1,5 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
+import crypto from 'crypto';
 
 /**
  * Sanitiza strings removendo tags HTML, scripts e caracteres perigosos.
@@ -6,6 +7,8 @@ import { NextRequest } from 'next/server';
 export function sanitizeString(val: unknown): string {
   if (typeof val !== 'string') return '';
   return val
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '') // Remove script blocks completely
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '') // Remove style blocks
     .replace(/<[^>]*>?/gm, '') // Remove HTML tags
     .replace(/javascript:/gi, '') // Remove javascript pseudo-protocol
     .trim();
@@ -51,14 +54,55 @@ export function maskPII(str: string | undefined): string {
 }
 
 /**
+ * Comparação segura de strings em tempo constante para evitar ataques de temporização (Timing Attacks).
+ */
+export function timingSafeCompare(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a, 'utf-8');
+  const bufB = Buffer.from(b, 'utf-8');
+  if (bufA.length !== bufB.length) {
+    // Para evitar vazamento de tamanho via timing, fazemos hashing fixo
+    const hashA = crypto.createHash('sha256').update(bufA).digest();
+    const hashB = crypto.createHash('sha256').update(bufB).digest();
+    return crypto.timingSafeEqual(hashA, hashB);
+  }
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+/**
+ * Retorna a senha administrativa configurada em variável de ambiente.
+ */
+export function getAdminPassword(): string {
+  return process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || 'benavera2026';
+}
+
+/**
+ * Retorna o segredo de assinatura de sessão administrativa.
+ */
+export function getAdminSecretToken(): string {
+  const password = getAdminPassword();
+  const secretSalt = process.env.ADMIN_SECRET || 'benavera-admin-secret-salt-2026';
+  return crypto.createHash('sha256').update(`${password}:${secretSalt}`).digest('hex');
+}
+
+/**
  * Valida autorização administrativa via Header ou Cookie seguro.
  */
 export function isAuthorizedAdmin(request: NextRequest): boolean {
-  const secret = process.env.ADMIN_SECRET || 'benavera-admin-secret-2026';
+  const validToken = getAdminSecretToken();
+  const rawAdminSecret = process.env.ADMIN_SECRET || 'benavera-admin-secret-2026';
+
   const headerSecret = request.headers.get('x-admin-secret');
   const cookieSecret = request.cookies.get('benavera_admin_token')?.value;
 
-  return headerSecret === secret || cookieSecret === secret;
+  if (cookieSecret && timingSafeCompare(cookieSecret, validToken)) {
+    return true;
+  }
+  if (headerSecret && (timingSafeCompare(headerSecret, rawAdminSecret) || timingSafeCompare(headerSecret, validToken))) {
+    return true;
+  }
+
+  return false;
 }
 
 /**

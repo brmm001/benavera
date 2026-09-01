@@ -8,7 +8,7 @@ import type {
   ClinicLeadStatus,
   LeadEventType,
 } from '@/types';
-import { getTursoClient, ensureTursoSchema } from '@/lib/turso';
+import { getNeonClient, ensureNeonSchema } from '@/lib/neon';
 
 const DB_FILE = path.join(process.cwd(), 'data', 'benavera_db.json');
 
@@ -18,23 +18,17 @@ interface DatabaseStore {
   events: LeadHistoryEvent[];
 }
 
-// Inicialização segura do arquivo de banco de dados local (fallback)
+// ============================================================
+// FALLBACK LOCAL (desenvolvimento / sem DATABASE_URL)
+// ============================================================
+
 async function ensureDb(): Promise<void> {
   const dir = path.dirname(DB_FILE);
-  try {
-    await fs.mkdir(dir, { recursive: true });
-  } catch {
-    // Diretório já existe
-  }
-
+  try { await fs.mkdir(dir, { recursive: true }); } catch { /* já existe */ }
   try {
     await fs.access(DB_FILE);
   } catch {
-    const initial: DatabaseStore = {
-      patientLeads: [],
-      clinicLeads: [],
-      events: [],
-    };
+    const initial: DatabaseStore = { patientLeads: [], clinicLeads: [], events: [] };
     await fs.writeFile(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
   }
 }
@@ -49,8 +43,7 @@ async function readStore(): Promise<DatabaseStore> {
       clinicLeads: Array.isArray(parsed.clinicLeads) ? parsed.clinicLeads : [],
       events: Array.isArray(parsed.events) ? parsed.events : [],
     };
-  } catch (error) {
-    console.error('[Benavera DB] Erro ao ler store local:', error);
+  } catch {
     return { patientLeads: [], clinicLeads: [], events: [] };
   }
 }
@@ -60,6 +53,21 @@ async function writeStore(store: DatabaseStore): Promise<void> {
   const tempFile = `${DB_FILE}.tmp.${Date.now()}`;
   await fs.writeFile(tempFile, JSON.stringify(store, null, 2), 'utf-8');
   await fs.rename(tempFile, DB_FILE);
+}
+
+let schemaInitialized = false;
+
+async function getDb() {
+  const db = getNeonClient();
+  if (db && !schemaInitialized) {
+    try {
+      await ensureNeonSchema(db);
+      schemaInitialized = true;
+    } catch (e) {
+      console.error('[Benavera Neon] Erro ao inicializar schema:', e);
+    }
+  }
+  return db;
 }
 
 // ============================================================
@@ -80,51 +88,34 @@ export async function savePatientLead(
     updatedAt: now,
   };
 
-  const turso = getTursoClient();
-  if (turso) {
+  const db = await getDb();
+  if (db) {
     try {
-      await ensureTursoSchema(turso);
-      await turso.execute({
-        sql: `INSERT INTO patient_leads (
+      await db`
+        INSERT INTO patient_leads (
           id, nome, telefone, email, cidade, estado,
           categoria_tratamento, valor_tratamento, entrada, parcela_desejada,
           prazo_desejado, clinica_indicada, origem_lead, pagina_origem,
           utm_source, utm_medium, utm_campaign, utm_content, utm_term,
-          status, consentimento, versao_termos, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: [
-          id,
-          newLead.nome,
-          newLead.telefone,
-          newLead.email || null,
-          newLead.cidade,
-          newLead.estado || null,
-          newLead.tratamento,
-          newLead.valorTratamento || null,
-          newLead.entrada || 0,
-          newLead.parcelaDesejada || null,
-          newLead.prazoDesejado || null,
-          newLead.clinicaIndicada || null,
-          newLead.origem,
-          newLead.landingPage,
-          newLead.utmSource || null,
-          newLead.utmMedium || null,
-          newLead.utmCampaign || null,
-          newLead.utmContent || null,
-          newLead.utmTerm || null,
-          newLead.status || 'nova',
-          newLead.consentimento ? 1 : 0,
-          newLead.versaoTermos || 'v1.0',
-          now,
-          now,
-        ],
-      });
+          status, consentimento, versao_termos
+        ) VALUES (
+          ${id}, ${newLead.nome}, ${newLead.telefone}, ${newLead.email ?? null},
+          ${newLead.cidade}, ${newLead.estado ?? null}, ${newLead.tratamento},
+          ${newLead.valorTratamento ?? null}, ${newLead.entrada ?? 0},
+          ${newLead.parcelaDesejada ?? null}, ${newLead.prazoDesejado ?? null},
+          ${newLead.clinicaIndicada ?? null}, ${newLead.origem}, ${newLead.landingPage},
+          ${newLead.utmSource ?? null}, ${newLead.utmMedium ?? null},
+          ${newLead.utmCampaign ?? null}, ${newLead.utmContent ?? null},
+          ${newLead.utmTerm ?? null}, ${newLead.status},
+          ${newLead.consentimento}, ${newLead.versaoTermos ?? 'v1.0'}
+        )
+      `;
     } catch (e) {
-      console.error('[Benavera Turso] Erro ao salvar paciente no Turso, gravando no fallback local:', e);
+      console.error('[Benavera Neon] Erro ao salvar paciente, gravando local:', e);
     }
   }
 
-  // Grava também no store local para redundância e desenvolvimento
+  // Fallback local
   const store = await readStore();
   store.patientLeads.unshift(newLead);
   await writeStore(store);
@@ -141,28 +132,37 @@ export async function getPatientLeads(options?: {
   status?: string;
   search?: string;
 }): Promise<PatientLead[]> {
-  const turso = getTursoClient();
-  if (turso) {
+  const db = await getDb();
+  if (db) {
     try {
-      await ensureTursoSchema(turso);
-      let query = 'SELECT * FROM patient_leads WHERE 1=1';
-      const args: (string | number)[] = [];
+      let rows;
+      const search = options?.search ? `%${options.search}%` : null;
+      const status = options?.status && options.status !== 'all' ? options.status : null;
 
-      if (options?.status && options.status !== 'all') {
-        query += ' AND status = ?';
-        args.push(options.status);
+      if (status && search) {
+        rows = await db`
+          SELECT * FROM patient_leads
+          WHERE status = ${status}
+            AND (nome ILIKE ${search} OR cidade ILIKE ${search} OR categoria_tratamento ILIKE ${search})
+          ORDER BY created_at DESC
+        `;
+      } else if (status) {
+        rows = await db`
+          SELECT * FROM patient_leads
+          WHERE status = ${status}
+          ORDER BY created_at DESC
+        `;
+      } else if (search) {
+        rows = await db`
+          SELECT * FROM patient_leads
+          WHERE nome ILIKE ${search} OR cidade ILIKE ${search} OR categoria_tratamento ILIKE ${search}
+          ORDER BY created_at DESC
+        `;
+      } else {
+        rows = await db`SELECT * FROM patient_leads ORDER BY created_at DESC`;
       }
 
-      if (options?.search) {
-        query += ' AND (nome LIKE ? OR cidade LIKE ? OR categoria_tratamento LIKE ?)';
-        const term = `%${options.search}%`;
-        args.push(term, term, term);
-      }
-
-      query += ' ORDER BY created_at DESC';
-
-      const result = await turso.execute({ sql: query, args });
-      return result.rows.map((row) => ({
+      return rows.map((row) => ({
         id: String(row.id),
         nome: String(row.nome),
         telefone: String(row.telefone),
@@ -185,23 +185,21 @@ export async function getPatientLeads(options?: {
         status: (row.status as PatientLeadStatus) || 'nova',
         consentimento: Boolean(row.consentimento),
         versaoTermos: String(row.versao_termos || 'v1.0'),
-        tipoLead: 'patient',
+        tipoLead: 'patient' as const,
         timestamp: String(row.created_at),
         createdAt: String(row.created_at),
         updatedAt: String(row.updated_at),
       }));
     } catch (e) {
-      console.warn('[Benavera Turso] Falha na consulta do Turso, usando fallback local:', e);
+      console.warn('[Benavera Neon] Falha na consulta, usando fallback local:', e);
     }
   }
 
   const store = await readStore();
   let list = store.patientLeads;
-
   if (options?.status && options.status !== 'all') {
     list = list.filter((l) => l.status === options.status);
   }
-
   if (options?.search) {
     const q = options.search.toLowerCase();
     list = list.filter(
@@ -211,7 +209,6 @@ export async function getPatientLeads(options?: {
         l.tratamento.toLowerCase().includes(q)
     );
   }
-
   return list;
 }
 
@@ -221,40 +218,32 @@ export async function updatePatientLeadStatus(
   note?: string
 ): Promise<boolean> {
   const now = new Date().toISOString();
-  const turso = getTursoClient();
+  const db = await getDb();
 
-  if (turso) {
+  if (db) {
     try {
-      await turso.execute({
-        sql: 'UPDATE patient_leads SET status = ?, updated_at = ? WHERE id = ?',
-        args: [status, now, id],
-      });
+      await db`
+        UPDATE patient_leads SET status = ${status}, updated_at = NOW() WHERE id = ${id}
+      `;
     } catch (e) {
-      console.error('[Benavera Turso] Erro ao atualizar status no Turso:', e);
+      console.error('[Benavera Neon] Erro ao atualizar status:', e);
     }
   }
 
   const store = await readStore();
   const lead = store.patientLeads.find((l) => l.id === id);
   const oldStatus = lead?.status || 'desconhecido';
-
   if (lead) {
     lead.status = status;
     lead.updatedAt = now;
     await writeStore(store);
   }
 
-  await recordLeadEvent(
-    id,
-    'patient',
-    'status_changed',
+  await recordLeadEvent(id, 'patient', 'status_changed',
     `Status alterado de "${oldStatus}" para "${status}".`,
     { oldStatus, newStatus: status, note }
   );
-
-  if (note) {
-    await recordLeadEvent(id, 'patient', 'note_added', note);
-  }
+  if (note) await recordLeadEvent(id, 'patient', 'note_added', note);
 
   return true;
 }
@@ -277,49 +266,32 @@ export async function saveClinicLead(
     updatedAt: now,
   };
 
-  const turso = getTursoClient();
-  if (turso) {
+  const db = await getDb();
+  if (db) {
     try {
-      await ensureTursoSchema(turso);
-      await turso.execute({
-        sql: `INSERT INTO clinic_leads (
+      await db`
+        INSERT INTO clinic_leads (
           id, nome_responsavel, nome_clinica, cargo, whatsapp, email,
           cidade, estado, especialidade_principal, numero_unidades,
           ticket_medio, orcamentos_mensais, principal_dificuldade,
           origem_lead, pagina_origem, utm_source, utm_medium,
           utm_campaign, utm_content, utm_term, status_comercial,
-          consentimento, versao_termos, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: [
-          id,
-          newLead.nome,
-          newLead.nomeClinica,
-          newLead.cargo || null,
-          newLead.whatsapp,
-          newLead.email || null,
-          newLead.cidade,
-          newLead.estado || null,
-          newLead.especialidade,
-          newLead.numeroUnidades || null,
-          newLead.ticketMedio || null,
-          newLead.orcamentosMes || null,
-          newLead.maiorDesafio || null,
-          newLead.origem,
-          newLead.landingPage,
-          newLead.utmSource || null,
-          newLead.utmMedium || null,
-          newLead.utmCampaign || null,
-          newLead.utmContent || null,
-          newLead.utmTerm || null,
-          newLead.statusComercial || 'novo',
-          newLead.consentimento ? 1 : 0,
-          newLead.versaoTermos || 'v1.0',
-          now,
-          now,
-        ],
-      });
+          consentimento, versao_termos
+        ) VALUES (
+          ${id}, ${newLead.nome}, ${newLead.nomeClinica}, ${newLead.cargo ?? null},
+          ${newLead.whatsapp}, ${newLead.email ?? null}, ${newLead.cidade},
+          ${newLead.estado ?? null}, ${newLead.especialidade},
+          ${newLead.numeroUnidades ?? null}, ${newLead.ticketMedio ?? null},
+          ${newLead.orcamentosMes ?? null}, ${newLead.maiorDesafio ?? null},
+          ${newLead.origem}, ${newLead.landingPage},
+          ${newLead.utmSource ?? null}, ${newLead.utmMedium ?? null},
+          ${newLead.utmCampaign ?? null}, ${newLead.utmContent ?? null},
+          ${newLead.utmTerm ?? null}, ${newLead.statusComercial},
+          ${newLead.consentimento}, ${newLead.versaoTermos ?? 'v1.0'}
+        )
+      `;
     } catch (e) {
-      console.error('[Benavera Turso] Erro ao salvar clínica no Turso, gravando local:', e);
+      console.error('[Benavera Neon] Erro ao salvar clínica, gravando local:', e);
     }
   }
 
@@ -339,28 +311,37 @@ export async function getClinicLeads(options?: {
   status?: string;
   search?: string;
 }): Promise<ClinicLead[]> {
-  const turso = getTursoClient();
-  if (turso) {
+  const db = await getDb();
+  if (db) {
     try {
-      await ensureTursoSchema(turso);
-      let query = 'SELECT * FROM clinic_leads WHERE 1=1';
-      const args: (string | number)[] = [];
+      let rows;
+      const search = options?.search ? `%${options.search}%` : null;
+      const status = options?.status && options.status !== 'all' ? options.status : null;
 
-      if (options?.status && options.status !== 'all') {
-        query += ' AND status_comercial = ?';
-        args.push(options.status);
+      if (status && search) {
+        rows = await db`
+          SELECT * FROM clinic_leads
+          WHERE status_comercial = ${status}
+            AND (nome_responsavel ILIKE ${search} OR nome_clinica ILIKE ${search}
+              OR cidade ILIKE ${search} OR especialidade_principal ILIKE ${search})
+          ORDER BY created_at DESC
+        `;
+      } else if (status) {
+        rows = await db`
+          SELECT * FROM clinic_leads WHERE status_comercial = ${status} ORDER BY created_at DESC
+        `;
+      } else if (search) {
+        rows = await db`
+          SELECT * FROM clinic_leads
+          WHERE nome_responsavel ILIKE ${search} OR nome_clinica ILIKE ${search}
+            OR cidade ILIKE ${search} OR especialidade_principal ILIKE ${search}
+          ORDER BY created_at DESC
+        `;
+      } else {
+        rows = await db`SELECT * FROM clinic_leads ORDER BY created_at DESC`;
       }
 
-      if (options?.search) {
-        query += ' AND (nome_responsavel LIKE ? OR nome_clinica LIKE ? OR cidade LIKE ? OR especialidade_principal LIKE ?)';
-        const term = `%${options.search}%`;
-        args.push(term, term, term, term);
-      }
-
-      query += ' ORDER BY created_at DESC';
-
-      const result = await turso.execute({ sql: query, args });
-      return result.rows.map((row) => ({
+      return rows.map((row) => ({
         id: String(row.id),
         nome: String(row.nome_responsavel),
         nomeClinica: String(row.nome_clinica),
@@ -384,23 +365,21 @@ export async function getClinicLeads(options?: {
         statusComercial: (row.status_comercial as ClinicLeadStatus) || 'novo',
         consentimento: Boolean(row.consentimento),
         versaoTermos: String(row.versao_termos || 'v1.0'),
-        tipoLead: 'clinic',
+        tipoLead: 'clinic' as const,
         timestamp: String(row.created_at),
         createdAt: String(row.created_at),
         updatedAt: String(row.updated_at),
       }));
     } catch (e) {
-      console.warn('[Benavera Turso] Falha ao consultar clínicas no Turso, usando fallback local:', e);
+      console.warn('[Benavera Neon] Falha ao consultar clínicas, usando fallback local:', e);
     }
   }
 
   const store = await readStore();
   let list = store.clinicLeads;
-
   if (options?.status && options.status !== 'all') {
     list = list.filter((l) => l.statusComercial === options.status);
   }
-
   if (options?.search) {
     const q = options.search.toLowerCase();
     list = list.filter(
@@ -411,7 +390,6 @@ export async function getClinicLeads(options?: {
         l.especialidade.toLowerCase().includes(q)
     );
   }
-
   return list;
 }
 
@@ -421,40 +399,32 @@ export async function updateClinicLeadStatus(
   note?: string
 ): Promise<boolean> {
   const now = new Date().toISOString();
-  const turso = getTursoClient();
+  const db = await getDb();
 
-  if (turso) {
+  if (db) {
     try {
-      await turso.execute({
-        sql: 'UPDATE clinic_leads SET status_comercial = ?, updated_at = ? WHERE id = ?',
-        args: [status, now, id],
-      });
+      await db`
+        UPDATE clinic_leads SET status_comercial = ${status}, updated_at = NOW() WHERE id = ${id}
+      `;
     } catch (e) {
-      console.error('[Benavera Turso] Erro ao atualizar status no Turso:', e);
+      console.error('[Benavera Neon] Erro ao atualizar status de clínica:', e);
     }
   }
 
   const store = await readStore();
   const lead = store.clinicLeads.find((l) => l.id === id);
   const oldStatus = lead?.statusComercial || 'desconhecido';
-
   if (lead) {
     lead.statusComercial = status;
     lead.updatedAt = now;
     await writeStore(store);
   }
 
-  await recordLeadEvent(
-    id,
-    'clinic',
-    'status_changed',
+  await recordLeadEvent(id, 'clinic', 'status_changed',
     `Status comercial alterado de "${oldStatus}" para "${status}".`,
     { oldStatus, newStatus: status, note }
   );
-
-  if (note) {
-    await recordLeadEvent(id, 'clinic', 'note_added', note);
-  }
+  if (note) await recordLeadEvent(id, 'clinic', 'note_added', note);
 
   return true;
 }
@@ -472,54 +442,44 @@ export async function recordLeadEvent(
 ): Promise<void> {
   const id = `evt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   const now = new Date().toISOString();
-  const payloadStr = payload ? JSON.stringify(payload) : null;
 
-  const turso = getTursoClient();
-  if (turso) {
+  const db = await getDb();
+  if (db) {
     try {
-      await turso.execute({
-        sql: 'INSERT INTO lead_events (id, lead_id, lead_tipo, tipo_evento, descricao, payload, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        args: [id, leadId, leadType, eventType, description || null, payloadStr, now],
-      });
+      await db`
+        INSERT INTO lead_events (id, lead_id, lead_tipo, tipo_evento, descricao, payload)
+        VALUES (${id}, ${leadId}, ${leadType}, ${eventType},
+          ${description ?? null}, ${payload ? JSON.stringify(payload) : null})
+      `;
     } catch (e) {
-      console.error('[Benavera Turso] Erro ao registrar evento no Turso:', e);
+      console.error('[Benavera Neon] Erro ao registrar evento:', e);
     }
   }
 
-  const event: LeadHistoryEvent = {
-    id,
-    leadId,
-    leadType,
-    eventType,
-    description,
-    payload,
-    createdAt: now,
-  };
-
+  const event: LeadHistoryEvent = { id, leadId, leadType, eventType, description, payload, createdAt: now };
   const store = await readStore();
   store.events.unshift(event);
   await writeStore(store);
 }
 
 export async function getLeadEvents(leadId: string): Promise<LeadHistoryEvent[]> {
-  const turso = getTursoClient();
-  if (turso) {
+  const db = await getDb();
+  if (db) {
     try {
-      const res = await turso.execute({
-        sql: 'SELECT * FROM lead_events WHERE lead_id = ? ORDER BY created_at DESC',
-        args: [leadId],
-      });
-      return res.rows.map((row) => ({
+      const rows = await db`
+        SELECT * FROM lead_events WHERE lead_id = ${leadId} ORDER BY created_at DESC
+      `;
+      return rows.map((row) => ({
         id: String(row.id),
         leadId: String(row.lead_id),
         leadType: row.lead_tipo as 'patient' | 'clinic',
         eventType: row.tipo_evento as LeadEventType,
         description: row.descricao ? String(row.descricao) : undefined,
-        payload: row.payload ? JSON.parse(String(row.payload)) : undefined,
+        payload: row.payload ? (typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload) : undefined,
         createdAt: String(row.created_at),
       }));
     } catch (e) {
-      console.warn('[Benavera Turso] Falha ao consultar eventos no Turso:', e);
+      console.warn('[Benavera Neon] Falha ao consultar eventos:', e);
     }
   }
 
@@ -528,44 +488,39 @@ export async function getLeadEvents(leadId: string): Promise<LeadHistoryEvent[]>
 }
 
 // ============================================================
-// LGPD ANONIMIZAÇÃO / EXCLUSÃO
+// LGPD — ANONIMIZAÇÃO
 // ============================================================
 
-export async function anonymizeLead(
-  id: string,
-  type: 'patient' | 'clinic'
-): Promise<boolean> {
+export async function anonymizeLead(id: string, type: 'patient' | 'clinic'): Promise<boolean> {
   const now = new Date().toISOString();
-  const turso = getTursoClient();
+  const db = await getDb();
 
-  if (turso) {
+  if (db) {
     try {
       if (type === 'patient') {
-        await turso.execute({
-          sql: `UPDATE patient_leads SET 
+        await db`
+          UPDATE patient_leads SET
             nome = 'Usuário Anonimizado',
             telefone = '(00) 00000-0000',
             email = 'anonimizado@benavera.com.br',
             cidade = 'Anonimizado',
-            updated_at = ?
-          WHERE id = ?`,
-          args: [now, id],
-        });
+            updated_at = NOW()
+          WHERE id = ${id}
+        `;
       } else {
-        await turso.execute({
-          sql: `UPDATE clinic_leads SET 
+        await db`
+          UPDATE clinic_leads SET
             nome_responsavel = 'Responsável Anonimizado',
             nome_clinica = 'Clínica Anonimizada',
             whatsapp = '(00) 00000-0000',
             email = 'anonimizado@benavera.com.br',
             cidade = 'Anonimizado',
-            updated_at = ?
-          WHERE id = ?`,
-          args: [now, id],
-        });
+            updated_at = NOW()
+          WHERE id = ${id}
+        `;
       }
     } catch (e) {
-      console.error('[Benavera Turso] Erro ao anonimizar lead no Turso:', e);
+      console.error('[Benavera Neon] Erro ao anonimizar lead:', e);
     }
   }
 
@@ -603,21 +558,11 @@ export async function getDashboardMetrics() {
   const clinicLeads = await getClinicLeads();
 
   const patientStatusCount: Record<string, number> = {
-    nova: 0,
-    em_analise: 0,
-    contatada: 0,
-    convertida: 0,
-    perdida: 0,
+    nova: 0, em_analise: 0, contatada: 0, convertida: 0, perdida: 0,
   };
-
   const clinicStatusCount: Record<string, number> = {
-    novo: 0,
-    em_contato: 0,
-    em_negociacao: 0,
-    parceiro_ativo: 0,
-    perdido: 0,
+    novo: 0, em_contato: 0, em_negociacao: 0, parceiro_ativo: 0, perdido: 0,
   };
-
   const categoryCount: Record<string, number> = {};
   const sourceCount: Record<string, number> = {};
   let totalTicket = 0;
@@ -626,13 +571,10 @@ export async function getDashboardMetrics() {
   for (const p of patientLeads) {
     const st = p.status || 'nova';
     patientStatusCount[st] = (patientStatusCount[st] || 0) + 1;
-
     const cat = p.tratamento || 'Outros';
     categoryCount[cat] = (categoryCount[cat] || 0) + 1;
-
     const src = p.utmSource || p.origem || 'Direto';
     sourceCount[src] = (sourceCount[src] || 0) + 1;
-
     if (p.valorTratamento && p.valorTratamento > 0) {
       totalTicket += p.valorTratamento;
       countWithTicket += 1;
@@ -642,17 +584,14 @@ export async function getDashboardMetrics() {
   for (const c of clinicLeads) {
     const st = c.statusComercial || 'novo';
     clinicStatusCount[st] = (clinicStatusCount[st] || 0) + 1;
-
     const src = c.utmSource || c.origem || 'Direto';
     sourceCount[src] = (sourceCount[src] || 0) + 1;
   }
 
-  const averageTicket = countWithTicket > 0 ? Math.round(totalTicket / countWithTicket) : 0;
-
   return {
     totalPatientLeads: patientLeads.length,
     totalClinicLeads: clinicLeads.length,
-    averageTicket,
+    averageTicket: countWithTicket > 0 ? Math.round(totalTicket / countWithTicket) : 0,
     patientStatusCount,
     clinicStatusCount,
     categoryCount,

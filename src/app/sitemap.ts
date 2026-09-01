@@ -3,107 +3,107 @@ import { articles } from '@/content/articles';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.benavera.com.br';
-  const now = new Date();
+  const siteReleaseDate = new Date('2026-09-01T00:00:00.000Z');
 
-  // Páginas institucionais e principais
+  // Páginas institucionais e principais públicas
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'weekly',
       priority: 1.0,
     },
     {
       url: `${baseUrl}/simular`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/como-funciona`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/clinicas`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/calculadoras`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/conteudos`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'daily',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/sobre`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
       url: `${baseUrl}/politica-editorial`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
       url: `${baseUrl}/privacidade`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${baseUrl}/termos`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
   ];
 
-  // Novas páginas de intenção de busca (Landing Pages)
+  // Páginas de intenção de busca (Landing Pages)
   const intentPages: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/parcelamento-tratamento-odontologico`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/financiamento-implante-dentario`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/parcelamento-cirurgia-particular`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/parcelamento-cirurgia-oftalmologica`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/parcelamento-procedimento-estetico`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/solucoes-financeiras-para-clinicas`,
-      lastModified: now,
+      lastModified: siteReleaseDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   RefreshCw,
   Users,
@@ -20,6 +21,8 @@ import {
   Clock,
   ShieldCheck,
   CheckCircle,
+  LogOut,
+  Loader2,
 } from 'lucide-react';
 import type { PatientLead, ClinicLead, LeadHistoryEvent, PatientLeadStatus, ClinicLeadStatus } from '@/types';
 
@@ -46,10 +49,8 @@ function formatCurrency(val?: number) {
 }
 
 export default function AdminLeadsPage() {
+  const router = useRouter();
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [loginLoading, setLoginLoading] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'patients' | 'clinics' | 'metrics'>('patients');
   const [patientLeads, setPatientLeads] = useState<PatientLead[]>([]);
@@ -85,6 +86,7 @@ export default function AdminLeadsPage() {
       if (res.status === 401) {
         setAuthenticated(false);
         setLoading(false);
+        router.replace('/admin/login');
         return;
       }
       const data = await res.json();
@@ -93,41 +95,28 @@ export default function AdminLeadsPage() {
         setPatientLeads(data.patientLeads || []);
         setClinicLeads(data.clinicLeads || []);
         setMetrics(data.metrics || null);
+      } else {
+        setAuthenticated(false);
+        router.replace('/admin/login');
       }
     } catch (e) {
       console.error('[Admin] Erro ao carregar dados:', e);
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, search]);
+  }, [statusFilter, search, router]);
 
   useEffect(() => {
     fetchLeads();
   }, [fetchLeads]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginLoading(true);
-    setLoginError('');
-
+  const handleLogout = async () => {
     try {
-      const res = await fetch('/api/admin/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAuthenticated(true);
-        fetchLeads();
-      } else {
-        setLoginError(data.error || 'Credenciais inválidas.');
-      }
+      await fetch('/api/admin/auth/logout', { method: 'POST' });
     } catch {
-      setLoginError('Erro ao conectar ao servidor.');
-    } finally {
-      setLoginLoading(false);
+      // Ignora erro
     }
+    router.replace('/admin/login');
   };
 
   const openLeadDetails = async (id: string, type: 'patient' | 'clinic', data: PatientLead | ClinicLead) => {
@@ -188,77 +177,12 @@ export default function AdminLeadsPage() {
     }
   };
 
-  // Se ainda estiver checando autenticação
-  if (authenticated === null) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: 'white' }}>
-        <RefreshCw className="animate-spin" size={28} />
-      </div>
-    );
-  }
-
-  // TELA DE LOGIN ADMIN
+  // Se ainda estiver checando autenticação ou não autenticado
   if (!authenticated) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', padding: '1rem' }}>
-        <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', padding: '2.5rem', width: '100%', maxWidth: '420px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-            <div style={{ width: '40px', height: '40px', background: '#4338ca', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-              <Lock size={20} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'white', margin: 0 }}>Painel Benavera</h1>
-              <p style={{ fontSize: '0.8125rem', color: '#94a3b8', margin: 0 }}>Acesso Administrativo Restrito</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleLogin}>
-            <label style={{ display: 'block', fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '0.5rem' }}>
-              Senha de Acesso
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Digite sua senha..."
-              style={{
-                width: '100%',
-                padding: '0.875rem 1rem',
-                borderRadius: '8px',
-                background: '#0f172a',
-                border: '1px solid #475569',
-                color: 'white',
-                marginBottom: '1.25rem',
-                outline: 'none',
-              }}
-              autoFocus
-            />
-
-            {loginError && (
-              <div style={{ padding: '0.75rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', borderRadius: '8px', color: '#fca5a5', fontSize: '0.875rem', marginBottom: '1.25rem' }}>
-                {loginError}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loginLoading || !password}
-              style={{
-                width: '100%',
-                padding: '0.875rem',
-                background: '#4f46e5',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: loginLoading || !password ? 'not-allowed' : 'pointer',
-                opacity: loginLoading || !password ? 0.7 : 1,
-              }}
-            >
-              {loginLoading ? 'Verificando...' : 'Entrar no Painel'}
-            </button>
-          </form>
-        </div>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: 'white', gap: '1rem' }}>
+        <Loader2 className="animate-spin text-indigo-400" size={32} />
+        <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Verificando autenticação...</p>
       </div>
     );
   }
@@ -314,6 +238,27 @@ export default function AdminLeadsPage() {
               <Download size={14} />
               Exportar CSV
             </a>
+
+            <button
+              onClick={handleLogout}
+              title="Encerrar sessão"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 0.875rem',
+                borderRadius: '8px',
+                background: 'rgba(239, 68, 68, 0.15)',
+                color: '#fca5a5',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                cursor: 'pointer',
+              }}
+            >
+              <LogOut size={14} />
+              Sair
+            </button>
           </div>
         </div>
       </header>
