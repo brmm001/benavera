@@ -55,6 +55,9 @@ const ORCAMENTO_OPTIONS = [
   'Mais de 1.000',
 ];
 
+const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
+  'PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+
 export function ClinicLeadForm() {
   const router = useRouter();
   const [form, setForm] = useState<FormData>(initialForm);
@@ -89,7 +92,12 @@ export function ClinicLeadForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      // Scroll to first error
+      const firstError = document.querySelector('.input-error');
+      firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
 
     setSubmitting(true);
     setSubmitError('');
@@ -100,18 +108,18 @@ export function ClinicLeadForm() {
     const lead: Omit<ClinicLead, 'timestamp'> = {
       origem: 'website',
       tipoLead: 'clinic',
-      nome: form.nome,
-      nomeClinica: form.nomeClinica,
-      cargo: form.cargo,
+      nome: form.nome.trim(),
+      nomeClinica: form.nomeClinica.trim(),
+      cargo: form.cargo.trim(),
       whatsapp: form.whatsapp,
-      email: form.email,
-      cidade: form.cidade,
+      email: form.email.trim().toLowerCase(),
+      cidade: form.cidade.trim(),
       estado: form.estado,
-      especialidade: form.especialidade,
+      especialidade: form.especialidade.trim(),
       numeroUnidades: form.numeroUnidades || undefined,
       ticketMedio: form.ticketMedio,
       orcamentosMes: form.orcamentosMes,
-      maiorDesafio: form.maiorDesafio,
+      maiorDesafio: form.maiorDesafio.trim() || undefined,
       utmSource: utms.utmSource,
       utmMedium: utms.utmMedium,
       utmCampaign: utms.utmCampaign,
@@ -136,7 +144,7 @@ export function ClinicLeadForm() {
   ) => (
     <div>
       <label className="input-label" htmlFor={id}>
-        {label}{required && <span style={{ color: '#ef4444' }}> *</span>}
+        {label}{required && <span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>}
       </label>
       <input
         id={id}
@@ -144,34 +152,33 @@ export function ClinicLeadForm() {
         value={form[id] as string}
         onChange={(e) => updateField(id, e.target.value as FormData[keyof FormData])}
         className={`input-field${errors[id] ? ' error' : ''}`}
+        aria-invalid={!!errors[id]}
+        aria-describedby={errors[id] ? `${id}-error` : undefined}
       />
-      {errors[id] && <p className="input-error">{errors[id]}</p>}
+      {errors[id] && (
+        <p className="input-error" id={`${id}-error`} role="alert">
+          {errors[id]}
+        </p>
+      )}
     </div>
   );
 
   return (
     <form id="clinic-lead-form" onSubmit={handleSubmit} noValidate>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
         {/* Dados pessoais */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
           {inputGroup('nome', 'Nome', { type: 'text', placeholder: 'Seu nome', autoComplete: 'name' })}
           {inputGroup('cargo', 'Cargo', { type: 'text', placeholder: 'Ex: Gestor, Dentista, Sócio' })}
         </div>
 
         {inputGroup('nomeClinica', 'Nome da clínica', { type: 'text', placeholder: 'Nome da clínica ou grupo' })}
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
           <div>
             <label className="input-label" htmlFor="whatsapp">
-              WhatsApp<span style={{ color: '#ef4444' }}> *</span>
+              WhatsApp<span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>
             </label>
             <input
               id="whatsapp"
@@ -181,12 +188,17 @@ export function ClinicLeadForm() {
               onChange={(e) => updateField('whatsapp', formatPhone(e.target.value))}
               className={`input-field${errors.whatsapp ? ' error' : ''}`}
               inputMode="tel"
+              autoComplete="tel"
+              aria-invalid={!!errors.whatsapp}
+              aria-describedby={errors.whatsapp ? 'whatsapp-error' : undefined}
             />
-            {errors.whatsapp && <p className="input-error">{errors.whatsapp}</p>}
+            {errors.whatsapp && (
+              <p className="input-error" id="whatsapp-error" role="alert">{errors.whatsapp}</p>
+            )}
           </div>
           <div>
             <label className="input-label" htmlFor="email">
-              E-mail<span style={{ color: '#ef4444' }}> *</span>
+              E-mail<span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>
             </label>
             <input
               id="email"
@@ -196,17 +208,18 @@ export function ClinicLeadForm() {
               onChange={(e) => updateField('email', e.target.value)}
               className={`input-field${errors.email ? ' error' : ''}`}
               inputMode="email"
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-error' : undefined}
             />
-            {errors.email && <p className="input-error">{errors.email}</p>}
+            {errors.email && (
+              <p className="input-error" id="email-error" role="alert">{errors.email}</p>
+            )}
           </div>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-        }}>
-          {inputGroup('cidade', 'Cidade', { type: 'text', placeholder: 'Cidade principal da clínica' })}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+          {inputGroup('cidade', 'Cidade', { type: 'text', placeholder: 'Cidade da clínica', autoComplete: 'address-level2' })}
           <div>
             <label className="input-label" htmlFor="estado">Estado</label>
             <select
@@ -216,8 +229,7 @@ export function ClinicLeadForm() {
               className="select-field"
             >
               <option value="">Selecione</option>
-              {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
-                'PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map((uf) => (
+              {ESTADOS.map((uf) => (
                 <option key={uf} value={uf}>{uf}</option>
               ))}
             </select>
@@ -231,7 +243,7 @@ export function ClinicLeadForm() {
 
         <div>
           <label className="input-label" htmlFor="numeroUnidades">
-            Número aproximado de unidades (opcional)
+            Número aproximado de unidades <span style={{ fontWeight: '400', color: '#94a3b8' }}>(opcional)</span>
           </label>
           <input
             id="numeroUnidades"
@@ -243,45 +255,55 @@ export function ClinicLeadForm() {
           />
         </div>
 
-        <div>
-          <label className="input-label" htmlFor="ticketMedio">
-            Ticket médio dos tratamentos<span style={{ color: '#ef4444' }}> *</span>
-          </label>
-          <select
-            id="ticketMedio"
-            value={form.ticketMedio}
-            onChange={(e) => updateField('ticketMedio', e.target.value)}
-            className={`select-field${errors.ticketMedio ? ' error' : ''}`}
-          >
-            <option value="">Selecione</option>
-            {TICKET_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-          {errors.ticketMedio && <p className="input-error">{errors.ticketMedio}</p>}
-        </div>
-
-        <div>
-          <label className="input-label" htmlFor="orcamentosMes">
-            Quantos orçamentos são apresentados por mês?<span style={{ color: '#ef4444' }}> *</span>
-          </label>
-          <select
-            id="orcamentosMes"
-            value={form.orcamentosMes}
-            onChange={(e) => updateField('orcamentosMes', e.target.value)}
-            className={`select-field${errors.orcamentosMes ? ' error' : ''}`}
-          >
-            <option value="">Selecione</option>
-            {ORCAMENTO_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-          {errors.orcamentosMes && <p className="input-error">{errors.orcamentosMes}</p>}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+          <div>
+            <label className="input-label" htmlFor="ticketMedio">
+              Ticket médio dos tratamentos<span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>
+            </label>
+            <select
+              id="ticketMedio"
+              value={form.ticketMedio}
+              onChange={(e) => updateField('ticketMedio', e.target.value)}
+              className={`select-field${errors.ticketMedio ? ' error' : ''}`}
+              aria-invalid={!!errors.ticketMedio}
+              aria-describedby={errors.ticketMedio ? 'ticketMedio-error' : undefined}
+            >
+              <option value="">Selecione</option>
+              {TICKET_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            {errors.ticketMedio && (
+              <p className="input-error" id="ticketMedio-error" role="alert">{errors.ticketMedio}</p>
+            )}
+          </div>
+          <div>
+            <label className="input-label" htmlFor="orcamentosMes">
+              Orçamentos por mês<span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>
+            </label>
+            <select
+              id="orcamentosMes"
+              value={form.orcamentosMes}
+              onChange={(e) => updateField('orcamentosMes', e.target.value)}
+              className={`select-field${errors.orcamentosMes ? ' error' : ''}`}
+              aria-invalid={!!errors.orcamentosMes}
+              aria-describedby={errors.orcamentosMes ? 'orcamentosMes-error' : undefined}
+            >
+              <option value="">Selecione</option>
+              {ORCAMENTO_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            {errors.orcamentosMes && (
+              <p className="input-error" id="orcamentosMes-error" role="alert">{errors.orcamentosMes}</p>
+            )}
+          </div>
         </div>
 
         <div>
           <label className="input-label" htmlFor="maiorDesafio">
-            Qual é o maior desafio relacionado às formas de pagamento?
+            Qual é o maior desafio relacionado às formas de pagamento?{' '}
+            <span style={{ fontWeight: '400', color: '#94a3b8' }}>(opcional)</span>
           </label>
           <textarea
             id="maiorDesafio"
@@ -289,43 +311,37 @@ export function ClinicLeadForm() {
             onChange={(e) => updateField('maiorDesafio', e.target.value)}
             placeholder="Descreva o principal obstáculo que vocês enfrentam..."
             rows={3}
-            style={{
-              width: '100%',
-              padding: '0.875rem 1rem',
-              border: '1.5px solid #e2e8f0',
-              borderRadius: '10px',
-              fontSize: '1rem',
-              color: '#0f172a',
-              background: 'white',
-              fontFamily: 'inherit',
-              resize: 'vertical',
-              transition: 'border-color 0.15s ease',
-              outline: 'none',
-            }}
-            onFocus={(e) => { e.target.style.borderColor = '#4040ca'; }}
-            onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; }}
+            className="textarea-field"
           />
         </div>
 
         {/* Consent */}
-        <label className="checkbox-container" htmlFor="clinica-termos">
-          <input
-            id="clinica-termos"
-            type="checkbox"
-            checked={form.aceitaTermos}
-            onChange={(e) => updateField('aceitaTermos', e.target.checked)}
-            className="checkbox-input"
-          />
-          <span style={{ fontSize: '0.875rem', color: '#475569', lineHeight: '1.5' }}>
-            Li e concordo com a{' '}
-            <Link href="/privacidade" target="_blank" style={{ color: '#4040ca' }}>
-              Política de Privacidade
-            </Link>{' '}
-            e autorizo o uso dos dados para contato sobre o piloto Benavera.
-            <span style={{ color: '#ef4444' }}> *</span>
-          </span>
-        </label>
-        {errors.aceitaTermos && <p className="input-error">{errors.aceitaTermos}</p>}
+        <div>
+          <label className="checkbox-container" htmlFor="clinica-termos">
+            <input
+              id="clinica-termos"
+              type="checkbox"
+              checked={form.aceitaTermos}
+              onChange={(e) => updateField('aceitaTermos', e.target.checked)}
+              className="checkbox-input"
+              aria-invalid={!!errors.aceitaTermos}
+              aria-describedby={errors.aceitaTermos ? 'termos-error' : undefined}
+            />
+            <span style={{ fontSize: '0.875rem', color: '#475569', lineHeight: '1.6' }}>
+              Li e concordo com a{' '}
+              <Link href="/privacidade" target="_blank" style={{ color: '#4040ca', fontWeight: '600' }}>
+                Política de Privacidade
+              </Link>{' '}
+              e autorizo o uso dos dados para contato sobre o piloto Benavera.
+              <span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>
+            </span>
+          </label>
+          {errors.aceitaTermos && (
+            <p className="input-error" id="termos-error" role="alert" style={{ marginTop: '0.5rem' }}>
+              {errors.aceitaTermos}
+            </p>
+          )}
+        </div>
 
         {/* Submit */}
         <button
@@ -338,26 +354,51 @@ export function ClinicLeadForm() {
             justifyContent: 'center',
             padding: '1rem',
             fontSize: '1.0625rem',
+            marginTop: '0.25rem',
             opacity: submitting ? 0.7 : 1,
+            cursor: submitting ? 'not-allowed' : 'pointer',
           }}
         >
-          {submitting ? 'Enviando...' : 'Quero participar do piloto'}
-          {!submitting && <ArrowRight size={16} />}
+          {submitting ? (
+            <>
+              <span style={{ display: 'inline-block', animation: 'pulse 1.5s ease infinite' }}>
+                Enviando...
+              </span>
+            </>
+          ) : (
+            <>
+              Quero participar do piloto
+              <ArrowRight size={16} />
+            </>
+          )}
         </button>
 
-        {submitError && (
-          <p style={{
-            padding: '1rem',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '10px',
-            fontSize: '0.875rem',
-            color: '#dc2626',
-          }}>
-            {submitError}
+        {/* Success indicator after submit */}
+        {!submitting && !submitError && (
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#94a3b8', margin: 0 }}>
+            <CheckCircle2 size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px', color: '#309e92' }} />
+            Seus dados são tratados com sigilo. Sem spam.
           </p>
         )}
+
+        {submitError && (
+          <div style={{
+            padding: '1rem 1.25rem',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '12px',
+            fontSize: '0.875rem',
+            color: '#dc2626',
+            lineHeight: '1.6',
+          }}>
+            {submitError}
+          </div>
+        )}
       </div>
+
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+      `}</style>
     </form>
   );
 }

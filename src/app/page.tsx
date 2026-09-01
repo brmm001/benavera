@@ -63,7 +63,7 @@ export default function HomePage() {
       />
 
       {/* ===== HERO ===== */}
-      <section style={{
+      <section className="hero-section" style={{
         paddingTop: '8rem',
         paddingBottom: '5rem',
         background: 'linear-gradient(160deg, #f8fafc 0%, #f0f4ff 50%, #f8fafc 100%)',
@@ -84,14 +84,7 @@ export default function HomePage() {
         }} />
 
         <div className="container-benavera">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: '3rem',
-            alignItems: 'center',
-          }}
-          className="lg:grid-cols-2"
-          >
+          <div className="grid-lg-2" style={{ alignItems: 'center' }}>
             {/* Left: Copy */}
             <div>
               <div className="badge badge-blue" style={{ marginBottom: '1.25rem' }}>
@@ -361,19 +354,15 @@ export default function HomePage() {
 
       {/* ===== BLOCO CLÍNICAS ===== */}
       <section style={{
-        padding: '5rem 0',
+        padding: 'clamp(2.5rem, 5vw, 5rem) 0',
         background: '#1c1d4c',
         color: 'white',
       }}>
         <div className="container-benavera">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr',
+          <div className="grid-lg-2" style={{
             gap: '3rem',
             alignItems: 'center',
-          }}
-          className="lg:grid-cols-2"
-          >
+          }}>
             <div>
               <span style={{
                 display: 'inline-block',

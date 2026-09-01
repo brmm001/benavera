@@ -40,7 +40,7 @@ export interface ClinicLead {
   numeroUnidades?: string;
   ticketMedio: string;
   orcamentosMes: string;
-  maiorDesafio: string;
+  maiorDesafio?: string;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;

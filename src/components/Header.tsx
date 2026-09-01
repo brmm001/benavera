@@ -41,9 +41,9 @@ export function Header() {
         transition: 'all 0.25s ease',
         backgroundColor: scrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.95)',
         borderBottom: scrolled ? '1px solid #e2e8f0' : '1px solid transparent',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        boxShadow: scrolled ? '0 1px 16px rgba(0,0,0,0.06)' : 'none',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        boxShadow: scrolled ? '0 1px 20px rgba(0,0,0,0.06)' : 'none',
       }}
     >
       <div className="container-benavera">
@@ -67,8 +67,12 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Nav desktop */}
-          <nav aria-label="Navegação principal" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }} className="hidden md:flex">
+          {/* Nav desktop — hidden on mobile via CSS */}
+          <nav
+            aria-label="Navegação principal"
+            className="desktop-only"
+            style={{ alignItems: 'center', gap: '0.25rem', flex: 1, justifyContent: 'center' }}
+          >
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -81,14 +85,15 @@ export function Header() {
                   textDecoration: 'none',
                   borderRadius: '8px',
                   transition: 'color 0.15s ease, background 0.15s ease',
+                  whiteSpace: 'nowrap',
                 }}
                 onMouseEnter={(e) => {
-                  (e.target as HTMLElement).style.color = '#2f3181';
-                  (e.target as HTMLElement).style.background = '#f0f4ff';
+                  (e.currentTarget as HTMLElement).style.color = '#2f3181';
+                  (e.currentTarget as HTMLElement).style.background = '#f0f4ff';
                 }}
                 onMouseLeave={(e) => {
-                  (e.target as HTMLElement).style.color = '#475569';
-                  (e.target as HTMLElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLElement).style.color = '#475569';
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
                 }}
               >
                 {link.label}
@@ -97,7 +102,10 @@ export function Header() {
           </nav>
 
           {/* CTAs desktop */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }} className="hidden md:flex">
+          <div
+            className="desktop-only"
+            style={{ alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}
+          >
             <Link href="/clinicas" className="btn-secondary" style={{ padding: '0.5625rem 1.25rem', fontSize: '0.875rem' }}>
               Sou uma clínica
             </Link>
@@ -113,6 +121,7 @@ export function Header() {
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             onClick={() => setMenuOpen(!menuOpen)}
+            className="mobile-only"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -121,12 +130,12 @@ export function Header() {
               height: '44px',
               border: '1px solid #e2e8f0',
               borderRadius: '10px',
-              background: 'white',
+              background: menuOpen ? '#f0f4ff' : 'white',
               cursor: 'pointer',
-              color: '#334155',
+              color: menuOpen ? '#4040ca' : '#334155',
               flexShrink: 0,
+              transition: 'all 0.15s ease',
             }}
-            className="md:hidden"
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -146,12 +155,13 @@ export function Header() {
             right: 0,
             bottom: 0,
             backgroundColor: 'white',
-            padding: '1.5rem',
+            padding: '1.25rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.5rem',
+            gap: '0.375rem',
             overflowY: 'auto',
             zIndex: 99,
+            animation: 'fadeIn 0.2s ease',
           }}
         >
           {navLinks.map((link) => (
@@ -168,17 +178,28 @@ export function Header() {
                 borderRadius: '12px',
                 border: '1px solid #f1f5f9',
                 display: 'block',
-                transition: 'background 0.15s ease',
+                transition: 'background 0.15s ease, color 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = '#f8fafc';
+                (e.currentTarget as HTMLElement).style.color = '#0f172a';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = 'transparent';
+                (e.currentTarget as HTMLElement).style.color = '#334155';
               }}
             >
               {link.label}
             </Link>
           ))}
-          <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <Link href="/clinicas" className="btn-secondary" onClick={() => setMenuOpen(false)}>
+
+          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
+            <Link href="/clinicas" className="btn-secondary" onClick={() => setMenuOpen(false)}
+              style={{ textAlign: 'center', justifyContent: 'center' }}>
               Sou uma clínica
             </Link>
-            <Link href="/simular" className="btn-primary" onClick={() => setMenuOpen(false)}>
+            <Link href="/simular" className="btn-primary" onClick={() => setMenuOpen(false)}
+              style={{ textAlign: 'center', justifyContent: 'center' }}>
               Simular possibilidades
             </Link>
           </div>
