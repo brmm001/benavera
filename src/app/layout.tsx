@@ -1,10 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { WhatsAppButton } from '@/components/WhatsAppButton';
-import { ClarityScript } from '@/components/ClarityScript';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -15,12 +11,12 @@ const inter = Inter({
 const SITE_URL = 'https://www.benavera.com.br';
 const SITE_NAME = 'Benavera';
 const SITE_DESCRIPTION =
-  'A Benavera ajuda você a encontrar alternativas viáveis de pagamento para tratamentos particulares — odontologia, implantes, oftalmologia, cirurgias e estética. Faça uma simulação gratuita.';
+  'A Benavera conecta você a opções viáveis de parcelamento para tratamentos odontológicos, cirurgias e estética particular. Simule sem compromisso.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} | Alternativas de pagamento para tratamentos particulares`,
+    default: 'Benavera | Pagamento para tratamentos particulares',
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -44,20 +40,20 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} | Alternativas de pagamento para tratamentos particulares`,
+    title: 'Benavera | Pagamento para tratamentos particulares',
     description: SITE_DESCRIPTION,
     images: [
       {
         url: `${SITE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Benavera — Alternativas de pagamento para tratamentos particulares',
+        alt: 'Benavera — Pagamento para tratamentos particulares',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${SITE_NAME} | Alternativas de pagamento para tratamentos particulares`,
+    title: 'Benavera | Pagamento para tratamentos particulares',
     description: SITE_DESCRIPTION,
     images: [`${SITE_URL}/og-image.png`],
   },
@@ -78,35 +74,18 @@ export const metadata: Metadata = {
       process.env.GOOGLE_SITE_VERIFICATION ||
       undefined,
   },
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [
+      { url: '/apple-icon', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   alternates: {
     canonical: SITE_URL,
   },
-};
-
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Benavera',
-  url: SITE_URL,
-  logo: `${SITE_URL}/logo.png`,
-  description:
-    'A Benavera conecta pacientes a alternativas de pagamento para tratamentos de saúde particulares e apoia clínicas na viabilização de orçamentos.',
-  contactPoint: {
-    '@type': 'ContactPoint',
-    contactType: 'customer support',
-    email: 'contato@benavera.com.br',
-    availableLanguage: 'Portuguese',
-  },
-  sameAs: [],
-};
-
-const webSiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'Benavera',
-  url: SITE_URL,
-  description: SITE_DESCRIPTION,
-  inLanguage: 'pt-BR',
 };
 
 export default function RootLayout({
@@ -116,26 +95,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={inter.variable}>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationSchema),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(webSiteSchema),
-          }}
-        />
-      </head>
       <body className="antialiased bg-white text-slate-900 font-sans">
-        <ClarityScript />
-        <Header />
-        <main>{children}</main>
-        <Footer />
-        <WhatsAppButton />
+        {children}
       </body>
     </html>
   );
