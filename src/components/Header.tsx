@@ -106,11 +106,13 @@ export function Header() {
             className="desktop-only"
             style={{ alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}
           >
-            <Link href="/clinicas" className="btn-secondary" style={{ padding: '0.5625rem 1.25rem', fontSize: '0.875rem' }}>
-              Sou uma clínica
-            </Link>
-            <Link href="/simular" className="btn-primary" style={{ padding: '0.5625rem 1.25rem', fontSize: '0.875rem' }}>
-              Simular possibilidades
+            <Link
+              href="/simular"
+              id="header-simular-cta"
+              className="btn-primary"
+              style={{ padding: '0.5625rem 1.375rem', fontSize: '0.875rem' }}
+            >
+              Simular
             </Link>
           </div>
 
@@ -193,14 +195,15 @@ export function Header() {
             </Link>
           ))}
 
-          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
-            <Link href="/clinicas" className="btn-secondary" onClick={() => setMenuOpen(false)}
-              style={{ textAlign: 'center', justifyContent: 'center' }}>
-              Sou uma clínica
-            </Link>
-            <Link href="/simular" className="btn-primary" onClick={() => setMenuOpen(false)}
-              style={{ textAlign: 'center', justifyContent: 'center' }}>
-              Simular possibilidades
+          <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
+            <Link
+              href="/simular"
+              id="mobile-simular-cta"
+              className="btn-primary"
+              onClick={() => setMenuOpen(false)}
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              Simular meu tratamento
             </Link>
           </div>
         </div>

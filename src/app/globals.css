@@ -694,3 +694,187 @@ body {
     display: none;
   }
 }
+
+/* ============================================================
+   TREATMENT LIST — composição horizontal editorial
+   ============================================================ */
+
+.treatment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.treatment-list li {
+  display: flex;
+  align-items: center;
+}
+
+.treatment-list li:not(:last-child)::after {
+  content: '·';
+  margin: 0 0.875rem;
+  color: #cbd5e1;
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+.treatment-list a {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.treatment-list a:hover {
+  color: #4040ca;
+}
+
+/* ============================================================
+   NARRATIVE BLOCK — dados tipográficos sem card
+   ============================================================ */
+
+.narrative-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.narrative-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 1.5rem;
+}
+
+.narrative-row:last-child {
+  border-bottom: none;
+}
+
+.narrative-row-label {
+  font-size: 1rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.narrative-row-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.narrative-row-value.highlight {
+  font-size: 1.375rem;
+  color: #4040ca;
+}
+
+/* ============================================================
+   SECTION LABEL — variação sem pill, só uppercase
+   ============================================================ */
+
+.section-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 1.25rem;
+}
+
+/* ============================================================
+   STEPS INLINE — etapas em linha sem cards
+   ============================================================ */
+
+.steps-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .steps-inline {
+    flex-direction: row;
+    gap: 0;
+  }
+}
+
+.step-inline-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .step-inline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 1rem;
+    right: 0;
+    width: 1px;
+    height: 40px;
+    background: #e2e8f0;
+    transform: translateX(50%);
+  }
+
+  .step-inline-item {
+    padding: 0 2rem;
+  }
+
+  .step-inline-item:first-child {
+    padding-left: 0;
+  }
+
+  .step-inline-item:last-child {
+    padding-right: 0;
+  }
+}
+
+.step-inline-number {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4040ca;
+}
+
+.step-inline-title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.step-inline-desc {
+  font-size: 0.9375rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ============================================================
+   LINK MUTED — link discreto com hover em azul
+   ============================================================ */
+
+.link-muted {
+  font-size: 0.9375rem;
+  color: #64748b;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: color 0.15s ease;
+}
+
+.link-muted:hover {
+  color: #4040ca;
+}

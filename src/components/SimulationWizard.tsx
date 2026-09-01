@@ -18,10 +18,11 @@ const STEPS = [
 ];
 
 const TREATMENTS = [
-  'Odontológico',
-  'Oftalmológico',
+  'Odontologia',
+  'Implantes e próteses',
+  'Oftalmologia',
   'Cirurgia / procedimento',
-  'Estético',
+  'Estética',
   'Outro',
 ];
 
@@ -242,10 +243,10 @@ export function SimulationWizard() {
               marginBottom: '0.75rem',
               letterSpacing: '-0.02em',
             }}>
-              Qual é o tratamento que você está considerando?
+              Qual tratamento você está planejando?
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Não precisa ser exato. Escolha a categoria mais próxima.
+              Escolha a categoria mais próxima.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {TREATMENTS.map((t) => (
@@ -287,10 +288,10 @@ export function SimulationWizard() {
               marginBottom: '0.75rem',
               letterSpacing: '-0.02em',
             }}>
-              Você já possui um orçamento?
+              Você já tem um orçamento em mãos?
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Caso tenha um orçamento, ele torna a simulação mais precisa.
+              Com o valor fica mais fácil estimar as parcelas.
             </p>
 
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
@@ -351,10 +352,10 @@ export function SimulationWizard() {
               marginBottom: '0.75rem',
               letterSpacing: '-0.02em',
             }}>
-              Quanto você conseguiria dar de entrada?
+              Quanto você consegue dar de entrada?
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Uma entrada reduz o valor a ser financiado, mas não é obrigatória.
+              A entrada reduz o valor a parcelar. Não é obrigatória.
             </p>
 
             <div style={{ marginBottom: '1rem' }}>
@@ -403,10 +404,10 @@ export function SimulationWizard() {
               marginBottom: '0.75rem',
               letterSpacing: '-0.02em',
             }}>
-              Qual parcela caberia confortavelmente no seu orçamento?
+              Quanto você quer pagar por mês?
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Pense no valor que você conseguiria pagar por mês sem comprometer outras necessidades.
+              Pense no valor que caberia no seu orçamento mensal sem apertar.
             </p>
 
             <div style={{
@@ -527,10 +528,10 @@ export function SimulationWizard() {
               marginBottom: '0.375rem',
               letterSpacing: '-0.02em',
             }}>
-              Pronto. Agora precisamos saber como falar com você.
+              Precisamos de algumas informações para continuar.
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Seus dados são tratados com responsabilidade e usados apenas para processar sua solicitação.
+              Seus dados são usados apenas para processar sua solicitação.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>

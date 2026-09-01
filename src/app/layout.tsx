@@ -14,20 +14,23 @@ const inter = Inter({
 const SITE_URL = 'https://benavera.com.br';
 const SITE_NAME = 'Benavera';
 const SITE_DESCRIPTION =
-  'Entenda possibilidades de pagamento para seu tratamento ou conheça como a Benavera pode ajudar sua clínica a reduzir orçamentos perdidos.';
+  'A Benavera ajuda você a encontrar formas de pagar tratamentos particulares — odontologia, implantes, oftalmologia, cirurgias e estética. Faça uma simulação gratuita.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} | Possibilidades de pagamento para tratamentos`,
+    default: `${SITE_NAME} | Como pagar seu tratamento particular`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   keywords: [
+    'como pagar tratamento particular',
     'financiamento tratamento odontológico',
     'parcelamento implante dentário',
-    'como pagar tratamento odontológico',
-    'financiamento odontológico',
+    'como pagar implante dentário',
+    'financiamento cirurgia particular',
+    'parcelamento tratamento estético',
+    'como parcelar tratamento odontológico',
     'benavera',
   ],
   authors: [{ name: 'Benavera', url: SITE_URL }],
@@ -37,20 +40,20 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} | Possibilidades de pagamento para tratamentos`,
+    title: `${SITE_NAME} | Como pagar seu tratamento particular`,
     description: SITE_DESCRIPTION,
     images: [
       {
         url: `${SITE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Benavera — Possibilidades de pagamento para tratamentos',
+        alt: 'Benavera — Como pagar seu tratamento particular',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${SITE_NAME} | Possibilidades de pagamento para tratamentos`,
+    title: `${SITE_NAME} | Como pagar seu tratamento particular`,
     description: SITE_DESCRIPTION,
     images: [`${SITE_URL}/og-image.png`],
   },
@@ -79,7 +82,7 @@ const organizationSchema = {
   name: 'Benavera',
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
-  description: SITE_DESCRIPTION,
+  description: 'A Benavera ajuda pessoas a encontrar formas viáveis de pagar tratamentos particulares — odontologia, implantes, oftalmologia, cirurgias e procedimentos estéticos.',
   sameAs: [],
 };
 
