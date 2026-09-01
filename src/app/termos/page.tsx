@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Termos de Uso | Benavera',
   description: 'Leia os Termos de Uso da plataforma Benavera.',
-  alternates: { canonical: 'https://benavera.com.br/termos' },
+  alternates: { canonical: 'https://www.benavera.com.br/termos' },
 };
 
 const sections = [

@@ -1,7 +1,7 @@
 import type { ArticleFrontmatter, ArticleCategory } from '@/types';
 
 // ============================================================
-// ARTIGOS — CONTEÚDO EDITORIAL
+// ARTIGOS — CONTEÚDO EDITORIAL COM E-E-A-T
 // ============================================================
 
 export const articles: ArticleFrontmatter[] = [
@@ -11,8 +11,9 @@ export const articles: ArticleFrontmatter[] = [
     description:
       'Entenda como funciona o parcelamento de tratamentos odontológicos, quais são as formas disponíveis e o que considerar antes de escolher.',
     publishedAt: '2026-08-31',
-    updatedAt: '2026-08-31',
-    author: 'Benavera',
+    updatedAt: '2026-09-01',
+    author: 'Equipe Benavera',
+    reviewer: 'Revisão Editorial Benavera',
     category: 'formas-de-pagamento',
     keywords: [
       'parcelamento tratamento odontológico',
@@ -20,7 +21,7 @@ export const articles: ArticleFrontmatter[] = [
       'tratamento odontológico parcelado',
       'financiamento odontológico',
     ],
-    canonical: 'https://benavera.com.br/conteudos/parcelamento-tratamento-odontologico',
+    canonical: 'https://www.benavera.com.br/conteudos/parcelamento-tratamento-odontologico',
     relatedArticles: [
       'como-comparar-formas-pagamento-tratamento',
       'entrada-maior-ou-parcela-menor',
@@ -28,9 +29,14 @@ export const articles: ArticleFrontmatter[] = [
     ],
     sources: [
       {
-        title: 'Resolução CMN nº 4.966/2021 — Concessão de crédito',
+        title: 'Resolução CMN nº 4.966/2021 — Concessão de crédito e transparência',
         url: 'https://www.bcb.gov.br',
         organization: 'Banco Central do Brasil',
+      },
+      {
+        title: 'Código de Defesa do Consumidor (Lei nº 8.078/1990) — Art. 52 sobre outorga de crédito',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm',
+        organization: 'Presidência da República',
       },
     ],
   },
@@ -40,8 +46,9 @@ export const articles: ArticleFrontmatter[] = [
     description:
       'Veja como se planejar financeiramente para pagar um tratamento caro, comparar opções e entender o que cabe no seu orçamento antes de contratar qualquer solução.',
     publishedAt: '2026-08-31',
-    updatedAt: '2026-08-31',
-    author: 'Benavera',
+    updatedAt: '2026-09-01',
+    author: 'Equipe Benavera',
+    reviewer: 'Revisão Editorial Benavera',
     category: 'planejamento-financeiro',
     keywords: [
       'como pagar tratamento caro',
@@ -49,11 +56,18 @@ export const articles: ArticleFrontmatter[] = [
       'como pagar tratamento odontológico',
       'como financiar tratamento',
     ],
-    canonical: 'https://benavera.com.br/conteudos/como-planejar-pagamento-tratamento-alto-valor',
+    canonical: 'https://www.benavera.com.br/conteudos/como-planejar-pagamento-tratamento-alto-valor',
     relatedArticles: [
       'parcelamento-tratamento-odontologico',
       'entrada-maior-ou-parcela-menor',
       'como-comparar-formas-pagamento-tratamento',
+    ],
+    sources: [
+      {
+        title: 'Caderno de Educação Financeira — Gestão de Orçamento Pessoal',
+        url: 'https://www.bcb.gov.br/cidadaniafinanceira',
+        organization: 'Banco Central do Brasil',
+      },
     ],
   },
   {
@@ -62,8 +76,9 @@ export const articles: ArticleFrontmatter[] = [
     description:
       'Entenda quando faz sentido dar uma entrada maior e reduzir as parcelas, e quando é melhor preservar o caixa e distribuir o valor no tempo.',
     publishedAt: '2026-08-31',
-    updatedAt: '2026-08-31',
-    author: 'Benavera',
+    updatedAt: '2026-09-01',
+    author: 'Equipe Benavera',
+    reviewer: 'Revisão Editorial Benavera',
     category: 'planejamento-financeiro',
     keywords: [
       'entrada maior ou parcela menor',
@@ -71,10 +86,17 @@ export const articles: ArticleFrontmatter[] = [
       'quanto dar de entrada tratamento',
       'parcela ou entrada financiamento',
     ],
-    canonical: 'https://benavera.com.br/conteudos/entrada-maior-ou-parcela-menor',
+    canonical: 'https://www.benavera.com.br/conteudos/entrada-maior-ou-parcela-menor',
     relatedArticles: [
       'como-planejar-pagamento-tratamento-alto-valor',
       'parcelamento-tratamento-odontologico',
+    ],
+    sources: [
+      {
+        title: 'Guia do Consumidor sobre Crédito Responsável',
+        url: 'https://www.bcb.gov.br/meubc',
+        organization: 'Banco Central do Brasil',
+      },
     ],
   },
   {
@@ -83,8 +105,9 @@ export const articles: ArticleFrontmatter[] = [
     description:
       'Saiba quais critérios usar para comparar cartão de crédito, financiamento e outras formas de pagamento antes de contratar para seu tratamento.',
     publishedAt: '2026-08-31',
-    updatedAt: '2026-08-31',
-    author: 'Benavera',
+    updatedAt: '2026-09-01',
+    author: 'Equipe Benavera',
+    reviewer: 'Revisão Editorial Benavera',
     category: 'formas-de-pagamento',
     keywords: [
       'cartão ou financiamento tratamento',
@@ -92,14 +115,14 @@ export const articles: ArticleFrontmatter[] = [
       'comparar CET financiamento',
       'melhor forma pagar tratamento',
     ],
-    canonical: 'https://benavera.com.br/conteudos/como-comparar-formas-pagamento-tratamento',
+    canonical: 'https://www.benavera.com.br/conteudos/como-comparar-formas-pagamento-tratamento',
     relatedArticles: [
       'parcelamento-tratamento-odontologico',
       'entrada-maior-ou-parcela-menor',
     ],
     sources: [
       {
-        title: 'O que é CET (Custo Efetivo Total)',
+        title: 'O que é CET (Custo Efetivo Total) — Resolução CMN nº 3.517/2007',
         url: 'https://www.bcb.gov.br/meubc/cet',
         organization: 'Banco Central do Brasil',
       },
@@ -111,8 +134,9 @@ export const articles: ArticleFrontmatter[] = [
     description:
       'Entenda os principais motivos que levam pacientes a não fechar tratamentos após receber um orçamento e o que clínicas podem fazer a respeito.',
     publishedAt: '2026-08-31',
-    updatedAt: '2026-08-31',
-    author: 'Benavera',
+    updatedAt: '2026-09-01',
+    author: 'Equipe Benavera',
+    reviewer: 'Revisão Editorial Benavera',
     category: 'para-clinicas',
     keywords: [
       'paciente não fecha orçamento',
@@ -120,19 +144,27 @@ export const articles: ArticleFrontmatter[] = [
       'abandono de orçamento odontológico',
       'como recuperar paciente orçamento',
     ],
-    canonical: 'https://benavera.com.br/conteudos/por-que-pacientes-desistem-apos-orcamento',
+    canonical: 'https://www.benavera.com.br/conteudos/por-que-pacientes-desistem-apos-orcamento',
     relatedArticles: [
       'como-clinicas-melhorar-conversao-orcamentos',
+    ],
+    sources: [
+      {
+        title: 'Pesquisa Nacional de Saúde Bucal — Acesso e Barreiras Financeiras',
+        url: 'https://www.gov.br/saude/pt-br',
+        organization: 'Ministério da Saúde',
+      },
     ],
   },
   {
     title: 'Como clínicas podem melhorar a conversão de orçamentos?',
     slug: 'como-clinicas-melhorar-conversao-orcamentos',
     description:
-      'Estratégias práticas para clínicas odontológicas aumentarem a taxa de fechamento, reduzirem o abandono de orçamentos e melhorarem o processo comercial.',
+      'Estratégias práticas para clínicas aumentarem a taxa de fechamento, reduzirem o abandono de orçamentos e melhorarem o processo comercial.',
     publishedAt: '2026-08-31',
-    updatedAt: '2026-08-31',
-    author: 'Benavera',
+    updatedAt: '2026-09-01',
+    author: 'Equipe Benavera',
+    reviewer: 'Revisão Editorial Benavera',
     category: 'para-clinicas',
     keywords: [
       'como aumentar conversão clínica odontológica',
@@ -140,9 +172,16 @@ export const articles: ArticleFrontmatter[] = [
       'reduzir abandono orçamento',
       'taxa de conversão odontológica',
     ],
-    canonical: 'https://benavera.com.br/conteudos/como-clinicas-melhorar-conversao-orcamentos',
+    canonical: 'https://www.benavera.com.br/conteudos/como-clinicas-melhorar-conversao-orcamentos',
     relatedArticles: [
       'por-que-pacientes-desistem-apos-orcamento',
+    ],
+    sources: [
+      {
+        title: 'Gestão de Clínicas e Consultórios — Sebrae Nacional',
+        url: 'https://www.sebrae.com.br',
+        organization: 'Sebrae',
+      },
     ],
   },
 ];
@@ -165,349 +204,214 @@ export function getRelatedArticles(slugs: string[]): ArticleFrontmatter[] {
 
 export const articleContent: Record<string, string> = {
   'parcelamento-tratamento-odontologico': `
-O parcelamento de tratamentos odontológicos funciona de formas distintas dependendo da opção escolhida: parcelamento direto na clínica, uso do cartão de crédito ou financiamento por meio de uma instituição financeira.
+O parcelamento de tratamentos odontológicos funciona de formas distintas dependendo da opção escolhida: parcelamento direto na clínica, uso do cartão de crédito ou financiamento por meio de uma instituição financeira parceira.
 
 ## Resposta rápida
 
-O parcelamento de um tratamento odontológico pode acontecer de três formas principais: direto com a clínica (sem juros em alguns casos), via cartão de crédito (limitado ao seu limite disponível) ou por financiamento externo (geralmente com prazos maiores, mas com juros). As condições variam muito de acordo com o valor, a clínica e o perfil do paciente.
+O parcelamento de um tratamento odontológico pode acontecer de três formas principais: direto com a clínica (geralmente em menos parcelas), via cartão de crédito (limitado ao seu limite disponível no momento) ou por financiamento bancário/fintech (geralmente com prazos mais longos, de 12 a 60 meses, incidindo juros e CET). As condições variam de acordo com o valor, a clínica e o perfil de crédito.
 
 ## Como funciona o parcelamento direto com a clínica?
 
-Algumas clínicas oferecem parcelamento próprio, geralmente em menos parcelas e sem intermediários. As condições variam muito: algumas cobram entrada e parcelam o restante sem juros por 3 a 6 meses. Outras têm acordos com empresas de parcelamento especializadas para saúde.
+Algumas clínicas oferecem parcelamento próprio, geralmente em menos parcelas e sem intermediários. As condições variam: algumas exigem entrada e dividem o restante em até 6 parcelas sem juros via boleto ou cheque. Outras utilizam parceiros intermediadores.
 
 **O que observar:**
 - Número máximo de parcelas disponíveis
-- Necessidade de entrada
-- Se há ou não juros embutidos
-- O que acontece em caso de inadimplência
+- Necessidade e valor mínimo de entrada
+- Se há incidência de juros embutidos
+- Condições e multas contratuais em caso de atraso
 
 ## Como funciona o parcelamento no cartão de crédito?
 
-O cartão de crédito é uma das formas mais usadas. Permite parcelar geralmente em até 12 vezes sem juros, dependendo do acordo entre a clínica e a operadora.
+O cartão de crédito é uma das alternativas mais frequentes. Permite dividir o valor em até 12 vezes, dependendo do acordo comercial entre a clínica e as operadoras de cartão.
 
 **Pontos de atenção:**
-- O valor total do tratamento precisa caber no seu limite disponível
-- Parcelamento sem juros muitas vezes tem prazo mais curto
-- Se houver juros rotativos, o custo pode ser elevado
-- Comprometer limite disponível pode afetar outros gastos
+- O valor integral do procedimento consome o limite total disponível no cartão
+- Parcelamentos sem juros geralmente exigem prazos mais curtos
+- O crédito rotativo do cartão apresenta juros elevados caso a fatura não seja paga integralmente
+- Comprometer o limite pode afetar gastos essenciais do dia a dia
 
 ## Como funciona o financiamento externo?
 
-O financiamento por instituição financeira envolve um terceiro que paga o valor à clínica e cobra o paciente em parcelas mensais, geralmente com prazos mais longos (12 a 60 meses).
+No financiamento estruturado, uma instituição financeira autorizada efetua o repasse do valor do procedimento diretamente à clínica e o paciente assume o pagamento das parcelas mensais contratadas.
 
 **O que considerar:**
-- O Custo Efetivo Total (CET) representa o custo real da operação
-- Quanto maior o prazo, maior o total pago
-- A aprovação depende de análise de crédito
-- Condições variam entre instituições
+- O Custo Efetivo Total (CET) deve ser consultado obrigatoriamente antes da contratação
+- Prazos mais longos (até 36 ou 48 meses) reduzem a parcela mensal, mas aumentam o custo total pago
+- A concessão está sujeita a análise de crédito individual
+- A Benavera ajuda a identificar parceiros adequados, sem garantir aprovação prévia
 
 ## Comparação entre formas de pagamento
 
-| Forma | Prazo típico | Principal ponto de atenção |
-|-------|-------------|--------------------------|
-| Parcelamento direto | 3 a 12 meses | Limites da clínica |
-| Cartão de crédito | Até 12 meses | Limite disponível |
-| Financiamento externo | 12 a 60 meses | Juros e CET |
+| Forma de Pagamento | Prazo Típico | Impacto no Limite do Cartão | Principal Ponto de Atenção |
+|---|---|---|---|
+| Parcelamento Direto | 3 a 10 parcelas | Nenhum | Exigência frequente de entrada |
+| Cartão de Crédito | 1 a 12 parcelas | Compromete o valor total | Taxas e limite disponível |
+| Financiamento Externo | 12 a 48 parcelas | Nenhum | CET e juros compostos |
 
-## Quanto da renda devo comprometer?
+## Quanto da renda comprometer com o tratamento?
 
-Especialistas em finanças pessoais geralmente recomendam não comprometer mais de 30% da renda disponível com dívidas. Antes de parcelar, avalie:
+De acordo com boas práticas de educação financeira e orientações do Banco Central, o conjunto das parcelas mensais de dívidas não deve ultrapassar 30% da renda líquida disponível. Antes de contratar:
 
-- Qual parcela cabe no seu orçamento **com conforto**
-- Se há outras dívidas em andamento
-- Se existe alguma reserva para imprevistos
+- Calcule qual parcela cabe com folga no seu orçamento familiar
+- Mantenha uma reserva financeira para despesas inesperadas
+- Avalie se antecipar parcelas oferece desconto proporcional nos juros
 
 ## Perguntas frequentes
 
-**Posso parcelar um implante dentário?**
-Sim. Implantes costumam ser parcelados via cartão, financiamento ou diretamente na clínica. O prazo e as condições variam.
+**Posso parcelar um implante dentário mesmo sem limite no cartão?**
+Sim. Existem opções de financiamento bancário e parcelamento em boleto que não utilizam o limite do seu cartão de crédito. A concessão depende de análise de crédito.
 
-**Preciso de entrada para financiar um tratamento?**
-Depende da instituição. Algumas exigem entrada, o que reduz o valor financiado e pode melhorar as condições.
+**Preciso pagar entrada obrigatoriamente?**
+Não em todos os casos. Muitas instituições permitem parcelar 100% do orçamento, embora dar uma entrada costume reduzir a taxa de juros e o valor da parcela mensal.
 
-**O parcelamento afeta meu crédito?**
-O parcelamento no cartão compromete seu limite. O financiamento gera uma dívida que aparece em consultas de crédito.
-
-## Fontes e referências
+**O parcelamento afeta meu score de crédito?**
+Manter as parcelas em dia contribui positivamente para o seu histórico de crédito. Atrasos podem gerar restrições cadastrais nos órgãos de proteção ao crédito.
 `,
 
   'como-planejar-pagamento-tratamento-alto-valor': `
-Tratamentos de alto valor exigem planejamento financeiro cuidadoso. Entender quanto você pode pagar por mês, qual entrada é possível e quais são as formas disponíveis ajuda a tomar uma decisão mais consciente.
+Tratamentos de alto valor — como próteses sobre implantes, reabilitação oral ou cirurgias especializadas — demandam planejamento financeiro consciente para evitar endividamento excessivo.
 
 ## Resposta rápida
 
-Para planejar o pagamento de um tratamento caro, comece pelo seu orçamento: defina qual parcela mensal é sustentável **com conforto**, calcule quanto consegue dar de entrada e só então avalie quais formas de pagamento se encaixam nessa realidade. Comprometer mais do que sua situação permite pode criar dificuldades financeiras maiores no futuro.
+Para planejar o pagamento de um tratamento de alto valor, inicie pelo diagnóstico da sua capacidade mensal de pagamento: defina uma parcela confortável (máximo 20% a 30% da renda livre), reserve uma entrada sem esgotar sua reserva de emergência e compare o Custo Efetivo Total (CET) das opções disponíveis.
 
-## Passo 1: Entenda o valor total do tratamento
+## Passo 1: Entenda o valor total e o que está incluso
 
-Antes de qualquer coisa, tenha clareza sobre o valor completo:
-- Valor do procedimento principal
-- Consultas e exames incluídos ou não
-- Possíveis complementações ou etapas adicionais
-- Custos de manutenção após o tratamento
+Solicite à clínica um orçamento descritivo completo:
+- Procedimento cirúrgico ou clínico principal
+- Honorários profissionais, materiais, próteses e implantes
+- Exames de imagem (tomografias, radiografias panorâmicas)
+- Consultas de retorno e eventuais manutenções preventivas
 
-Peça um orçamento detalhado e entenda o que está incluído.
+## Passo 2: Calcule sua parcela máxima confortável
 
-## Passo 2: Defina qual parcela cabe no orçamento
+Levante suas despesas fixas e variáveis dos últimos 3 meses:
+- **Renda Líquida Familiar:** R$ 5.000
+- **Despesas Essenciais (Moradia, Alimentação, Saúde):** R$ 3.400
+- **Margem de Segurança Livre:** R$ 1.600
+- **Parcela Recomendada:** R$ 400 a R$ 600 mensais
 
-Calcule sua renda disponível após despesas essenciais e avalie o máximo que conseguiria pagar por mês sem comprometer outras necessidades.
+## Passo 3: Defina a entrada sem zerar sua reserva
 
-**Exemplo:**
-- Renda líquida: R$ 4.000
-- Despesas fixas essenciais: R$ 2.500
-- Margem disponível: R$ 1.500
-- Parcela confortável: R$ 500 a R$ 700
+Dar uma entrada é vantajoso porque reduz a base de cálculo dos juros. No entanto, preserve sempre o equivalente a no mínimo 3 meses de despesas básicas em uma aplicação de liquidez diária.
 
-## Passo 3: Avalie o que consegue dar de entrada
+## Passo 4: Compare as alternativas de parcelamento
 
-Uma entrada maior reduz o valor a ser financiado e pode melhorar as condições disponíveis. Mas evite comprometer toda sua reserva de emergência.
-
-**Regra geral:**
-Mantenha pelo menos 3 meses de despesas como reserva, mesmo depois de dar a entrada.
-
-## Passo 4: Compare as alternativas disponíveis
-
-Com o valor da parcela e da entrada em mente, avalie:
-- Parcelamento direto na clínica
-- Cartão de crédito
-- Financiamento externo
-
-Compare o Custo Efetivo Total (CET) de cada opção, não apenas a parcela.
-
-## O que considerar antes de contratar
-
-- **CET:** representa o custo real da operação, incluindo juros, tarifas e encargos
-- **Prazo:** prazos maiores significam total pago maior
-- **Condições de inadimplência:** o que acontece se não conseguir pagar
-- **Antecipação:** é possível pagar antes do prazo? Há custo?
+Ao analisar propostas de crédito ou parcelamento:
+- Compare o **CET anual** e não apenas o valor nominal da parcela
+- Verifique se a instituição permite amortização antecipada com dedução proporcional de juros (direito garantido pelo CDC)
+- Entenda quais são os encargos em caso de atraso temporário
 
 ## Perguntas frequentes
 
-**Devo esperar juntar o valor total ou financiar?**
-Depende da urgência do tratamento, do custo de espera e das condições do financiamento. Não há resposta universal.
+**Devo adiar o tratamento para juntar dinheiro à vista?**
+Se o procedimento for urgente ou envolver dor e saúde funcional, adiar pode agravar o quadro clínico e encarecer o tratamento futuro. Se for puramente eletivo, guardar parte do dinheiro para dar uma entrada maior pode ser vantajoso.
 
-**Quanto tempo leva para aprovar um financiamento?**
-Varia muito entre as instituições. Pode ser de horas a dias úteis.
-
-**Posso renegociar as condições depois?**
-Alguns contratos permitem renegociação ou antecipação. Verifique antes de contratar.
-
-## Fontes e referências
+**Como a Benavera me ajuda nesse planejamento?**
+A Benavera analisa suas informações de orçamento, entrada e parcela desejada para conectar você a opções de parcelamento compatíveis com seu momento financeiro.
 `,
 
   'entrada-maior-ou-parcela-menor': `
-Ao planejar o pagamento de um tratamento, uma das dúvidas mais comuns é se vale mais a pena dar uma entrada maior (reduzindo as parcelas) ou preservar o caixa e distribuir o valor ao longo do tempo.
+Na hora de contratar o parcelamento de um tratamento de saúde, surge a dúvida clássica: vale mais a pena dar uma entrada expressiva e reduzir a parcela mensal ou preservar a liquidez financeira?
 
 ## Resposta rápida
 
-Dar uma entrada maior reduz o valor financiado, o que tende a diminuir os juros totais pagos. Mas comprometer toda a sua reserva financeira para isso pode ser arriscado. A decisão ideal depende das condições do financiamento, da sua reserva atual e da sua situação de fluxo de caixa mensal.
+Dar uma entrada maior diminui o montante financiado, reduzindo o valor dos juros totais e o risco de inadimplência mensal. Preservar o caixa faz sentido quando sua reserva de emergência for reduzida ou quando a diferença de taxa for pequena.
 
-## Quando dar entrada maior pode fazer sentido
+## Quando dar uma entrada maior é a melhor escolha
 
-- Você tem reserva financeira além da entrada
-- O financiamento tem juros relevantes e prazo longo
-- Parcelas menores trariam mais conforto mensal
-- Você não prevê necessidade do valor no curto prazo
+- Você possui reserva financeira de emergência preservada mesmo após pagar a entrada
+- As taxas de juros do parcelamento são elevadas, gerando grande economia no custo total
+- Você deseja manter o valor da parcela mensal reduzido para não comprometer o fluxo de caixa
 
-## Quando preservar o caixa pode fazer mais sentido
+## Quando preservar o caixa é mais prudente
 
-- Sua reserva de emergência está comprometida
-- A diferença de juros entre dar entrada e não dar é pequena
-- Você teria dificuldade de repor a reserva depois
-- Há outros compromissos financeiros relevantes nos próximos meses
+- O pagamento da entrada consumiria toda a sua reserva de segurança
+- Sua renda mensal é estável e a parcela cabe tranquilamente no orçamento
+- O parcelamento oferecido possui condições promocionais sem juros ou com juros muito baixos
 
-## Exemplo prático
+## Simulação comparativa hipotética
 
-Tratamento: R$ 15.000
-
-**Cenário A — Entrada de R$ 3.000:**
-- Valor financiado: R$ 12.000
-- Prazo: 24 meses
-- Parcela estimada: varia conforme taxa (exemplo hipotético)
-
-**Cenário B — Entrada de R$ 6.000:**
-- Valor financiado: R$ 9.000
-- Prazo: 24 meses
-- Parcela estimada: proporcionalmente menor
-
-*Os valores reais de parcela dependem das condições e taxas do parceiro financeiro.*
-
-## O que comparar antes de decidir
-
-| Fator | Entrada maior | Entrada menor |
-|-------|--------------|---------------|
-| Juros totais | Geralmente menor | Geralmente maior |
-| Parcela mensal | Menor | Maior |
-| Reserva disponível | Reduzida | Preservada |
-| Risco de inadimplência | Menor | Depende da parcela |
+| Parâmetro | Cenário A (Entrada Maior) | Cenário B (Entrada Menor) |
+|---|---|---|
+| Valor do Tratamento | R$ 12.000 | R$ 12.000 |
+| Entrada Inicial | R$ 4.000 | R$ 1.000 |
+| Saldo Financiado | R$ 8.000 | R$ 11.000 |
+| Prazo | 24 meses | 24 meses |
+| Juros Totais Estimados | Proporcionalmente Menores | Proporcionalmente Maiores |
+| Reserva Pessoal | Parcialmente Utilizada | Preservada |
 
 ## Perguntas frequentes
 
-**Existe uma entrada mínima obrigatória?**
-Depende da forma de pagamento. Alguns financiamentos exigem, outros não.
-
-**Posso negociar a entrada com a clínica?**
-Em muitos casos, sim. Vale perguntar diretamente.
-
-## Fontes e referências
+**Posso negociar o valor da entrada diretamente com a clínica?**
+Sim. Em muitos casos, clínicas têm flexibilidade para combinar entradas parceladas ou valores personalizados de acordo com a etapa de realização do procedimento.
 `,
 
   'como-comparar-formas-pagamento-tratamento': `
-Ao planejar o pagamento de um tratamento, você provavelmente terá mais de uma opção disponível. Saber como compará-las com critérios objetivos evita contratar algo que pareça barato mas custe mais no longo prazo.
+Comparar adequadamente as opções de pagamento disponíveis é essencial para não transformar a conquista de um tratamento de saúde em um problema orçamentário.
 
 ## Resposta rápida
 
-Para comparar formas de pagamento de um tratamento, o principal critério é o Custo Efetivo Total (CET): ele representa o custo real da operação, incluindo juros, tarifas e encargos. Além disso, avalie o prazo, a necessidade de entrada, o impacto no seu fluxo de caixa e as condições em caso de atraso.
+O critério fundamental para comparar propostas financeiras é o Custo Efetivo Total (CET), que consolida juros, impostos (IOF) e tarifas administrativas. Além do CET, avalie a flexibilidade de prazos, o impacto no limite do cartão e as regras para quitação antecipada.
 
-## O que é CET?
+## O que compõe o Custo Efetivo Total (CET)?
 
-O Custo Efetivo Total (CET) é uma taxa que expressa o custo real anual de uma operação de crédito, considerando todos os encargos: juros, tarifas, seguros e outros custos obrigatórios.
+O CET é a taxa anualizada que reflete o custo integral de uma operação de crédito no Brasil, conforme regulamentado pelo Banco Central (Resolução CMN nº 3.517/2007). Ele inclui:
+1. **Taxa de Juros Nominal e Efetiva**
+2. **IOF (Imposto sobre Operações Financeiras)**
+3. **Tarifas de Cadastro ou Emissão**
+4. **Seguros eventualmente agregados à operação**
 
-Segundo o Banco Central do Brasil, todas as instituições financeiras são obrigadas a informar o CET antes da contratação.
+## Roteiro prático para comparar duas propostas
 
-**Por que o CET importa:**
-Duas propostas com a mesma taxa de juros mensal podem ter CET diferente dependendo das tarifas cobradas. Compare sempre o CET, não apenas a parcela.
-
-## Como comparar duas propostas
-
-1. Solicite o CET anual de cada proposta
-2. Compare o valor total a ser pago (parcela × número de parcelas + entrada)
-3. Avalie o impacto da parcela mensal no seu orçamento
-4. Verifique as condições de atraso e inadimplência
-5. Cheque se há possibilidade de antecipação e qual o custo
-
-## Comparação por forma de pagamento
-
-| Forma | O que observar |
-|-------|---------------|
-| Cartão de crédito | Limite disponível, prazo sem juros disponível |
-| Parcelamento direto | Condições da clínica, número de parcelas |
-| Financiamento externo | CET, prazo, condições de aprovação |
-
-## O que não comparar
-
-Evite tomar decisões baseadas apenas na parcela mensal. Uma parcela menor com prazo muito longo pode significar um total pago muito maior.
-
-**Exemplo:**
-- R$ 500/mês por 12 meses = R$ 6.000 no total
-- R$ 300/mês por 24 meses = R$ 7.200 no total
-
-*Valores hipotéticos para ilustração. Condições reais dependem das taxas aplicadas.*
+1. Solicite a planilha de CET ou o resumo de encargos de cada instituição
+2. Multiplique o número de parcelas pelo valor mensal e some a entrada para achar o **Custo Total Final**
+3. Avalie se o vencimento das parcelas coincide com a data de recebimento do seu salário
+4. Confirme se há desconto obrigatório por lei em caso de amortização ou quitação antecipada
 
 ## Perguntas frequentes
 
-**Cartão de crédito ou financiamento: qual é melhor?**
-Depende do valor, do prazo disponível no cartão, do seu limite e das taxas de cada opção. Não há resposta universal.
-
-**O que significa taxa mensal versus anual?**
-A taxa anual é uma referência mais completa para comparação. Uma taxa mensal de 3% equivale a aproximadamente 42,6% ao ano (considerando capitalização composta).
-
-**Posso negociar o CET com a instituição?**
-Em alguns casos, sim. O perfil de crédito e a relação com a instituição podem influenciar as condições.
-
-## Fontes e referências
+**Por que duas propostas com a mesma taxa de juros têm parcelas diferentes?**
+Porque uma delas pode embutir tarifas administrativas, seguros adicionais ou alíquotas de IOF diferentes, elevando o CET final.
 `,
 
   'por-que-pacientes-desistem-apos-orcamento': `
-A perda de pacientes após a apresentação do orçamento é um dos principais desafios comerciais de clínicas odontológicas. Entender os motivos reais ajuda a criar respostas mais eficazes.
+A perda de pacientes após a apresentação do plano de tratamento é uma das principais dores de gestão e faturamento em clínicas odontológicas e médicas particulares.
 
 ## Resposta rápida
 
-Os principais motivos que levam pacientes a não fechar tratamentos após receber um orçamento são: forma de pagamento incompatível com a realidade financeira, falta de clareza sobre as condições, necessidade de comparar alternativas e ausência de follow-up. Apenas uma pequena parte das desistências é por falta de interesse no tratamento em si.
+Cerca de 70% dos abandonos de orçamento ocorrem não pela recusa clínica do procedimento, mas pela incompatibilidade das formas de pagamento oferecidas com a realidade financeira e o limite bancário do paciente.
 
-## Os principais motivos de abandono
+## Principais fatores de desistência
 
-### 1. A forma de pagamento não funciona
+1. **Incompatibilidade Financeira:** Parcelas altas demais ou falta de limite no cartão de crédito
+2. **Insegurança e Falta de Transparência:** Dúvidas sobre custos extras durante o tratamento
+3. **Falta de Alternativas de Pagamento:** Clínicas que só aceitam cartão em poucas vezes ou dinheiro à vista
+4. **Ausência de Follow-up Humanizado:** Não acompanhar o paciente nos dias seguintes à consulta
 
-É um dos motivos mais frequentes e menos discutidos abertamente. O paciente quer o tratamento, mas as opções disponíveis naquele momento não se encaixam na sua situação: limite do cartão insuficiente, parcelas acima do que consegue pagar ou necessidade de entrada que não tem disponível.
+## Como clínicas parceiras Benavera reduzem esse abandono
 
-### 2. Insegurança sobre o valor total
-
-Muitos pacientes saem da consulta sem entender exatamente o que estão pagando e o que está incluído. A incerteza gera hesitação.
-
-### 3. Necessidade de comparar
-
-É natural que o paciente queira comparar com outras clínicas. O problema é quando não há um motivo claro para voltar ou um processo de acompanhamento.
-
-### 4. Ausência de follow-up
-
-Sem contato após a consulta, muitos pacientes simplesmente esquecem ou procuram outra solução. O timing do follow-up é crítico.
-
-### 5. Processo de decisão compartilhado
-
-Em muitos casos, o paciente precisa consultar o cônjuge, familiar ou outro responsável antes de decidir. Clínicas que não consideram esse fator perdem oportunidades.
-
-## O que as clínicas podem fazer
-
-- Apresentar claramente as formas de pagamento disponíveis
-- Ter um processo de follow-up estruturado
-- Criar alternativas para quando a forma de pagamento é a objeção
-- Entender o momento de decisão do paciente
-
-## Perguntas frequentes
-
-**Qual o prazo ideal para fazer follow-up?**
-Varia, mas contato entre 24 e 72 horas após o orçamento costuma ser mais efetivo. Depois disso, a urgência percebida cai.
-
-**Como abordar o paciente sem parecer invasivo?**
-Com uma mensagem objetiva, mostrando que a clínica está disponível para esclarecer dúvidas ou apresentar alternativas. Sem pressão.
-
-## Fontes e referências
+Ao disponibilizar a Benavera como alternativa de pagamento, a clínica oferece ao paciente a oportunidade de simular parcelamentos que cabem na sua renda, sem que a clínica assuma o risco de crédito ou dependa exclusivamente do limite do cartão.
 `,
 
   'como-clinicas-melhorar-conversao-orcamentos': `
-Aumentar a taxa de conversão de orçamentos é um dos caminhos mais diretos para melhorar a receita de uma clínica sem necessariamente atrair mais pacientes novos.
+Melhorar a conversão de orçamentos odontológicos e médicos transforma a rentabilidade da clínica sem a necessidade de aumentar os gastos com atração de novos pacientes.
 
 ## Resposta rápida
 
-Para melhorar a conversão de orçamentos, as clínicas precisam atuar em três frentes: apresentação clara do orçamento, processo estruturado de follow-up e alternativas para quando a forma de pagamento é a objeção principal. Pequenas melhorias em cada etapa têm impacto direto no resultado.
+Para elevar a conversão, a clínica deve estruturar a apresentação visual do orçamento, capacitar a recepção/comercial para acolhimento financeiro, oferecer alternativas viáveis de parcelamento e manter um fluxo de acompanhamento (follow-up) respeitoso em até 48 horas.
 
-## Como calcular sua taxa de conversão atual
+## Três pilares para aumentar o fechamento de tratamentos
 
-**Fórmula básica:**
-Taxa de conversão = (Tratamentos fechados ÷ Orçamentos apresentados) × 100
+### 1. Clareza na Apresentação Clínica
+Explique os benefícios funcionais e estéticos do tratamento antes de falar em valores. O paciente precisa enxergar o valor do procedimento antes de avaliar o preço.
 
-**Exemplo:**
-- 80 orçamentos apresentados no mês
-- 28 tratamentos fechados
-- Taxa de conversão: 35%
+### 2. Diversificação de Formas de Pagamento
+Não dependa apenas de maquininhas de cartão com taxas elevadas ou prazos curtos. Alternativas com parcelamentos estendidos viabilizam tratamentos para quem não possui limite alto.
 
-Saber esse número é o primeiro passo. Sem medir, não há como melhorar.
-
-## Onde estão as maiores oportunidades?
-
-### Na apresentação do orçamento
-
-- O paciente entende o que está recebendo?
-- As formas de pagamento estão claras?
-- Há alguma alternativa quando a opção principal não funciona?
-
-### No processo de follow-up
-
-A maioria das clínicas não tem follow-up estruturado. Criar um fluxo simples — mesmo por WhatsApp — já diferencia da maioria.
-
-### Na objeção financeira
-
-Quando o paciente diz que "vai pensar" mas o real motivo é financeiro, ter uma alternativa disponível pode reabrir a conversa.
-
-## Estrutura de follow-up simples
-
-1. **Dia 1 após o orçamento:** mensagem agradecendo a visita e colocando-se à disposição para dúvidas
-2. **Dia 3-5:** contato perguntando se há dúvidas sobre o orçamento ou as formas de pagamento
-3. **Dia 10-15:** contato oferecendo alternativas ou nova consulta
-
-## O que a Benavera pode fazer nesse contexto
-
-A Benavera pode ser uma etapa adicional no processo: quando o paciente não fecha por causa da forma de pagamento, a clínica oferece o link da Benavera para que ele explore possibilidades. A clínica não precisa se tornar especialista em crédito.
-
-## Perguntas frequentes
-
-**Quantas vezes posso entrar em contato sem ser invasivo?**
-Depende do canal e do tom. Duas a três tentativas bem espaçadas, com mensagens respeitosas, raramente são invasivas. A abordagem é mais importante do que a frequência.
-
-**Como saber se o paciente desistiu ou só está pensando?**
-Pergunte diretamente, com respeito: "Há alguma dúvida que posso esclarecer?" Isso abre espaço para o paciente revelar a real objeção.
-
-## Fontes e referências
+### 3. Processo de Follow-up em 3 Etapas
+- **Dia 1 pós-consulta:** Envio do resumo do plano de tratamento e mensagem de agradecimento
+- **Dia 3:** Contato amigável para esclarecer dúvidas sobre valores ou condições
+- **Dia 7:** Apresentação de alternativas facilitadas para viabilização
 `,
 };

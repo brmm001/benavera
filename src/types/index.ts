@@ -1,21 +1,36 @@
 // ============================================================
-// BENAVERA — TYPES
+// BENAVERA — TYPES & INTERFACES
 // ============================================================
 
+export type PatientLeadStatus = 'nova' | 'em_analise' | 'contatada' | 'convertida' | 'perdida';
+export type ClinicLeadStatus = 'novo' | 'em_contato' | 'em_negociacao' | 'parceiro_ativo' | 'perdido';
+export type LeadEventType =
+  | 'lead_created'
+  | 'status_changed'
+  | 'contact_made'
+  | 'note_added'
+  | 'converted'
+  | 'lost'
+  | 'data_anonymized';
+
 export interface PatientLead {
+  id?: string;
   origem: string;
   tipoLead: 'patient';
   nome: string;
   telefone: string;
-  email: string;
+  email?: string;
   cidade: string;
   estado?: string;
   tratamento: string;
   valorTratamento?: number;
   entrada?: number;
   parcelaDesejada?: number;
-  valorFinanciado?: number;
-  aceitaMarketing: boolean;
+  prazoDesejado?: string;
+  clinicaIndicada?: string;
+  consentimento: boolean;
+  versaoTermos: string;
+  status?: PatientLeadStatus;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -24,23 +39,29 @@ export interface PatientLead {
   landingPage: string;
   referrer?: string;
   timestamp: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ClinicLead {
+  id?: string;
   origem: string;
   tipoLead: 'clinic';
   nome: string;
   nomeClinica: string;
-  cargo: string;
+  cargo?: string;
   whatsapp: string;
-  email: string;
+  email?: string;
   cidade: string;
-  estado: string;
+  estado?: string;
   especialidade: string;
   numeroUnidades?: string;
-  ticketMedio: string;
-  orcamentosMes: string;
+  ticketMedio?: string;
+  orcamentosMes?: string;
   maiorDesafio?: string;
+  consentimento: boolean;
+  versaoTermos: string;
+  statusComercial?: ClinicLeadStatus;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -49,6 +70,18 @@ export interface ClinicLead {
   landingPage: string;
   referrer?: string;
   timestamp: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface LeadHistoryEvent {
+  id: string;
+  leadId: string;
+  leadType: 'patient' | 'clinic';
+  eventType: LeadEventType;
+  description?: string;
+  payload?: Record<string, unknown>;
+  createdAt: string;
 }
 
 export interface SimulationData {
@@ -62,8 +95,17 @@ export interface SimulationData {
 }
 
 export interface TrackingEvent {
-  event: string;
-  properties?: Record<string, string | number | boolean | undefined>;
+  event:
+    | 'simulation_started'
+    | 'simulation_step_completed'
+    | 'simulation_submitted'
+    | 'clinic_form_started'
+    | 'clinic_form_submitted'
+    | 'calculator_used'
+    | 'article_cta_clicked'
+    | 'whatsapp_clicked'
+    | (string & {});
+  properties?: Record<string, string | number | boolean | undefined | null>;
 }
 
 export interface UTMParams {
@@ -81,6 +123,7 @@ export interface ArticleFrontmatter {
   publishedAt: string;
   updatedAt: string;
   author: string;
+  reviewer?: string;
   category: ArticleCategory;
   keywords: string[];
   canonical: string;

@@ -1,4 +1,5 @@
 import type { PatientLead, ClinicLead, TrackingEvent } from '@/types';
+export { trackEvent } from '@/lib/analytics';
 
 // ============================================================
 // LEAD SUBMISSION
@@ -6,24 +7,19 @@ import type { PatientLead, ClinicLead, TrackingEvent } from '@/types';
 
 export async function submitLead(
   data: Omit<PatientLead | ClinicLead, 'timestamp'>
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; id?: string; error?: string }> {
   const payload = {
     ...data,
     timestamp: new Date().toISOString(),
   };
 
-  const endpoint = process.env.NEXT_PUBLIC_BENAVERA_LEAD_ENDPOINT;
-
-  if (!endpoint) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Benavera] Lead simulado (sem endpoint configurado):', payload);
-    }
-    return { success: true };
-  }
+  const endpoint =
+    process.env.NEXT_PUBLIC_BENAVERA_LEAD_ENDPOINT ||
+    (data.tipoLead === 'clinic' ? '/api/leads/clinic' : '/api/leads/patient');
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -34,43 +30,25 @@ export async function submitLead(
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+    const json = (await response.json()) as { success?: boolean; id?: string; error?: string };
+
+    if (!response.ok || json.success === false) {
+      return {
+        success: false,
+        error: json.error || `Erro no servidor (${response.status}). Tente novamente.`,
+      };
     }
 
-    return { success: true };
+    return { success: true, id: json.id };
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
-      return { success: false, error: 'Tempo limite excedido. Tente novamente.' };
+      return { success: false, error: 'Tempo limite excedido. Verifique sua conexão e tente novamente.' };
     }
     console.error('[Benavera] Erro ao enviar lead:', err);
     return {
       success: false,
-      error: 'Não foi possível enviar sua solicitação. Verifique sua conexão e tente novamente.',
+      error: 'Não foi possível enviar sua solicitação no momento. Verifique sua conexão e tente novamente.',
     };
-  }
-}
-
-// ============================================================
-// ANALYTICS / TRACKING
-// ============================================================
-
-export function trackEvent(event: TrackingEvent): void {
-  if (typeof window === 'undefined') return;
-
-  // Console para desenvolvimento
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Benavera Track]', event.event, event.properties);
-  }
-
-  // Google Analytics (quando configurado)
-  if (typeof window !== 'undefined' && 'gtag' in window) {
-    (window as Window & { gtag: (...args: unknown[]) => void }).gtag('event', event.event, event.properties);
-  }
-
-  // Meta Pixel (quando configurado)
-  if (typeof window !== 'undefined' && 'fbq' in window) {
-    (window as Window & { fbq: (...args: unknown[]) => void }).fbq('trackCustom', event.event, event.properties);
   }
 }
 

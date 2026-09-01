@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Como funciona a Benavera',
   description:
     'Entenda como a Benavera organiza a jornada financeira de pacientes que precisam de ajuda para pagar tratamentos, e como clínicas podem se beneficiar.',
-  alternates: { canonical: 'https://benavera.com.br/como-funciona' },
+  alternates: { canonical: 'https://www.benavera.com.br/como-funciona' },
 };
 
 const stepsPatient = [

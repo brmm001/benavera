@@ -1,502 +1,719 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { RefreshCw, Users, Building2, Download, Search, ChevronDown, ChevronUp, Inbox } from 'lucide-react';
+import {
+  RefreshCw,
+  Users,
+  Building2,
+  Download,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Inbox,
+  Lock,
+  Eye,
+  TrendingUp,
+  BarChart3,
+  FileSpreadsheet,
+  Trash2,
+  PlusCircle,
+  Clock,
+  ShieldCheck,
+  CheckCircle,
+} from 'lucide-react';
+import type { PatientLead, ClinicLead, LeadHistoryEvent, PatientLeadStatus, ClinicLeadStatus } from '@/types';
 
-interface Lead {
-  id: string;
-  receivedAt: string;
-  tipoLead: 'patient' | 'clinic';
-  nome?: string;
-  email?: string;
-  whatsapp?: string;
-  telefone?: string;
-  cidade?: string;
-  estado?: string;
-  // patient-specific
-  tratamento?: string;
-  valorTratamento?: number;
-  entrada?: number;
-  parcelaDesejada?: number;
-  // clinic-specific
-  nomeClinica?: string;
-  cargo?: string;
-  especialidade?: string;
-  ticketMedio?: string;
-  orcamentosMes?: string;
-  maiorDesafio?: string;
-  // meta
-  ip?: string;
-  userAgent?: string;
-  landingPage?: string;
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  [key: string]: unknown;
-}
-
-function formatDate(iso: string) {
+function formatDate(iso?: string) {
+  if (!iso) return '—';
   try {
     return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     }).format(new Date(iso));
   } catch {
     return iso;
   }
 }
 
-function formatCurrency(val: unknown) {
+function formatCurrency(val?: number) {
   if (typeof val === 'number' && val > 0) {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(val);
   }
   return '—';
 }
 
-function LeadRow({ lead }: { lead: Lead }) {
-  const [open, setOpen] = useState(false);
-  const isClinic = lead.tipoLead === 'clinic';
-
-  const metaKeys = ['id', 'receivedAt', 'ip', 'userAgent', 'landingPage', 'tipoLead', 'origem',
-    'utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm', 'timestamp'];
-
-  const extraEntries = Object.entries(lead).filter(
-    ([k]) => !metaKeys.includes(k) && !['nome', 'email', 'whatsapp', 'telefone', 'cidade', 'estado',
-      'tratamento', 'valorTratamento', 'entrada', 'parcelaDesejada', 'parcelaCustom',
-      'nomeClinica', 'cargo', 'especialidade', 'ticketMedio', 'orcamentosMes', 'maiorDesafio',
-      'aceitaTermos', 'aceitaMarketing', 'valorFinanciado', 'numeroUnidades', 'temOrcamento',
-      'entradaDesconhecida', 'referrer'].includes(k)
-  );
-
-  return (
-    <div style={{
-      border: '1px solid #e2e8f0',
-      borderRadius: '12px',
-      overflow: 'hidden',
-      background: 'white',
-      transition: 'box-shadow 0.2s ease',
-    }}>
-      {/* Header row */}
-      <div
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto 1fr auto auto auto',
-          alignItems: 'center',
-          gap: '1rem',
-          padding: '1rem 1.25rem',
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}
-      >
-        {/* Badge tipo */}
-        <span style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.375rem',
-          padding: '0.25rem 0.625rem',
-          borderRadius: '100px',
-          fontSize: '0.75rem',
-          fontWeight: '700',
-          background: isClinic ? '#e0eaff' : '#d8f3ee',
-          color: isClinic ? '#3535a3' : '#1e6560',
-          whiteSpace: 'nowrap',
-          flexShrink: 0,
-        }}>
-          {isClinic ? <Building2 size={12} /> : <Users size={12} />}
-          {isClinic ? 'Clínica' : 'Paciente'}
-        </span>
-
-        {/* Name / clinic */}
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: '700', color: '#0f172a', margin: 0, fontSize: '0.9375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {lead.nome ?? '—'}
-            {isClinic && lead.nomeClinica && (
-              <span style={{ fontWeight: '400', color: '#64748b', marginLeft: '0.5rem' }}>
-                · {lead.nomeClinica}
-              </span>
-            )}
-          </p>
-          <p style={{ margin: 0, fontSize: '0.8125rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {lead.email ?? '—'} · {lead.whatsapp ?? lead.telefone ?? '—'}
-          </p>
-        </div>
-
-        {/* Location */}
-        <span style={{ fontSize: '0.8125rem', color: '#94a3b8', whiteSpace: 'nowrap', flexShrink: 0 }}>
-          {[lead.cidade, lead.estado].filter(Boolean).join(', ') || '—'}
-        </span>
-
-        {/* Date */}
-        <span style={{ fontSize: '0.8125rem', color: '#94a3b8', whiteSpace: 'nowrap', flexShrink: 0 }}>
-          {formatDate(lead.receivedAt)}
-        </span>
-
-        {/* Expand */}
-        <span style={{ color: '#94a3b8', flexShrink: 0 }}>
-          {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </span>
-      </div>
-
-      {/* Expanded details */}
-      {open && (
-        <div style={{
-          borderTop: '1px solid #f1f5f9',
-          padding: '1.25rem',
-          background: '#f8fafc',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-          gap: '0.875rem',
-        }}>
-          {/* Patient fields */}
-          {!isClinic && (
-            <>
-              <Field label="Tratamento" value={lead.tratamento} />
-              <Field label="Valor do tratamento" value={formatCurrency(lead.valorTratamento)} />
-              <Field label="Entrada" value={formatCurrency(lead.entrada)} />
-              <Field label="Parcela desejada" value={formatCurrency(lead.parcelaDesejada)} />
-            </>
-          )}
-
-          {/* Clinic fields */}
-          {isClinic && (
-            <>
-              <Field label="Cargo" value={lead.cargo} />
-              <Field label="Especialidade" value={lead.especialidade} />
-              <Field label="Ticket médio" value={lead.ticketMedio} />
-              <Field label="Orçamentos/mês" value={lead.orcamentosMes} />
-              {lead.maiorDesafio && (
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <Field label="Maior desafio" value={lead.maiorDesafio} />
-                </div>
-              )}
-            </>
-          )}
-
-          {/* UTMs */}
-          {(lead.utmSource || lead.utmMedium || lead.utmCampaign) && (
-            <>
-              <Field label="UTM Source" value={lead.utmSource} />
-              <Field label="UTM Medium" value={lead.utmMedium} />
-              <Field label="UTM Campaign" value={lead.utmCampaign} />
-            </>
-          )}
-
-          <Field label="Landing Page" value={lead.landingPage} />
-          <Field label="IP" value={lead.ip} />
-
-          {/* Any extra unknown keys */}
-          {extraEntries.map(([k, v]) => (
-            <Field key={k} label={k} value={String(v)} />
-          ))}
-
-          {/* Raw JSON */}
-          <div style={{ gridColumn: '1 / -1' }}>
-            <details style={{ marginTop: '0.5rem' }}>
-              <summary style={{ fontSize: '0.75rem', color: '#94a3b8', cursor: 'pointer', userSelect: 'none' }}>
-                Ver JSON bruto
-              </summary>
-              <pre style={{
-                marginTop: '0.75rem',
-                padding: '0.875rem',
-                background: '#0f172a',
-                color: '#83d2c7',
-                borderRadius: '8px',
-                fontSize: '0.75rem',
-                overflowX: 'auto',
-                lineHeight: '1.6',
-              }}>
-                {JSON.stringify(lead, null, 2)}
-              </pre>
-            </details>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: unknown }) {
-  const display = value == null || value === '' || value === undefined ? '—' : String(value);
-  return (
-    <div>
-      <p style={{ margin: 0, fontSize: '0.6875rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#94a3b8', marginBottom: '0.25rem' }}>
-        {label}
-      </p>
-      <p style={{ margin: 0, fontSize: '0.875rem', color: '#334155', wordBreak: 'break-word' }}>
-        {display}
-      </p>
-    </div>
-  );
-}
-
 export default function AdminLeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<'patients' | 'clinics' | 'metrics'>('patients');
+  const [patientLeads, setPatientLeads] = useState<PatientLead[]>([]);
+  const [clinicLeads, setClinicLeads] = useState<ClinicLead[]>([]);
+  const [metrics, setMetrics] = useState<{
+    totalPatientLeads: number;
+    totalClinicLeads: number;
+    averageTicket: number;
+    patientStatusCount: Record<string, number>;
+    clinicStatusCount: Record<string, number>;
+    categoryCount: Record<string, number>;
+    sourceCount: Record<string, number>;
+  } | null>(null);
+
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'patient' | 'clinic'>('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  // Modal de Detalhes
+  const [selectedLead, setSelectedLead] = useState<{
+    id: string;
+    type: 'patient' | 'clinic';
+    data: PatientLead | ClinicLead;
+  } | null>(null);
+  const [leadEvents, setLeadEvents] = useState<LeadHistoryEvent[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
-    setError('');
     try {
-      const res = await fetch('/api/leads');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json() as { leads: Lead[]; total: number };
-      setLeads(data.leads ?? []);
-    } catch (err) {
-      setError('Não foi possível carregar os leads. Verifique se o servidor está rodando.');
-      console.error(err);
+      const res = await fetch(`/api/admin/leads?type=all&status=${statusFilter}&search=${encodeURIComponent(search)}`);
+      if (res.status === 401) {
+        setAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      if (data.success) {
+        setAuthenticated(true);
+        setPatientLeads(data.patientLeads || []);
+        setClinicLeads(data.clinicLeads || []);
+        setMetrics(data.metrics || null);
+      }
+    } catch (e) {
+      console.error('[Admin] Erro ao carregar dados:', e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusFilter, search]);
 
-  useEffect(() => { void fetchLeads(); }, [fetchLeads]);
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
 
-  const filtered = leads.filter(l => {
-    if (filter === 'patient' && l.tipoLead !== 'patient') return false;
-    if (filter === 'clinic' && l.tipoLead !== 'clinic') return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        l.nome?.toLowerCase().includes(q) ||
-        l.email?.toLowerCase().includes(q) ||
-        l.nomeClinica?.toLowerCase().includes(q) ||
-        l.cidade?.toLowerCase().includes(q) ||
-        l.whatsapp?.includes(q) ||
-        l.telefone?.includes(q)
-      );
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    setLoginError('');
+
+    try {
+      const res = await fetch('/api/admin/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAuthenticated(true);
+        fetchLeads();
+      } else {
+        setLoginError(data.error || 'Credenciais inválidas.');
+      }
+    } catch {
+      setLoginError('Erro ao conectar ao servidor.');
+    } finally {
+      setLoginLoading(false);
     }
-    return true;
-  });
+  };
 
-  const patientCount = leads.filter(l => l.tipoLead === 'patient').length;
-  const clinicCount = leads.filter(l => l.tipoLead === 'clinic').length;
+  const openLeadDetails = async (id: string, type: 'patient' | 'clinic', data: PatientLead | ClinicLead) => {
+    setSelectedLead({ id, type, data });
+    try {
+      const res = await fetch(`/api/admin/leads/${id}`);
+      const json = await res.json();
+      if (json.success) {
+        setLeadEvents(json.events || []);
+      }
+    } catch (e) {
+      console.error('Erro ao buscar histórico:', e);
+    }
+  };
 
-  function downloadCSV() {
-    if (filtered.length === 0) return;
-    const allKeys = Array.from(new Set(filtered.flatMap(l => Object.keys(l))));
-    const header = allKeys.join(',');
-    const rows = filtered.map(l =>
-      allKeys.map(k => {
-        const v = l[k];
-        const s = v == null ? '' : String(v);
-        return `"${s.replace(/"/g, '""')}"`;
-      }).join(',')
+  const handleUpdateStatus = async (newStatus: string) => {
+    if (!selectedLead) return;
+    setUpdatingStatus(true);
+    try {
+      const res = await fetch(`/api/admin/leads/${selectedLead.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: selectedLead.type,
+          status: newStatus,
+          note: newNote ? newNote.trim() : undefined,
+        }),
+      });
+      if (res.ok) {
+        setNewNote('');
+        fetchLeads();
+        // Recarrega eventos
+        const evRes = await fetch(`/api/admin/leads/${selectedLead.id}`);
+        const evJson = await evRes.json();
+        if (evJson.success) setLeadEvents(evJson.events || []);
+      }
+    } catch (e) {
+      console.error('Erro ao atualizar status:', e);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleAnonymize = async () => {
+    if (!selectedLead || !confirm('Tem certeza que deseja anonimizar os dados pessoais deste lead (LGPD)? Esta ação não pode ser desfeita.')) return;
+
+    try {
+      const res = await fetch(`/api/admin/leads/${selectedLead.id}?type=${selectedLead.type}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        alert('Dados anonimizados com sucesso.');
+        setSelectedLead(null);
+        fetchLeads();
+      }
+    } catch (e) {
+      console.error('Erro ao anonimizar lead:', e);
+    }
+  };
+
+  // Se ainda estiver checando autenticação
+  if (authenticated === null) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: 'white' }}>
+        <RefreshCw className="animate-spin" size={28} />
+      </div>
     );
-    const csv = [header, ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `benavera-leads-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#f8fafc',
-      paddingTop: '5rem',
-      paddingBottom: '4rem',
-    }}>
-      <div className="container-benavera">
-        {/* Header */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          marginBottom: '2rem',
-        }}>
-          <div>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.75rem',
-              fontWeight: '700',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: '#4040ca',
-              background: '#e0eaff',
-              padding: '0.25rem 0.75rem',
-              borderRadius: '100px',
-              marginBottom: '0.75rem',
-            }}>
-              Admin
+  // TELA DE LOGIN ADMIN
+  if (!authenticated) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', padding: '1rem' }}>
+        <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', padding: '2.5rem', width: '100%', maxWidth: '420px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <div style={{ width: '40px', height: '40px', background: '#4338ca', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+              <Lock size={20} />
             </div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
-              Leads recebidos
-            </h1>
-            <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.9375rem' }}>
-              Dados salvos localmente em <code style={{ background: '#f1f5f9', padding: '0.125rem 0.375rem', borderRadius: '4px', fontSize: '0.8125rem' }}>data/leads.json</code>
-            </p>
+            <div>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'white', margin: 0 }}>Painel Benavera</h1>
+              <p style={{ fontSize: '0.8125rem', color: '#94a3b8', margin: 0 }}>Acesso Administrativo Restrito</p>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => void fetchLeads()}
-              disabled={loading}
+          <form onSubmit={handleLogin}>
+            <label style={{ display: 'block', fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '0.5rem' }}>
+              Senha de Acesso
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Digite sua senha..."
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.625rem 1rem', background: 'white', border: '1px solid #e2e8f0',
-                borderRadius: '10px', fontSize: '0.875rem', fontWeight: '600', color: '#334155',
-                cursor: 'pointer', transition: 'all 0.15s ease',
+                width: '100%',
+                padding: '0.875rem 1rem',
+                borderRadius: '8px',
+                background: '#0f172a',
+                border: '1px solid #475569',
+                color: 'white',
+                marginBottom: '1.25rem',
+                outline: 'none',
+              }}
+              autoFocus
+            />
+
+            {loginError && (
+              <div style={{ padding: '0.75rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', borderRadius: '8px', color: '#fca5a5', fontSize: '0.875rem', marginBottom: '1.25rem' }}>
+                {loginError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loginLoading || !password}
+              style={{
+                width: '100%',
+                padding: '0.875rem',
+                background: '#4f46e5',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: loginLoading || !password ? 'not-allowed' : 'pointer',
+                opacity: loginLoading || !password ? 0.7 : 1,
               }}
             >
-              <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+              {loginLoading ? 'Verificando...' : 'Entrar no Painel'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // PAINEL AUTENTICADO
+  return (
+    <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a' }}>
+      {/* Top Header */}
+      <header style={{ background: '#0f172a', color: 'white', borderBottom: '1px solid #1e293b', padding: '1rem 2rem' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ fontSize: '1.25rem', fontWeight: '800', letterSpacing: '-0.03em' }}>
+              bena<span style={{ color: '#8195f8' }}>vera</span> <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#94a3b8' }}>admin</span>
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button
+              onClick={fetchLeads}
+              disabled={loading}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                background: '#1e293b',
+                color: '#cbd5e1',
+                border: '1px solid #334155',
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+              }}
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
               Atualizar
             </button>
-            <button
-              onClick={downloadCSV}
-              disabled={filtered.length === 0}
+
+            <a
+              href={`/api/admin/export?type=${activeTab === 'clinics' ? 'clinic' : 'patient'}`}
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.625rem 1rem', background: '#4040ca', border: 'none',
-                borderRadius: '10px', fontSize: '0.875rem', fontWeight: '600', color: 'white',
-                cursor: filtered.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: filtered.length === 0 ? 0.5 : 1, transition: 'all 0.15s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                background: '#4338ca',
+                color: 'white',
+                textDecoration: 'none',
+                fontSize: '0.875rem',
+                fontWeight: '600',
               }}
             >
               <Download size={14} />
               Exportar CSV
-            </button>
+            </a>
           </div>
         </div>
+      </header>
 
-        {/* Stats cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-          gap: '1rem',
-          marginBottom: '2rem',
-        }}>
-          {[
-            { label: 'Total de leads', value: leads.length, color: '#4040ca', bg: '#f0f4ff' },
-            { label: 'Pacientes', value: patientCount, color: '#309e92', bg: '#f0faf8' },
-            { label: 'Clínicas', value: clinicCount, color: '#3535a3', bg: '#e0eaff' },
-          ].map(stat => (
-            <div key={stat.label} style={{
-              background: 'white',
-              border: '1px solid #e2e8f0',
-              borderRadius: '14px',
-              padding: '1.25rem',
-            }}>
-              <p style={{ margin: 0, fontSize: '0.8125rem', color: '#64748b', fontWeight: '600', marginBottom: '0.375rem' }}>
-                {stat.label}
-              </p>
-              <p style={{ margin: 0, fontSize: '2rem', fontWeight: '800', color: stat.color, lineHeight: 1 }}>
-                {stat.value}
-              </p>
+      {/* Main Container */}
+      <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
+        {/* Navigation Tabs */}
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e2e8f0', marginBottom: '2rem' }}>
+          <button
+            onClick={() => setActiveTab('patients')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              borderBottom: activeTab === 'patients' ? '2px solid #4040ca' : '2px solid transparent',
+              color: activeTab === 'patients' ? '#4040ca' : '#64748b',
+              fontWeight: activeTab === 'patients' ? '700' : '500',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <Users size={18} />
+            Simulações de Pacientes ({patientLeads.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('clinics')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              borderBottom: activeTab === 'clinics' ? '2px solid #4040ca' : '2px solid transparent',
+              color: activeTab === 'clinics' ? '#4040ca' : '#64748b',
+              fontWeight: activeTab === 'clinics' ? '700' : '500',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <Building2 size={18} />
+            Clínicas Cadastradas ({clinicLeads.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('metrics')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              borderBottom: activeTab === 'metrics' ? '2px solid #4040ca' : '2px solid transparent',
+              color: activeTab === 'metrics' ? '#4040ca' : '#64748b',
+              fontWeight: activeTab === 'metrics' ? '700' : '500',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <BarChart3 size={18} />
+            Métricas & Indicadores
+          </button>
+        </div>
+
+        {/* METRICS VIEW */}
+        {activeTab === 'metrics' && metrics && (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <span style={{ fontSize: '0.8125rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Simulações Recebidas</span>
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', margin: '0.5rem 0 0' }}>{metrics.totalPatientLeads}</p>
+              </div>
+
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <span style={{ fontSize: '0.8125rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Clínicas Interessadas</span>
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', margin: '0.5rem 0 0' }}>{metrics.totalClinicLeads}</p>
+              </div>
+
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <span style={{ fontSize: '0.8125rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Ticket Médio Informado</span>
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#4040ca', margin: '0.5rem 0 0' }}>{formatCurrency(metrics.averageTicket)}</p>
+              </div>
             </div>
-          ))}
-        </div>
 
-        {/* Filters */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-          marginBottom: '1.25rem',
-          alignItems: 'center',
-        }}>
-          {/* Search */}
-          <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
-            <Search size={15} style={{
-              position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)',
-              color: '#94a3b8', pointerEvents: 'none',
-            }} />
-            <input
-              type="text"
-              placeholder="Buscar por nome, e-mail, cidade..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{
-                width: '100%', padding: '0.75rem 0.875rem 0.75rem 2.375rem',
-                border: '1.5px solid #e2e8f0', borderRadius: '10px',
-                fontSize: '0.9375rem', color: '#0f172a', background: 'white',
-                outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
-              }}
-            />
+            {/* Grids de Distribuição */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '1rem' }}>Distribuição por Tratamento</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                  {Object.entries(metrics.categoryCount).map(([cat, count]) => (
+                    <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9' }}>
+                      <span style={{ color: '#475569' }}>{cat}</span>
+                      <strong style={{ color: '#0f172a' }}>{count}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '1rem' }}>Origem dos Leads</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                  {Object.entries(metrics.sourceCount).map(([src, count]) => (
+                    <div key={src} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9' }}>
+                      <span style={{ color: '#475569' }}>{src}</span>
+                      <strong style={{ color: '#0f172a' }}>{count}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
+        )}
 
-          {/* Type filter */}
-          <div style={{ display: 'flex', gap: '0.375rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.25rem' }}>
-            {(['all', 'patient', 'clinic'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                style={{
-                  padding: '0.5rem 0.875rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: filter === f ? '#4040ca' : 'transparent',
-                  color: filter === f ? 'white' : '#64748b',
-                  fontWeight: filter === f ? '700' : '500',
-                  fontSize: '0.8125rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
+        {/* TABELA DE PACIENTES */}
+        {activeTab === 'patients' && (
+          <div>
+            {/* Filtros */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
+                <Search size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input
+                  type="text"
+                  placeholder="Buscar por nome, cidade ou procedimento..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem 0.75rem 2.5rem',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: 'white',
+                  }}
+                />
+              </div>
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{ padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white' }}
               >
-                {f === 'all' ? 'Todos' : f === 'patient' ? 'Pacientes' : 'Clínicas'}
+                <option value="all">Todos os status</option>
+                <option value="nova">Nova</option>
+                <option value="em_analise">Em análise</option>
+                <option value="contatada">Contatada</option>
+                <option value="convertida">Convertida</option>
+                <option value="perdida">Perdida</option>
+              </select>
+            </div>
+
+            {/* Listagem */}
+            <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Data</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Paciente</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>WhatsApp</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Cidade</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Tratamento</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Valor Orçamento</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Status</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {patientLeads.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                        Nenhuma simulação encontrada com os filtros selecionados.
+                      </td>
+                    </tr>
+                  ) : (
+                    patientLeads.map((p) => (
+                      <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '0.875rem 1rem', color: '#64748b' }}>{formatDate(p.createdAt || p.timestamp)}</td>
+                        <td style={{ padding: '0.875rem 1rem', fontWeight: '600', color: '#0f172a' }}>{p.nome}</td>
+                        <td style={{ padding: '0.875rem 1rem' }}>{p.telefone}</td>
+                        <td style={{ padding: '0.875rem 1rem', color: '#475569' }}>{p.cidade}</td>
+                        <td style={{ padding: '0.875rem 1rem', fontWeight: '500' }}>{p.tratamento}</td>
+                        <td style={{ padding: '0.875rem 1rem', color: '#4040ca', fontWeight: '600' }}>{formatCurrency(p.valorTratamento)}</td>
+                        <td style={{ padding: '0.875rem 1rem' }}>
+                          <span
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '700',
+                              background: p.status === 'convertida' ? '#dcfce7' : p.status === 'nova' ? '#e0e7ff' : '#f1f5f9',
+                              color: p.status === 'convertida' ? '#166534' : p.status === 'nova' ? '#3730a3' : '#475569',
+                            }}
+                          >
+                            {p.status || 'nova'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>
+                          <button
+                            onClick={() => openLeadDetails(p.id!, 'patient', p)}
+                            style={{ padding: '0.375rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontSize: '0.8125rem' }}
+                          >
+                            Ver detalhes
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TABELA DE CLÍNICAS */}
+        {activeTab === 'clinics' && (
+          <div>
+            <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Data</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Clínica</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Responsável</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>WhatsApp</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Cidade</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Especialidade</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'left' }}>Status</th>
+                    <th style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {clinicLeads.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                        Nenhum cadastro de clínica encontrado.
+                      </td>
+                    </tr>
+                  ) : (
+                    clinicLeads.map((c) => (
+                      <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '0.875rem 1rem', color: '#64748b' }}>{formatDate(c.createdAt || c.timestamp)}</td>
+                        <td style={{ padding: '0.875rem 1rem', fontWeight: '700', color: '#0f172a' }}>{c.nomeClinica}</td>
+                        <td style={{ padding: '0.875rem 1rem' }}>{c.nome}</td>
+                        <td style={{ padding: '0.875rem 1rem' }}>{c.whatsapp}</td>
+                        <td style={{ padding: '0.875rem 1rem', color: '#475569' }}>{c.cidade}</td>
+                        <td style={{ padding: '0.875rem 1rem' }}>{c.especialidade}</td>
+                        <td style={{ padding: '0.875rem 1rem' }}>
+                          <span style={{ padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '700', background: '#f0fdf4', color: '#15803d' }}>
+                            {c.statusComercial || 'novo'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>
+                          <button
+                            onClick={() => openLeadDetails(c.id!, 'clinic', c)}
+                            style={{ padding: '0.375rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontSize: '0.8125rem' }}
+                          >
+                            Ver detalhes
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* MODAL DE DETALHES DO LEAD */}
+      {selectedLead && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 1000 }}>
+          <div style={{ background: 'white', borderRadius: '16px', maxWidth: '640px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>
+                Detalhes do Lead ({selectedLead.type === 'patient' ? 'Paciente' : 'Clínica'})
+              </h2>
+              <button onClick={() => setSelectedLead(null)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748b' }}>
+                ×
               </button>
-            ))}
+            </div>
+
+            {/* Informações Principais */}
+            <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '12px', marginBottom: '1.5rem', fontSize: '0.875rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div><strong>Nome:</strong> {selectedLead.data.nome}</div>
+              <div><strong>Contato:</strong> {(selectedLead.data as PatientLead).telefone || (selectedLead.data as ClinicLead).whatsapp}</div>
+              <div><strong>Cidade:</strong> {selectedLead.data.cidade}</div>
+              <div><strong>Origem:</strong> {selectedLead.data.origem}</div>
+              <div><strong>UTM Source:</strong> {selectedLead.data.utmSource || '—'}</div>
+              <div><strong>UTM Campaign:</strong> {selectedLead.data.utmCampaign || '—'}</div>
+            </div>
+
+            {/* Alterar Status */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                Atualizar Status do Lead:
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {selectedLead.type === 'patient'
+                  ? ['nova', 'em_analise', 'contatada', 'convertida', 'perdida'].map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => handleUpdateStatus(st)}
+                        disabled={updatingStatus}
+                        style={{
+                          padding: '0.375rem 0.75rem',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          background: (selectedLead.data as PatientLead).status === st ? '#4040ca' : 'white',
+                          color: (selectedLead.data as PatientLead).status === st ? 'white' : '#0f172a',
+                          cursor: 'pointer',
+                          fontSize: '0.8125rem',
+                        }}
+                      >
+                        {st}
+                      </button>
+                    ))
+                  : ['novo', 'em_contato', 'em_negociacao', 'parceiro_ativo', 'perdido'].map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => handleUpdateStatus(st)}
+                        disabled={updatingStatus}
+                        style={{
+                          padding: '0.375rem 0.75rem',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          background: (selectedLead.data as ClinicLead).statusComercial === st ? '#4040ca' : 'white',
+                          color: (selectedLead.data as ClinicLead).statusComercial === st ? 'white' : '#0f172a',
+                          cursor: 'pointer',
+                          fontSize: '0.8125rem',
+                        }}
+                      >
+                        {st}
+                      </button>
+                    ))}
+              </div>
+            </div>
+
+            {/* Adicionar Anotação */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                Adicionar Nota / Observação:
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  placeholder="Ex: Paciente aguardando aprovação bancária..."
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  style={{ flex: 1, padding: '0.625rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+                <button
+                  onClick={() => handleUpdateStatus(selectedLead.type === 'patient' ? (selectedLead.data as PatientLead).status || 'nova' : (selectedLead.data as ClinicLead).statusComercial || 'novo')}
+                  disabled={!newNote.trim() || updatingStatus}
+                  style={{ padding: '0.625rem 1rem', background: '#0f172a', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+                >
+                  Salvar Nota
+                </button>
+              </div>
+            </div>
+
+            {/* Linha do Tempo / Eventos */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '0.75rem' }}>Histórico de Eventos</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                {leadEvents.map((ev) => (
+                  <div key={ev.id} style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', fontSize: '0.8125rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', marginBottom: '0.25rem' }}>
+                      <span style={{ fontWeight: '600', color: '#334155' }}>{ev.eventType}</span>
+                      <span>{formatDate(ev.createdAt)}</span>
+                    </div>
+                    <div>{ev.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ações LGPD */}
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button
+                onClick={handleAnonymize}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', color: '#dc2626', background: 'none', border: 'none', fontSize: '0.8125rem', cursor: 'pointer' }}
+              >
+                <Trash2 size={14} />
+                Anonimizar dados (LGPD)
+              </button>
+
+              <button
+                onClick={() => setSelectedLead(null)}
+                style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#e2e8f0', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Fechar
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* Content */}
-        {loading && (
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8' }}>
-            <RefreshCw size={32} style={{ animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
-            <p>Carregando leads...</p>
-          </div>
-        )}
-
-        {error && (
-          <div style={{
-            padding: '1.25rem',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '12px',
-            color: '#dc2626',
-            fontSize: '0.9375rem',
-          }}>
-            {error}
-          </div>
-        )}
-
-        {!loading && !error && filtered.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '5rem 2rem', color: '#94a3b8' }}>
-            <Inbox size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-            <p style={{ fontWeight: '600', color: '#64748b', fontSize: '1.0625rem', margin: 0 }}>
-              {search || filter !== 'all' ? 'Nenhum lead encontrado com esse filtro.' : 'Nenhum lead recebido ainda.'}
-            </p>
-            <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem' }}>
-              Preencha um formulário no site para ver os dados aqui.
-            </p>
-          </div>
-        )}
-
-        {!loading && !error && filtered.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <p style={{ margin: 0, fontSize: '0.8125rem', color: '#94a3b8', marginBottom: '0.25rem' }}>
-              Mostrando {filtered.length} de {leads.length} leads · Clique em um lead para ver detalhes
-            </p>
-            {filtered.map(lead => (
-              <LeadRow key={lead.id} lead={lead} />
-            ))}
-          </div>
-        )}
-      </div>
-
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
+      )}
     </div>
   );
 }

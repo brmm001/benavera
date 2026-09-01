@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Conteúdos | Benavera',
   description:
     'Artigos e guias sobre formas de pagamento, planejamento financeiro e tratamentos. Conteúdo prático e transparente para ajudar na sua decisão.',
-  alternates: { canonical: 'https://benavera.com.br/conteudos' },
+  alternates: { canonical: 'https://www.benavera.com.br/conteudos' },
 };
 
 const CATEGORIES: ArticleCategory[] = [

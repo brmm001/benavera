@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Política de Privacidade | Benavera',
   description: 'Entenda como a Benavera coleta, usa e protege seus dados pessoais.',
-  alternates: { canonical: 'https://benavera.com.br/privacidade' },
+  alternates: { canonical: 'https://www.benavera.com.br/privacidade' },
 };
 
 const sections = [

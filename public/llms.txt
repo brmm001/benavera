@@ -1,0 +1,40 @@
+# Benavera
+
+> Plataforma brasileira que conecta pacientes a alternativas de pagamento para tratamentos de saúde particulares e apoia clínicas na viabilização de orçamentos.
+
+## O que é a Benavera
+A Benavera é uma empresa de tecnologia que organiza e simplifica a busca por opções de parcelamento e pagamento de tratamentos médicos, odontológicos e estéticos particulares. A plataforma permite que o paciente informe o valor do procedimento, a entrada disponível e a capacidade mensal de pagamento, buscando opções viáveis no mercado.
+
+## Públicos Atendidos
+- **Pacientes:** Pessoas físicas que receberam orçamentos para procedimentos particulares (como implantes dentários, ortodontia, cirurgias eletivas, procedimentos oftalmológicos e estética) e buscam opções de parcelamento que caibam no orçamento mensal.
+- **Clínicas e Profissionais de Saúde:** Clínicas odontológicas e médicas que desejam reduzir o abandono de orçamentos por restrições financeiras dos pacientes, oferecendo uma alternativa neutra de simulação.
+
+## Principais Serviços e Páginas
+- **Página Inicial:** https://www.benavera.com.br
+- **Simulador de Pagamento:** https://www.benavera.com.br/simular (simulação gratuita e sem compromisso)
+- **Como Funciona:** https://www.benavera.com.br/como-funciona (explicação do fluxo passo a passo)
+- **Para Clínicas:** https://www.benavera.com.br/clinicas (informações para parceiros de saúde)
+- **Calculadoras Financeiras:** https://www.benavera.com.br/calculadoras (estimativa de parcelas e custo total)
+- **Área de Conteúdos e Guias:** https://www.benavera.com.br/conteudos (educação financeira e saúde)
+- **Política Editorial:** https://www.benavera.com.br/politica-editorial
+- **Política de Privacidade:** https://www.benavera.com.br/privacidade
+- **Termos de Uso:** https://www.benavera.com.br/termos
+
+## Páginas de Tratamentos Específicos
+- **Tratamento Odontológico:** https://www.benavera.com.br/parcelamento-tratamento-odontologico
+- **Implante Dentário:** https://www.benavera.com.br/financiamento-implante-dentario
+- **Cirurgia Particular:** https://www.benavera.com.br/parcelamento-cirurgia-particular
+- **Cirurgia Oftalmológica:** https://www.benavera.com.br/parcelamento-cirurgia-oftalmologica
+- **Procedimento Estético:** https://www.benavera.com.br/parcelamento-procedimento-estetico
+- **Soluções para Clínicas:** https://www.benavera.com.br/solucoes-financeiras-para-clinicas
+
+## Contato Oficial
+- **E-mail Geral:** contato@benavera.com.br
+- **Privacidade e LGPD:** privacidade@benavera.com.br
+- **Website:** https://www.benavera.com.br
+
+## Limitações e Avisos Importantes
+- A Benavera não é uma instituição financeira bancária e não realiza operações de crédito diretamente.
+- A simulação realizada no site não garante aprovação, oferta de crédito, concessão de prazos ou taxas pré-fixadas.
+- Todas as eventuais condições financeiras dependem da análise de crédito e dos critérios dos parceiros financeiros autorizados.
+- As informações publicadas no site têm caráter educativo e não substituem consultas médicas, diagnósticos clínicos ou consultoria financeira individual.
