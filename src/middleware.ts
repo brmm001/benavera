@@ -1,40 +1,56 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifyAdminToken } from '@/lib/security';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Rotas Administrativas
-  if (pathname.startsWith('/admin')) {
+  // Intercepta rotas administrativas e rotas da API admin
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+    
+    // Ignora rotas de autenticação da API (para permitir login/logout)
+    if (pathname.startsWith('/api/admin/auth/')) {
+      return NextResponse.next();
+    }
+
     const adminToken = request.cookies.get('benavera_admin_token')?.value;
-    const isAuthenticated = !!adminToken && adminToken.length > 10;
+    const isAuthenticated = await verifyAdminToken(adminToken);
 
-    // Redireciona /admin para /admin/leads (se autenticado) ou /admin/login
-    if (pathname === '/admin' || pathname === '/admin/') {
-      const target = isAuthenticated ? '/admin/leads' : '/admin/login';
-      const response = NextResponse.redirect(new URL(target, request.url));
-      response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-      return response;
-    }
+    const isApiRoute = pathname.startsWith('/api/admin');
 
-    // Se tentar acessar /admin/login estando autenticado, vai para /admin/leads
-    if (pathname === '/admin/login' && isAuthenticated) {
-      const response = NextResponse.redirect(new URL('/admin/leads', request.url));
-      response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-      return response;
-    }
-
-    // Se tentar acessar rotas internas como /admin/leads sem autenticação, vai para /admin/login
-    if (pathname.startsWith('/admin/leads') && !isAuthenticated) {
+    // Se não estiver autenticado e tentar acessar área protegida
+    if (!isAuthenticated) {
+      if (pathname === '/admin/login') {
+        // Permitir acesso à tela de login
+        return NextResponse.next();
+      }
+      
+      // Se for rota da API, retorna erro 401
+      if (isApiRoute) {
+        return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+      }
+      
+      // Se for página web, redireciona para login
       const response = NextResponse.redirect(new URL('/admin/login', request.url));
       response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
       return response;
     }
 
-    // Para todas as respostas sob /admin, adiciona proteção contra indexação
+    // Se JÁ estiver autenticado e tentar acessar /admin/login ou /admin, redireciona para /admin/leads
+    if (isAuthenticated && (pathname === '/admin/login' || pathname === '/admin' || pathname === '/admin/')) {
+      const response = NextResponse.redirect(new URL('/admin/leads', request.url));
+      response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+      return response;
+    }
+
+    // Passou em tudo, permite o acesso e previne indexação
     const response = NextResponse.next();
     response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    
+    if (!isApiRoute) {
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    }
+    
     return response;
   }
 
@@ -42,5 +58,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  // O matcher pega qualquer rota em /admin e /api/admin
+  matcher: ['/admin/:path*', '/api/admin/:path*'],
 };

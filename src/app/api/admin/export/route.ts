@@ -3,9 +3,7 @@ import { isAuthorizedAdmin } from '@/lib/security';
 import { getPatientLeads, getClinicLeads } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorizedAdmin(request)) {
-    return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
-  }
+  // A autorização agora é garantida 100% pelo middleware.ts
 
   const type = request.nextUrl.searchParams.get('type') || 'patient';
 

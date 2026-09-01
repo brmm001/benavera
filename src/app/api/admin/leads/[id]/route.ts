@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isAuthorizedAdmin, sanitizeString } from '@/lib/security';
+import { sanitizeString } from '@/lib/security';
 import {
   updatePatientLeadStatus,
   updateClinicLeadStatus,
@@ -13,9 +13,6 @@ interface Props {
 }
 
 export async function GET(request: NextRequest, { params }: Props) {
-  if (!isAuthorizedAdmin(request)) {
-    return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
-  }
 
   const { id } = await params;
   const events = await getLeadEvents(id);
@@ -24,9 +21,6 @@ export async function GET(request: NextRequest, { params }: Props) {
 }
 
 export async function PATCH(request: NextRequest, { params }: Props) {
-  if (!isAuthorizedAdmin(request)) {
-    return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
-  }
 
   const { id } = await params;
   try {
@@ -57,9 +51,6 @@ export async function PATCH(request: NextRequest, { params }: Props) {
 }
 
 export async function DELETE(request: NextRequest, { params }: Props) {
-  if (!isAuthorizedAdmin(request)) {
-    return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
-  }
 
   const { id } = await params;
   const searchParams = request.nextUrl.searchParams;
