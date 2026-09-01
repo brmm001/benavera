@@ -58,15 +58,19 @@ export function maskPII(str: string | undefined): string {
  */
 export function timingSafeCompare(a: string, b: string): boolean {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
-  const bufA = Buffer.from(a, 'utf-8');
-  const bufB = Buffer.from(b, 'utf-8');
-  if (bufA.length !== bufB.length) {
-    // Para evitar vazamento de tamanho via timing, fazemos hashing fixo
-    const hashA = crypto.createHash('sha256').update(bufA).digest();
-    const hashB = crypto.createHash('sha256').update(bufB).digest();
-    return crypto.timingSafeEqual(hashA, hashB);
+  
+  // Hash as strings localmente usando uma técnica segura que não depende do Node.js crypto.timingSafeEqual
+  // Isto evita crashes em ambientes serverless como Vercel/Render onde o Buffer/crypto pode ter quirks
+  let mismatch = a.length === b.length ? 0 : 1;
+  const len = Math.max(a.length, b.length);
+  
+  for (let i = 0; i < len; i++) {
+    const charA = i < a.length ? a.charCodeAt(i) : 0;
+    const charB = i < b.length ? b.charCodeAt(i) : 0;
+    mismatch |= (charA ^ charB);
   }
-  return crypto.timingSafeEqual(bufA, bufB);
+  
+  return mismatch === 0 && a.length === b.length;
 }
 
 /**
@@ -95,6 +99,9 @@ export function isAuthorizedAdmin(request: NextRequest): boolean {
   const headerSecret = request.headers.get('x-admin-secret');
   const cookieSecret = request.cookies.get('benavera_admin_token')?.value;
 
+  console.log('[DEBUG AUTH] validToken:', validToken);
+  console.log('[DEBUG AUTH] cookieSecret:', cookieSecret);
+
   if (cookieSecret && timingSafeCompare(cookieSecret, validToken)) {
     return true;
   }
@@ -102,6 +109,7 @@ export function isAuthorizedAdmin(request: NextRequest): boolean {
     return true;
   }
 
+  console.log('[DEBUG AUTH] Failed! cookieSecret vs validToken mismatch or missing');
   return false;
 }
 

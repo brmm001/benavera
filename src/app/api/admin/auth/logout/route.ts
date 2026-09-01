@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
 
-export async function POST() {
-  const response = NextResponse.json({
-    success: true,
-    message: 'Sessão encerrada com sucesso.',
-    redirectUrl: '/admin/login',
-  });
+import { cookies } from 'next/headers';
 
+export async function POST() {
+  const cookieStore = await cookies();
+  
   // Limpa o cookie de autenticação administrativa
-  response.cookies.set('benavera_admin_token', '', {
+  cookieStore.set('benavera_admin_token', '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -17,5 +15,9 @@ export async function POST() {
     expires: new Date(0),
   });
 
-  return response;
+  return NextResponse.json({
+    success: true,
+    message: 'Sessão encerrada com sucesso.',
+    redirectUrl: '/admin/login',
+  });
 }
