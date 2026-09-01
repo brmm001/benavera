@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { validatePhone, formatPhone, submitLead, captureUTMParams, trackEvent } from '@/lib/utils';
+import { validatePhone, formatPhone, submitLead, captureUTMParams } from '@/lib/utils';
+import { trackEvent } from '@/lib/analytics';
 import type { ClinicLead } from '@/types';
 
 interface FormData {
@@ -14,6 +15,7 @@ interface FormData {
   cidade: string;
   especialidade: string;
   aceitaTermos: boolean;
+  _hp_company: string;
 }
 
 const initialForm: FormData = {
@@ -23,6 +25,7 @@ const initialForm: FormData = {
   cidade: '',
   especialidade: '',
   aceitaTermos: false,
+  _hp_company: '',
 };
 
 export function ClinicLeadForm() {
@@ -31,6 +34,10 @@ export function ClinicLeadForm() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+
+  useEffect(() => {
+    trackEvent({ event: 'clinic_form_started' });
+  }, []);
 
   const updateField = <K extends keyof FormData>(key: K, value: FormData[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -45,10 +52,10 @@ export function ClinicLeadForm() {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
     if (!form.nome.trim()) newErrors.nome = 'Campo obrigatório';
     if (!form.nomeClinica.trim()) newErrors.nomeClinica = 'Campo obrigatório';
-    if (!validatePhone(form.whatsapp)) newErrors.whatsapp = 'Número inválido';
+    if (!validatePhone(form.whatsapp)) newErrors.whatsapp = 'Número de WhatsApp inválido';
     if (!form.cidade.trim()) newErrors.cidade = 'Campo obrigatório';
     if (!form.especialidade.trim()) newErrors.especialidade = 'Campo obrigatório';
-    if (!form.aceitaTermos) newErrors.aceitaTermos = 'Necessário para continuar';
+    if (!form.aceitaTermos) newErrors.aceitaTermos = 'Necessário concordar com os termos para prosseguir';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -59,43 +66,65 @@ export function ClinicLeadForm() {
 
     setSubmitting(true);
     setSubmitError('');
-    trackEvent({ event: 'lead_b2b' });
 
     const utms = captureUTMParams();
 
-    const lead: Omit<ClinicLead, 'timestamp'> = {
-      origem: 'website',
+    const lead: Omit<ClinicLead, 'timestamp'> & { _hp_company?: string } = {
+      origem: 'site_clinicas',
       tipoLead: 'clinic',
       nome: form.nome.trim(),
       nomeClinica: form.nomeClinica.trim(),
-      cargo: '',
       whatsapp: form.whatsapp,
-      email: '',
       cidade: form.cidade.trim(),
-      estado: '',
       especialidade: form.especialidade.trim(),
-      ticketMedio: '',
-      orcamentosMes: '',
+      consentimento: form.aceitaTermos,
+      versaoTermos: 'v1.0',
       utmSource: utms.utmSource,
       utmMedium: utms.utmMedium,
       utmCampaign: utms.utmCampaign,
-      landingPage: typeof window !== 'undefined' ? window.location.href : '/clinicas',
+      utmContent: utms.utmContent,
+      utmTerm: utms.utmTerm,
+      landingPage: typeof window !== 'undefined' ? window.location.pathname : '/clinicas',
+      referrer: typeof document !== 'undefined' ? document.referrer : undefined,
+      _hp_company: form._hp_company,
     };
 
     const result = await submitLead(lead);
 
     if (result.success) {
+      trackEvent({
+        event: 'clinic_form_submitted',
+        properties: {
+          especialidade: form.especialidade,
+          cidade: form.cidade,
+        },
+      });
       router.push('/obrigado-clinica');
     } else {
-      setSubmitError(result.error || 'Ocorreu um erro. Tente novamente.');
+      setSubmitError(result.error || 'Ocorreu um erro ao enviar sua solicitação. Seus dados continuam preenchidos, tente novamente.');
       setSubmitting(false);
     }
   };
 
   return (
-    <form id="clinic-lead-form" onSubmit={handleSubmit} noValidate>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
+    <form
+      id="clinic-lead-form"
+      onSubmit={handleSubmit}
+      noValidate
+      data-clarity-mask="true"
+    >
+      {/* Honeypot invisível */}
+      <input
+        type="text"
+        name="_hp_company"
+        value={form._hp_company}
+        onChange={(e) => updateField('_hp_company', e.target.value)}
+        style={{ display: 'none', position: 'absolute', left: '-9999px' }}
+        tabIndex={-1}
+        autoComplete="off"
+      />
 
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
         <div>
           <label className="input-label" htmlFor="clinic-nome">
             Seu nome<span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>
@@ -112,7 +141,9 @@ export function ClinicLeadForm() {
             aria-describedby={errors.nome ? 'clinic-nome-error' : undefined}
           />
           {errors.nome && (
-            <p className="input-error" id="clinic-nome-error" role="alert">{errors.nome}</p>
+            <p className="input-error" id="clinic-nome-error" role="alert">
+              {errors.nome}
+            </p>
           )}
         </div>
 
@@ -123,7 +154,7 @@ export function ClinicLeadForm() {
           <input
             id="clinic-nomeClinica"
             type="text"
-            placeholder="Nome da clínica ou grupo"
+            placeholder="Nome da clínica ou consultório"
             value={form.nomeClinica}
             onChange={(e) => updateField('nomeClinica', e.target.value)}
             className={`input-field${errors.nomeClinica ? ' error' : ''}`}
@@ -131,7 +162,9 @@ export function ClinicLeadForm() {
             aria-describedby={errors.nomeClinica ? 'clinic-nomeClinica-error' : undefined}
           />
           {errors.nomeClinica && (
-            <p className="input-error" id="clinic-nomeClinica-error" role="alert">{errors.nomeClinica}</p>
+            <p className="input-error" id="clinic-nomeClinica-error" role="alert">
+              {errors.nomeClinica}
+            </p>
           )}
         </div>
 
@@ -152,7 +185,9 @@ export function ClinicLeadForm() {
             aria-describedby={errors.whatsapp ? 'clinic-whatsapp-error' : undefined}
           />
           {errors.whatsapp && (
-            <p className="input-error" id="clinic-whatsapp-error" role="alert">{errors.whatsapp}</p>
+            <p className="input-error" id="clinic-whatsapp-error" role="alert">
+              {errors.whatsapp}
+            </p>
           )}
         </div>
 
@@ -172,7 +207,9 @@ export function ClinicLeadForm() {
             aria-describedby={errors.cidade ? 'clinic-cidade-error' : undefined}
           />
           {errors.cidade && (
-            <p className="input-error" id="clinic-cidade-error" role="alert">{errors.cidade}</p>
+            <p className="input-error" id="clinic-cidade-error" role="alert">
+              {errors.cidade}
+            </p>
           )}
         </div>
 
@@ -183,7 +220,7 @@ export function ClinicLeadForm() {
           <input
             id="clinic-especialidade"
             type="text"
-            placeholder="Ex: Odontologia, Implantodontia, Oftalmologia"
+            placeholder="Ex: Odontologia, Implantes, Oftalmologia, Cirurgias"
             value={form.especialidade}
             onChange={(e) => updateField('especialidade', e.target.value)}
             className={`input-field${errors.especialidade ? ' error' : ''}`}
@@ -191,32 +228,54 @@ export function ClinicLeadForm() {
             aria-describedby={errors.especialidade ? 'clinic-especialidade-error' : undefined}
           />
           {errors.especialidade && (
-            <p className="input-error" id="clinic-especialidade-error" role="alert">{errors.especialidade}</p>
+            <p className="input-error" id="clinic-especialidade-error" role="alert">
+              {errors.especialidade}
+            </p>
           )}
         </div>
 
         <div style={{ paddingTop: '0.25rem' }}>
-          <label className="checkbox-container" htmlFor="clinic-termos">
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.625rem',
+              fontSize: '0.875rem',
+              color: '#475569',
+              lineHeight: '1.6',
+              cursor: 'pointer',
+            }}
+            htmlFor="clinic-termos"
+          >
             <input
               id="clinic-termos"
               type="checkbox"
               checked={form.aceitaTermos}
               onChange={(e) => updateField('aceitaTermos', e.target.checked)}
-              className="checkbox-input"
+              style={{ marginTop: '3px' }}
               aria-invalid={!!errors.aceitaTermos}
               aria-describedby={errors.aceitaTermos ? 'clinic-termos-error' : undefined}
             />
-            <span style={{ fontSize: '0.875rem', color: '#475569', lineHeight: '1.6' }}>
+            <span>
               Li e concordo com a{' '}
-              <Link href="/privacidade" target="_blank" style={{ color: '#4040ca', fontWeight: '600' }}>
+              <Link
+                href="/privacidade"
+                target="_blank"
+                style={{ color: '#4040ca', fontWeight: '600' }}
+              >
                 Política de Privacidade
-              </Link>
-              {' '}e autorizo o uso dos dados para contato.
+              </Link>{' '}
+              e autorizo o contato comercial da equipe Benavera.
               <span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>
             </span>
           </label>
           {errors.aceitaTermos && (
-            <p className="input-error" id="clinic-termos-error" role="alert" style={{ marginTop: '0.5rem' }}>
+            <p
+              className="input-error"
+              id="clinic-termos-error"
+              role="alert"
+              style={{ marginTop: '0.5rem' }}
+            >
               {errors.aceitaTermos}
             </p>
           )}
@@ -237,7 +296,9 @@ export function ClinicLeadForm() {
             cursor: submitting ? 'not-allowed' : 'pointer',
           }}
         >
-          {submitting ? 'Enviando...' : (
+          {submitting ? (
+            'Enviando...'
+          ) : (
             <>
               Quero conhecer
               <ArrowRight size={16} />
@@ -250,15 +311,17 @@ export function ClinicLeadForm() {
         </p>
 
         {submitError && (
-          <div style={{
-            padding: '1rem 1.25rem',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '12px',
-            fontSize: '0.875rem',
-            color: '#dc2626',
-            lineHeight: '1.6',
-          }}>
+          <div
+            style={{
+              padding: '1rem 1.25rem',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '12px',
+              fontSize: '0.875rem',
+              color: '#dc2626',
+              lineHeight: '1.6',
+            }}
+          >
             {submitError}
           </div>
         )}

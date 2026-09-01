@@ -1,94 +1,173 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { sanitizeString, maskPII, getClientIP, isAuthorizedAdmin } from '@/lib/security';
+import {
+  savePatientLead,
+  saveClinicLead,
+  getPatientLeads,
+  getClinicLeads,
+} from '@/lib/db';
+import type { PatientLead, ClinicLead } from '@/types';
 
-const LEADS_FILE = path.join(process.cwd(), 'data', 'leads.json');
-
-async function ensureFile() {
-  const dir = path.dirname(LEADS_FILE);
-  try {
-    await fs.mkdir(dir, { recursive: true });
-  } catch {
-    // dir already exists
-  }
-  try {
-    await fs.access(LEADS_FILE);
-  } catch {
-    await fs.writeFile(LEADS_FILE, JSON.stringify([], null, 2), 'utf-8');
-  }
-}
-
-async function readLeads(): Promise<unknown[]> {
-  await ensureFile();
-  const raw = await fs.readFile(LEADS_FILE, 'utf-8');
-  try {
-    return JSON.parse(raw) as unknown[];
-  } catch {
-    return [];
-  }
-}
-
-async function writeLead(lead: unknown): Promise<void> {
-  await ensureFile();
-  const leads = await readLeads();
-  leads.unshift(lead); // newer leads first
-  await fs.writeFile(LEADS_FILE, JSON.stringify(leads, null, 2), 'utf-8');
-}
-
-// POST /api/leads — receive a new lead
+// POST /api/leads — Submissão de leads (Paciente ou Clínica)
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json() as Record<string, unknown>;
+  const clientIP = getClientIP(request);
 
-    // Basic sanitization — strip potential XSS
-    const sanitize = (val: unknown): unknown => {
-      if (typeof val === 'string') return val.replace(/[<>]/g, '');
-      if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
-        return Object.fromEntries(
-          Object.entries(val as Record<string, unknown>).map(([k, v]) => [k, sanitize(v)])
+  // 1. Rate Limiting (10 requisições por minuto por IP)
+  const rateCheck = checkRateLimit(clientIP, 10, 60 * 1000);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Muitas requisições. Por favor, aguarde ${rateCheck.resetInSeconds} segundos antes de tentar novamente.`,
+      },
+      { status: 429 }
+    );
+  }
+
+  try {
+    const rawBody = (await request.json()) as Record<string, unknown>;
+
+    // 2. Proteção contra Honeypot (campo invisível _hp_company preenchido por robôs)
+    if (rawBody._hp_company || rawBody._hp_website) {
+      // Retorna 200 silencioso para desencorajar spammers sem persistir no banco
+      return NextResponse.json({ success: true, id: 'ok' }, { status: 200 });
+    }
+
+    const tipoLead = rawBody.tipoLead === 'clinic' ? 'clinic' : 'patient';
+
+    // 3. Processamento e Validação específica por tipo
+    if (tipoLead === 'clinic') {
+      const nome = sanitizeString(rawBody.nome);
+      const nomeClinica = sanitizeString(rawBody.nomeClinica);
+      const whatsapp = sanitizeString(rawBody.whatsapp);
+      const cidade = sanitizeString(rawBody.cidade);
+      const especialidade = sanitizeString(rawBody.especialidade);
+
+      if (!nome || !nomeClinica || !whatsapp || !cidade || !especialidade) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Campos obrigatórios incompletos (nome, clínica, whatsapp, cidade e especialidade).',
+          },
+          { status: 400 }
         );
       }
-      return val;
-    };
 
-    const sanitizedBody = sanitize(body) as Record<string, unknown>;
-    const lead: Record<string, unknown> = {
-      id: `lead_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      receivedAt: new Date().toISOString(),
-      ip: request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown',
-      userAgent: request.headers.get('user-agent') ?? 'unknown',
-      ...sanitizedBody,
-    };
+      const clinicData: Omit<ClinicLead, 'id' | 'createdAt' | 'updatedAt' | 'statusComercial'> = {
+        origem: sanitizeString(rawBody.origem) || 'site_clinicas',
+        tipoLead: 'clinic',
+        nome,
+        nomeClinica,
+        cargo: sanitizeString(rawBody.cargo),
+        whatsapp,
+        email: sanitizeString(rawBody.email),
+        cidade,
+        estado: sanitizeString(rawBody.estado),
+        especialidade,
+        numeroUnidades: sanitizeString(rawBody.numeroUnidades),
+        ticketMedio: sanitizeString(rawBody.ticketMedio),
+        orcamentosMes: sanitizeString(rawBody.orcamentosMes),
+        maiorDesafio: sanitizeString(rawBody.maiorDesafio),
+        consentimento: Boolean(rawBody.consentimento !== false),
+        versaoTermos: sanitizeString(rawBody.versaoTermos) || 'v1.0',
+        utmSource: sanitizeString(rawBody.utmSource),
+        utmMedium: sanitizeString(rawBody.utmMedium),
+        utmCampaign: sanitizeString(rawBody.utmCampaign),
+        utmContent: sanitizeString(rawBody.utmContent),
+        utmTerm: sanitizeString(rawBody.utmTerm),
+        landingPage: sanitizeString(rawBody.landingPage) || '/clinicas',
+        referrer: sanitizeString(rawBody.referrer),
+        timestamp: new Date().toISOString(),
+      };
 
-    await writeLead(lead);
+      const result = await saveClinicLead(clinicData);
 
-    console.log(`[Benavera] Lead salvo: ${lead.id} — tipo: ${lead.tipoLead ?? 'desconhecido'}`);
+      console.log(
+        `[Benavera Lead] Clínica salva ID=${result.id} | Clínica=${maskPII(nomeClinica)} | Contato=${maskPII(nome)}`
+      );
 
-    return NextResponse.json({ success: true, id: lead.id }, { status: 201 });
-  } catch (err) {
-    console.error('[Benavera] Erro ao salvar lead:', err);
+      return NextResponse.json({ success: true, id: result.id }, { status: 201 });
+    } else {
+      // Paciente
+      const nome = sanitizeString(rawBody.nome);
+      const telefone = sanitizeString(rawBody.telefone);
+      const cidade = sanitizeString(rawBody.cidade);
+      const tratamento = sanitizeString(rawBody.tratamento);
+
+      if (!nome || !telefone || !cidade || !tratamento) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Campos obrigatórios incompletos (nome, telefone, cidade e tratamento).',
+          },
+          { status: 400 }
+        );
+      }
+
+      const patientData: Omit<PatientLead, 'id' | 'createdAt' | 'updatedAt' | 'status'> = {
+        origem: sanitizeString(rawBody.origem) || 'site_simulador',
+        tipoLead: 'patient',
+        nome,
+        telefone,
+        email: sanitizeString(rawBody.email),
+        cidade,
+        estado: sanitizeString(rawBody.estado),
+        tratamento,
+        valorTratamento: typeof rawBody.valorTratamento === 'number' ? rawBody.valorTratamento : Number(rawBody.valorTratamento) || undefined,
+        entrada: typeof rawBody.entrada === 'number' ? rawBody.entrada : Number(rawBody.entrada) || undefined,
+        parcelaDesejada: typeof rawBody.parcelaDesejada === 'number' ? rawBody.parcelaDesejada : Number(rawBody.parcelaDesejada) || undefined,
+        prazoDesejado: sanitizeString(rawBody.prazoDesejado),
+        clinicaIndicada: sanitizeString(rawBody.clinicaIndicada),
+        consentimento: Boolean(rawBody.consentimento !== false),
+        versaoTermos: sanitizeString(rawBody.versaoTermos) || 'v1.0',
+        utmSource: sanitizeString(rawBody.utmSource),
+        utmMedium: sanitizeString(rawBody.utmMedium),
+        utmCampaign: sanitizeString(rawBody.utmCampaign),
+        utmContent: sanitizeString(rawBody.utmContent),
+        utmTerm: sanitizeString(rawBody.utmTerm),
+        landingPage: sanitizeString(rawBody.landingPage) || '/simular',
+        referrer: sanitizeString(rawBody.referrer),
+        timestamp: new Date().toISOString(),
+      };
+
+      const result = await savePatientLead(patientData);
+
+      console.log(
+        `[Benavera Lead] Paciente salvo ID=${result.id} | Tratamento=${tratamento} | Cidade=${cidade}`
+      );
+
+      return NextResponse.json({ success: true, id: result.id }, { status: 201 });
+    }
+  } catch (error) {
+    console.error('[Benavera Lead] Erro interno ao salvar lead:', error);
     return NextResponse.json(
-      { success: false, error: 'Erro interno ao processar solicitação.' },
+      {
+        success: false,
+        error: 'Erro interno ao processar a solicitação. Por favor, tente novamente.',
+      },
       { status: 500 }
     );
   }
 }
 
-// GET /api/leads — return all leads (for admin page)
+// GET /api/leads — Consulta protegida de leads
 export async function GET(request: NextRequest) {
-  // Only accessible in development or with secret header
-  const secret = process.env.ADMIN_SECRET;
-  const providedSecret = request.headers.get('x-admin-secret');
-
-  if (secret && providedSecret !== secret) {
+  if (!isAuthorizedAdmin(request)) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
   }
 
   try {
-    const leads = await readLeads();
-    return NextResponse.json({ leads, total: leads.length });
-  } catch (err) {
-    console.error('[Benavera] Erro ao ler leads:', err);
+    const patientLeads = await getPatientLeads();
+    const clinicLeads = await getClinicLeads();
+
+    return NextResponse.json({
+      patientLeads,
+      clinicLeads,
+      total: patientLeads.length + clinicLeads.length,
+    });
+  } catch (error) {
+    console.error('[Benavera Lead] Erro ao buscar leads:', error);
     return NextResponse.json({ error: 'Erro ao carregar leads.' }, { status: 500 });
   }
 }

@@ -1,10 +1,18 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { formatCurrency, validateEmail, validatePhone, formatPhone, submitLead, captureUTMParams, trackEvent } from '@/lib/utils';
+import {
+  formatCurrency,
+  validateEmail,
+  validatePhone,
+  formatPhone,
+  submitLead,
+  captureUTMParams,
+} from '@/lib/utils';
+import { trackEvent } from '@/lib/analytics';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 import type { PatientLead } from '@/types';
 
@@ -48,7 +56,7 @@ interface FormData {
   whatsapp: string;
   email: string;
   aceitaTermos: boolean;
-  aceitaMarketing: boolean;
+  _hp_company: string;
 }
 
 const initialForm: FormData = {
@@ -65,18 +73,11 @@ const initialForm: FormData = {
   whatsapp: '',
   email: '',
   aceitaTermos: false,
-  aceitaMarketing: false,
+  _hp_company: '',
 };
 
 function parseCurrency(value: string): number {
   return parseFloat(value.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-}
-
-function formatCurrencyField(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  if (!digits) return '';
-  const number = parseInt(digits, 10) / 100;
-  return formatCurrency(number);
 }
 
 export function SimulationWizard() {
@@ -89,6 +90,10 @@ export function SimulationWizard() {
 
   const progress = (step / STEPS.length) * 100;
 
+  useEffect(() => {
+    trackEvent({ event: 'simulation_started' });
+  }, []);
+
   const updateField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => {
@@ -98,44 +103,47 @@ export function SimulationWizard() {
     });
   }, []);
 
-  const handleValueInput = useCallback((key: 'valorTratamento' | 'entrada', raw: string) => {
-    // Permite digitar livremente — guarda o texto como digitado
-    const digits = raw.replace(/[^0-9]/g, '');
-    if (!digits) {
-      updateField(key, '');
-    } else {
-      updateField(key, digits);
-    }
-  }, [updateField]);
-
-  const handleValueBlur = useCallback((key: 'valorTratamento' | 'entrada') => {
-    const raw = key === 'valorTratamento' ? form.valorTratamento : form.entrada;
-    const digits = raw.replace(/[^0-9]/g, '');
-    if (!digits) return;
-    const number = parseInt(digits, 10);
-    if (number > 0) {
-      updateField(key, formatCurrency(number));
-    }
-  }, [form.valorTratamento, form.entrada, updateField]);
+  const handleValueBlur = useCallback(
+    (key: 'valorTratamento' | 'entrada') => {
+      const raw = key === 'valorTratamento' ? form.valorTratamento : form.entrada;
+      const digits = raw.replace(/[^0-9]/g, '');
+      if (!digits) return;
+      const number = parseInt(digits, 10);
+      if (number > 0) {
+        updateField(key, formatCurrency(number));
+      }
+    },
+    [form.valorTratamento, form.entrada, updateField]
+  );
 
   const canProceed = (): boolean => {
     switch (step) {
-      case 1: return !!form.tratamento;
-      case 2: return form.temOrcamento === false || (form.temOrcamento === true && !!form.valorTratamento);
-      case 3: return form.entradaDesconhecida || !!form.entrada;
-      case 4: return form.parcelaDesejada !== null || !!form.parcelaCustom;
-      case 5: return !!form.cidade;
-      case 6: return !!(form.nome && form.whatsapp && form.email && form.aceitaTermos);
-      default: return false;
+      case 1:
+        return !!form.tratamento;
+      case 2:
+        return (
+          form.temOrcamento === false ||
+          (form.temOrcamento === true && !!form.valorTratamento)
+        );
+      case 3:
+        return form.entradaDesconhecida || !!form.entrada;
+      case 4:
+        return form.parcelaDesejada !== null || !!form.parcelaCustom;
+      case 5:
+        return !!form.cidade;
+      case 6:
+        return !!(form.nome && form.whatsapp && form.aceitaTermos);
+      default:
+        return false;
     }
   };
 
   const validateStep6 = (): boolean => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
     if (!form.nome.trim()) newErrors.nome = 'Informe seu nome';
-    if (!validatePhone(form.whatsapp)) newErrors.whatsapp = 'Informe um número válido';
-    if (!validateEmail(form.email)) newErrors.email = 'Informe um e-mail válido';
-    if (!form.aceitaTermos) newErrors.aceitaTermos = 'Necessário para continuar';
+    if (!validatePhone(form.whatsapp)) newErrors.whatsapp = 'Informe um número de telefone válido';
+    if (form.email && !validateEmail(form.email)) newErrors.email = 'Informe um e-mail válido';
+    if (!form.aceitaTermos) newErrors.aceitaTermos = 'É necessário concordar com os termos para prosseguir';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -147,7 +155,15 @@ export function SimulationWizard() {
       return;
     }
     if (!canProceed()) return;
-    trackEvent({ event: 'simulation_step_completed', properties: { step } });
+
+    trackEvent({
+      event: 'simulation_step_completed',
+      properties: {
+        etapa: step,
+        categoria: form.tratamento || undefined,
+      },
+    });
+
     setStep((s) => s + 1);
   };
 
@@ -158,59 +174,82 @@ export function SimulationWizard() {
   const handleSubmit = async () => {
     setSubmitting(true);
     setSubmitError('');
-    trackEvent({ event: 'simulation_completed' });
 
     const utms = captureUTMParams();
     const valorNum = parseCurrency(form.valorTratamento);
     const entradaNum = parseCurrency(form.entrada);
 
-    const lead: Omit<PatientLead, 'timestamp'> = {
-      origem: 'website',
+    const lead: Omit<PatientLead, 'timestamp'> & { _hp_company?: string } = {
+      origem: 'site_simulador',
       tipoLead: 'patient',
-      nome: form.nome,
+      nome: form.nome.trim(),
       telefone: form.whatsapp,
-      email: form.email,
-      cidade: form.cidade,
-      estado: form.estado,
+      email: form.email.trim() || undefined,
+      cidade: form.cidade.trim(),
+      estado: form.estado || undefined,
       tratamento: form.tratamento,
       valorTratamento: valorNum || undefined,
-      entrada: form.entradaDesconhecida ? undefined : (entradaNum || undefined),
-      parcelaDesejada: form.parcelaDesejada || (parseFloat(form.parcelaCustom) || undefined),
-      valorFinanciado: valorNum && entradaNum ? valorNum - entradaNum : undefined,
-      aceitaMarketing: form.aceitaMarketing,
+      entrada: form.entradaDesconhecida ? 0 : entradaNum || 0,
+      parcelaDesejada: form.parcelaDesejada || parseCurrency(form.parcelaCustom) || undefined,
+      consentimento: form.aceitaTermos,
+      versaoTermos: 'v1.0',
       utmSource: utms.utmSource,
       utmMedium: utms.utmMedium,
       utmCampaign: utms.utmCampaign,
       utmContent: utms.utmContent,
       utmTerm: utms.utmTerm,
-      landingPage: typeof window !== 'undefined' ? window.location.href : '/simular',
+      landingPage: typeof window !== 'undefined' ? window.location.pathname : '/simular',
       referrer: typeof document !== 'undefined' ? document.referrer : undefined,
+      _hp_company: form._hp_company,
     };
 
     const result = await submitLead(lead);
 
     if (result.success) {
+      trackEvent({
+        event: 'simulation_submitted',
+        properties: {
+          categoria: form.tratamento,
+          cidade: form.cidade,
+        },
+      });
       router.push('/obrigado');
     } else {
-      setSubmitError(result.error || 'Ocorreu um erro. Tente novamente.');
+      setSubmitError(result.error || 'Ocorreu um erro ao enviar sua simulação. Seus dados estão salvos, tente novamente.');
       setSubmitting(false);
     }
   };
 
   return (
-    <div style={{
-      maxWidth: '560px',
-      margin: '0 auto',
-      padding: '2rem 1.5rem',
-    }}>
-      {/* Progress */}
+    <div
+      data-clarity-mask="true"
+      style={{
+        maxWidth: '560px',
+        margin: '0 auto',
+        padding: '2rem 1.5rem',
+      }}
+    >
+      {/* Honeypot invisível para bots */}
+      <input
+        type="text"
+        name="_hp_company"
+        value={form._hp_company}
+        onChange={(e) => updateField('_hp_company', e.target.value)}
+        style={{ display: 'none', position: 'absolute', left: '-9999px' }}
+        tabIndex={-1}
+        autoComplete="off"
+      />
+
+      {/* Barra de Progresso */}
       <div style={{ marginBottom: '2.5rem' }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '0.75rem',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '0.75rem',
+          }}
+        >
           <span style={{ fontSize: '0.875rem', color: '#94a3b8' }}>
             Etapa {step} de {STEPS.length}
           </span>
@@ -221,53 +260,58 @@ export function SimulationWizard() {
         <div className="progress-bar-container">
           <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
         </div>
-        <p style={{
-          fontSize: '0.875rem',
-          color: '#64748b',
-          marginTop: '0.5rem',
-          fontWeight: '500',
-        }}>
+        <p
+          style={{
+            fontSize: '0.875rem',
+            color: '#64748b',
+            marginTop: '0.5rem',
+            fontWeight: '500',
+          }}
+        >
           {STEPS[step - 1].title}
         </p>
       </div>
 
-      {/* Step content */}
+      {/* Conteúdo da Etapa */}
       <div className="animate-fade-in-up">
         {/* STEP 1 */}
         {step === 1 && (
           <div>
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: '800',
-              color: '#0f172a',
-              marginBottom: '0.75rem',
-              letterSpacing: '-0.02em',
-            }}>
+            <h2
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: '800',
+                color: '#0f172a',
+                marginBottom: '0.75rem',
+                letterSpacing: '-0.02em',
+              }}
+            >
               Qual tratamento você está planejando?
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Escolha a categoria mais próxima.
+              Escolha a categoria mais próxima do seu procedimento.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {TREATMENTS.map((t) => (
                 <button
                   key={t}
-                  id={`treatment-${t.toLowerCase().replace(/[^a-z]/g, '-')}`}
+                  type="button"
+                  id={`treatment-${t.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
                   onClick={() => updateField('tratamento', t)}
                   style={{
                     padding: '1rem 1.25rem',
                     borderRadius: '12px',
                     border: `1.5px solid ${form.tratamento === t ? '#4040ca' : '#e2e8f0'}`,
                     background: form.tratamento === t ? '#f0f4ff' : 'white',
-                    color: form.tratamento === t ? '#2f3181' : '#334155',
-                    fontWeight: form.tratamento === t ? '700' : '500',
+                    color: form.tratamento === t ? '#4040ca' : '#0f172a',
+                    fontWeight: form.tratamento === t ? '600' : '500',
                     fontSize: '1rem',
                     textAlign: 'left',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
                     display: 'flex',
-                    alignItems: 'center',
                     justifyContent: 'space-between',
+                    alignItems: 'center',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   {t}
@@ -281,188 +325,214 @@ export function SimulationWizard() {
         {/* STEP 2 */}
         {step === 2 && (
           <div>
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: '800',
-              color: '#0f172a',
-              marginBottom: '0.75rem',
-              letterSpacing: '-0.02em',
-            }}>
+            <h2
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: '800',
+                color: '#0f172a',
+                marginBottom: '0.75rem',
+                letterSpacing: '-0.02em',
+              }}
+            >
               Você já tem um orçamento em mãos?
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Com o valor fica mais fácil estimar as parcelas.
+              Se tiver o valor exato, informe abaixo. Se não tiver, podemos estimar.
             </p>
 
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-              {[
-                { label: 'Sim, já tenho', value: true },
-                { label: 'Ainda não', value: false },
-              ].map((opt) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <button
-                  key={String(opt.value)}
-                  id={`has-budget-${opt.value}`}
-                  onClick={() => updateField('temOrcamento', opt.value)}
+                  type="button"
+                  onClick={() => updateField('temOrcamento', true)}
                   style={{
-                    flex: 1,
-                    padding: '1rem',
-                    borderRadius: '12px',
-                    border: `1.5px solid ${form.temOrcamento === opt.value ? '#4040ca' : '#e2e8f0'}`,
-                    background: form.temOrcamento === opt.value ? '#f0f4ff' : 'white',
-                    color: form.temOrcamento === opt.value ? '#2f3181' : '#334155',
-                    fontWeight: form.temOrcamento === opt.value ? '700' : '500',
+                    padding: '0.875rem',
+                    borderRadius: '10px',
+                    border: `1.5px solid ${form.temOrcamento === true ? '#4040ca' : '#e2e8f0'}`,
+                    background: form.temOrcamento === true ? '#f0f4ff' : 'white',
+                    color: form.temOrcamento === true ? '#4040ca' : '#0f172a',
+                    fontWeight: '600',
                     fontSize: '0.9375rem',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
                   }}
                 >
-                  {opt.label}
+                  Sim, tenho o valor
                 </button>
-              ))}
-            </div>
-
-            {form.temOrcamento === true && (
-              <div>
-                <label className="input-label" htmlFor="valor-tratamento">
-                  Qual é aproximadamente o valor?
-                </label>
-                <input
-                  id="valor-tratamento"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Ex: 8000"
-                  value={form.valorTratamento}
-                  onChange={(e) => handleValueInput('valorTratamento', e.target.value)}
-                  onBlur={() => handleValueBlur('valorTratamento')}
-                  className="input-field"
-                  autoFocus
-                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField('temOrcamento', false);
+                    updateField('valorTratamento', '');
+                  }}
+                  style={{
+                    padding: '0.875rem',
+                    borderRadius: '10px',
+                    border: `1.5px solid ${form.temOrcamento === false ? '#4040ca' : '#e2e8f0'}`,
+                    background: form.temOrcamento === false ? '#f0f4ff' : 'white',
+                    color: form.temOrcamento === false ? '#4040ca' : '#0f172a',
+                    fontWeight: '600',
+                    fontSize: '0.9375rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Ainda não tenho
+                </button>
               </div>
-            )}
+
+              {form.temOrcamento === true && (
+                <div style={{ marginTop: '0.5rem' }}>
+                  <label className="input-label" htmlFor="wizard-valor">
+                    Valor total aproximado
+                  </label>
+                  <input
+                    id="wizard-valor"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Ex: R$ 8.000"
+                    value={form.valorTratamento}
+                    onChange={(e) => updateField('valorTratamento', e.target.value)}
+                    onBlur={() => handleValueBlur('valorTratamento')}
+                    className="input-field"
+                    autoFocus
+                  />
+                </div>
+              )}
+
+              {form.temOrcamento === false && (
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    padding: '1rem',
+                    fontSize: '0.875rem',
+                    color: '#64748b',
+                  }}
+                >
+                  Sem problemas. Faremos uma simulação com base na média habitual para {form.tratamento || 'este procedimento'}.
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {/* STEP 3 */}
         {step === 3 && (
           <div>
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: '800',
-              color: '#0f172a',
-              marginBottom: '0.75rem',
-              letterSpacing: '-0.02em',
-            }}>
+            <h2
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: '800',
+                color: '#0f172a',
+                marginBottom: '0.75rem',
+                letterSpacing: '-0.02em',
+              }}
+            >
               Quanto você consegue dar de entrada?
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              A entrada reduz o valor a parcelar. Não é obrigatória.
+              Uma entrada maior reduz as parcelas, mas não é obrigatória em todos os casos.
             </p>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label className="input-label" htmlFor="entrada-valor">
-                Valor da entrada (opcional)
-              </label>
-              <input
-                id="entrada-valor"
-                type="text"
-                inputMode="numeric"
-                placeholder="Ex: 2000"
-                value={form.entrada}
-                onChange={(e) => handleValueInput('entrada', e.target.value)}
-                onBlur={() => handleValueBlur('entrada')}
-                disabled={form.entradaDesconhecida}
-                className="input-field"
-                style={{ opacity: form.entradaDesconhecida ? 0.5 : 1 }}
-              />
-            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {!form.entradaDesconhecida && (
+                <div>
+                  <label className="input-label" htmlFor="wizard-entrada">
+                    Valor de entrada
+                  </label>
+                  <input
+                    id="wizard-entrada"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Ex: R$ 2.000"
+                    value={form.entrada}
+                    onChange={(e) => updateField('entrada', e.target.value)}
+                    onBlur={() => handleValueBlur('entrada')}
+                    className="input-field"
+                  />
+                </div>
+              )}
 
-            <label className="checkbox-container" style={{ cursor: 'pointer' }}>
-              <input
-                id="entrada-desconhecida"
-                type="checkbox"
-                checked={form.entradaDesconhecida}
-                onChange={(e) => {
-                  updateField('entradaDesconhecida', e.target.checked);
-                  if (e.target.checked) updateField('entrada', '');
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontSize: '0.9375rem',
+                  color: '#475569',
+                  cursor: 'pointer',
                 }}
-                className="checkbox-input"
-              />
-              <span style={{ fontSize: '0.9375rem', color: '#475569' }}>
-                Ainda não sei o valor da entrada
-              </span>
-            </label>
+              >
+                <input
+                  type="checkbox"
+                  checked={form.entradaDesconhecida}
+                  onChange={(e) => {
+                    updateField('entradaDesconhecida', e.target.checked);
+                    if (e.target.checked) updateField('entrada', '');
+                  }}
+                />
+                Prefiro simular sem entrada no momento
+              </label>
+            </div>
           </div>
         )}
 
         {/* STEP 4 */}
         {step === 4 && (
           <div>
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: '800',
-              color: '#0f172a',
-              marginBottom: '0.75rem',
-              letterSpacing: '-0.02em',
-            }}>
+            <h2
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: '800',
+                color: '#0f172a',
+                marginBottom: '0.75rem',
+                letterSpacing: '-0.02em',
+              }}
+            >
               Quanto você quer pagar por mês?
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Pense no valor que caberia no seu orçamento mensal sem apertar.
+              Selecione o valor máximo que cabe confortavelmente na sua renda mensal.
             </p>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '0.75rem',
-              marginBottom: '1.25rem',
-            }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
               {INSTALLMENT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  id={`installment-${opt.value}`}
+                  type="button"
                   onClick={() => {
                     updateField('parcelaDesejada', opt.value);
                     updateField('parcelaCustom', '');
                   }}
                   style={{
                     padding: '0.875rem 0.5rem',
-                    borderRadius: '12px',
+                    borderRadius: '10px',
                     border: `1.5px solid ${form.parcelaDesejada === opt.value ? '#4040ca' : '#e2e8f0'}`,
                     background: form.parcelaDesejada === opt.value ? '#f0f4ff' : 'white',
-                    color: form.parcelaDesejada === opt.value ? '#2f3181' : '#334155',
-                    fontWeight: form.parcelaDesejada === opt.value ? '700' : '600',
+                    color: form.parcelaDesejada === opt.value ? '#4040ca' : '#0f172a',
+                    fontWeight: '600',
                     fontSize: '0.9375rem',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
                   }}
                 >
-                  {opt.label}
+                  Até {opt.label}
                 </button>
               ))}
             </div>
 
             <div>
-              <label className="input-label" htmlFor="parcela-custom">
-                Outro valor
+              <label className="input-label" htmlFor="wizard-parcela-custom">
+                Ou digite outro valor mensal
               </label>
               <input
-                id="parcela-custom"
+                id="wizard-parcela-custom"
                 type="text"
                 inputMode="numeric"
-                placeholder="R$ 0"
+                placeholder="Ex: R$ 450"
                 value={form.parcelaCustom}
                 onChange={(e) => {
-                  const digits = e.target.value.replace(/[^0-9]/g, '');
-                  updateField('parcelaCustom', digits);
+                  updateField('parcelaCustom', e.target.value);
                   updateField('parcelaDesejada', null);
-                }}
-                onBlur={() => {
-                  const digits = form.parcelaCustom.replace(/[^0-9]/g, '');
-                  if (!digits) return;
-                  const num = parseInt(digits, 10);
-                  if (num > 0) {
-                    updateField('parcelaCustom', formatCurrency(num));
-                  }
                 }}
                 className="input-field"
               />
@@ -473,46 +543,35 @@ export function SimulationWizard() {
         {/* STEP 5 */}
         {step === 5 && (
           <div>
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: '800',
-              color: '#0f172a',
-              marginBottom: '0.75rem',
-              letterSpacing: '-0.02em',
-            }}>
-              Em qual cidade você pretende realizar o tratamento?
+            <h2
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: '800',
+                color: '#0f172a',
+                marginBottom: '0.75rem',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Em qual cidade você fará o tratamento?
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Essa informação ajuda a organizar melhor sua solicitação.
+              Usamos sua localização para identificar parceiros disponíveis na sua região.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label className="input-label" htmlFor="cidade">Cidade</label>
+                <label className="input-label" htmlFor="wizard-cidade">
+                  Cidade
+                </label>
                 <input
-                  id="cidade"
+                  id="wizard-cidade"
                   type="text"
-                  placeholder="Ex: São Paulo"
+                  placeholder="Ex: São Paulo, Belo Horizonte, Curitiba"
                   value={form.cidade}
                   onChange={(e) => updateField('cidade', e.target.value)}
                   className="input-field"
                   autoFocus
                 />
-              </div>
-              <div>
-                <label className="input-label" htmlFor="estado">Estado (opcional)</label>
-                <select
-                  id="estado"
-                  value={form.estado}
-                  onChange={(e) => updateField('estado', e.target.value)}
-                  className="select-field"
-                >
-                  <option value="">Selecione o estado</option>
-                  {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
-                    'PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map((uf) => (
-                    <option key={uf} value={uf}>{uf}</option>
-                  ))}
-                </select>
               </div>
             </div>
           </div>
@@ -521,153 +580,186 @@ export function SimulationWizard() {
         {/* STEP 6 */}
         {step === 6 && (
           <div>
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: '800',
-              color: '#0f172a',
-              marginBottom: '0.375rem',
-              letterSpacing: '-0.02em',
-            }}>
-              Precisamos de algumas informações para continuar.
+            <h2
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: '800',
+                color: '#0f172a',
+                marginBottom: '0.75rem',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Precisamos de algumas informações para continuar
             </h2>
             <p style={{ fontSize: '0.9375rem', color: '#64748b', marginBottom: '1.75rem' }}>
-              Seus dados são usados apenas para processar sua solicitação.
+              Informe seus dados para receber o resultado da simulação.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label className="input-label" htmlFor="nome">Nome</label>
+                <label className="input-label" htmlFor="wizard-nome">
+                  Seu nome completo<span style={{ color: '#ef4444' }}>*</span>
+                </label>
                 <input
-                  id="nome"
+                  id="wizard-nome"
                   type="text"
-                  placeholder="Seu nome"
+                  placeholder="Como devemos te chamar"
                   value={form.nome}
                   onChange={(e) => updateField('nome', e.target.value)}
                   className={`input-field${errors.nome ? ' error' : ''}`}
-                  autoComplete="name"
-                  autoFocus
                 />
                 {errors.nome && <p className="input-error">{errors.nome}</p>}
               </div>
 
               <div>
-                <label className="input-label" htmlFor="whatsapp">WhatsApp</label>
+                <label className="input-label" htmlFor="wizard-whatsapp">
+                  WhatsApp com DDD<span style={{ color: '#ef4444' }}>*</span>
+                </label>
                 <input
-                  id="whatsapp"
+                  id="wizard-whatsapp"
                   type="tel"
                   placeholder="(11) 99999-9999"
                   value={form.whatsapp}
                   onChange={(e) => updateField('whatsapp', formatPhone(e.target.value))}
                   className={`input-field${errors.whatsapp ? ' error' : ''}`}
-                  autoComplete="tel"
-                  inputMode="tel"
                 />
                 {errors.whatsapp && <p className="input-error">{errors.whatsapp}</p>}
               </div>
 
               <div>
-                <label className="input-label" htmlFor="email">E-mail</label>
+                <label className="input-label" htmlFor="wizard-email">
+                  E-mail (opcional)
+                </label>
                 <input
-                  id="email"
+                  id="wizard-email"
                   type="email"
-                  placeholder="seu@email.com"
+                  placeholder="seuemail@exemplo.com"
                   value={form.email}
                   onChange={(e) => updateField('email', e.target.value)}
                   className={`input-field${errors.email ? ' error' : ''}`}
-                  autoComplete="email"
-                  inputMode="email"
                 />
                 {errors.email && <p className="input-error">{errors.email}</p>}
               </div>
+
+              {/* Consentimento LGPD */}
+              <div style={{ paddingTop: '0.5rem' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.625rem',
+                    fontSize: '0.875rem',
+                    color: '#475569',
+                    lineHeight: '1.6',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.aceitaTermos}
+                    onChange={(e) => updateField('aceitaTermos', e.target.checked)}
+                    style={{ marginTop: '3px' }}
+                  />
+                  <span>
+                    Concordo com os{' '}
+                    <Link
+                      href="/termos"
+                      target="_blank"
+                      style={{ color: '#4040ca', fontWeight: '600' }}
+                    >
+                      Termos de Uso
+                    </Link>{' '}
+                    e com a{' '}
+                    <Link
+                      href="/privacidade"
+                      target="_blank"
+                      style={{ color: '#4040ca', fontWeight: '600' }}
+                    >
+                      Política de Privacidade
+                    </Link>{' '}
+                    para fins de simulação e contato.
+                    <span style={{ color: '#ef4444' }}>*</span>
+                  </span>
+                </label>
+                {errors.aceitaTermos && <p className="input-error">{errors.aceitaTermos}</p>}
+              </div>
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-              <label className="checkbox-container" htmlFor="termos">
-                <input
-                  id="termos"
-                  type="checkbox"
-                  checked={form.aceitaTermos}
-                  onChange={(e) => updateField('aceitaTermos', e.target.checked)}
-                  className="checkbox-input"
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569', lineHeight: '1.5' }}>
-                  Li e concordo com a{' '}
-                  <Link href="/privacidade" target="_blank" style={{ color: '#4040ca' }}>
-                    Política de Privacidade
-                  </Link>{' '}
-                  e autorizo o tratamento dos dados necessários para processar minha solicitação.
-                  <span style={{ color: '#ef4444' }}> *</span>
-                </span>
-              </label>
-              {errors.aceitaTermos && <p className="input-error">{errors.aceitaTermos}</p>}
-
-              <label className="checkbox-container" htmlFor="marketing">
-                <input
-                  id="marketing"
-                  type="checkbox"
-                  checked={form.aceitaMarketing}
-                  onChange={(e) => updateField('aceitaMarketing', e.target.checked)}
-                  className="checkbox-input"
-                />
-                <span style={{ fontSize: '0.875rem', color: '#475569' }}>
-                  Aceito receber conteúdos e novidades da Benavera.
-                </span>
-              </label>
-            </div>
-
-            <FinancialDisclaimer compact />
           </div>
         )}
       </div>
 
-      {/* Navigation */}
-      <div style={{
-        display: 'flex',
-        gap: '0.75rem',
-        marginTop: '2.5rem',
-        flexDirection: step === 6 ? 'column' : 'row',
-      }}>
-        {step > 1 && (
+      {/* Erro Geral */}
+      {submitError && (
+        <div
+          style={{
+            marginTop: '1.5rem',
+            padding: '1rem',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '10px',
+            color: '#dc2626',
+            fontSize: '0.875rem',
+          }}
+        >
+          {submitError}
+        </div>
+      )}
+
+      {/* Controles de Navegação */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '2.5rem',
+          paddingTop: '1.5rem',
+          borderTop: '1px solid #f1f5f9',
+        }}
+      >
+        {step > 1 ? (
           <button
+            type="button"
             onClick={handleBack}
             className="btn-ghost"
-            style={{ flex: step === 6 ? 'none' : '0 0 auto' }}
-            disabled={submitting}
+            style={{ padding: '0.75rem 1.25rem' }}
           >
             <ArrowLeft size={16} />
             Voltar
           </button>
+        ) : (
+          <div />
         )}
 
         <button
-          id={step === 6 ? 'submit-simulation' : `step-${step}-next`}
+          type="button"
+          id="wizard-next-btn"
           onClick={handleNext}
           disabled={!canProceed() || submitting}
           className="btn-primary"
           style={{
-            flex: 1,
-            opacity: !canProceed() ? 0.5 : 1,
-            cursor: !canProceed() ? 'not-allowed' : 'pointer',
+            opacity: !canProceed() || submitting ? 0.6 : 1,
+            cursor: !canProceed() || submitting ? 'not-allowed' : 'pointer',
           }}
         >
-          {submitting ? 'Enviando...' : step === 6 ? 'Concluir simulação' : 'Continuar'}
-          {!submitting && <ArrowRight size={16} />}
+          {submitting ? (
+            'Enviando simulação...'
+          ) : step === 6 ? (
+            <>
+              Ver alternativas
+              <ArrowRight size={16} />
+            </>
+          ) : (
+            <>
+              Avançar
+              <ArrowRight size={16} />
+            </>
+          )}
         </button>
       </div>
 
-      {submitError && (
-        <p style={{
-          marginTop: '1rem',
-          padding: '1rem',
-          background: '#fef2f2',
-          border: '1px solid #fecaca',
-          borderRadius: '10px',
-          fontSize: '0.875rem',
-          color: '#dc2626',
-        }}>
-          {submitError}
-        </p>
-      )}
+      <div style={{ marginTop: '2rem' }}>
+        <FinancialDisclaimer compact />
+      </div>
     </div>
   );
 }

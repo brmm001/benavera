@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Sobre a Benavera',
   description:
     'A Benavera é uma plataforma que organiza a jornada financeira de pacientes que precisam de alternativas para pagar tratamentos, e ajuda clínicas a reduzirem orçamentos perdidos.',
-  alternates: { canonical: 'https://benavera.com.br/sobre' },
+  alternates: { canonical: 'https://www.benavera.com.br/sobre' },
 };
 
 export default function SobrePage() {

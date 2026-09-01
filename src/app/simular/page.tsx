@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 import { SimulationWizard } from '@/components/SimulationWizard';
 
 export const metadata: Metadata = {
-  title: 'Simular possibilidades de pagamento',
+  title: 'Simular alternativas de pagamento para seu tratamento',
   description:
-    'Faça uma simulação gratuita e entenda quais possibilidades de pagamento podem existir para o seu tratamento. Simples, transparente e sem compromisso.',
-  alternates: { canonical: 'https://benavera.com.br/simular' },
+    'Faça uma simulação gratuita e descubra alternativas de pagamento viáveis para o seu tratamento particular. Simples, transparente e sem compromisso.',
+  alternates: { canonical: 'https://www.benavera.com.br/simular' },
   robots: { index: true, follow: true },
 };
 
@@ -33,7 +33,7 @@ export default function SimularPage() {
             letterSpacing: '-0.02em',
             marginBottom: '0.75rem',
           }}>
-            Simular possibilidades de pagamento
+            Simular alternativas de pagamento
           </h1>
           <p style={{
             fontSize: '1.0625rem',
@@ -42,7 +42,7 @@ export default function SimularPage() {
             margin: '0 auto',
             lineHeight: '1.7',
           }}>
-            Responda algumas perguntas simples e a Benavera organiza as possibilidades de acordo com o que você precisa.
+            Responda algumas perguntas simples e a Benavera busca alternativas de acordo com o seu orçamento.
           </p>
         </div>
       </div>

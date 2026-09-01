@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Benavera para Clínicas | Não perca o tratamento na hora do orçamento',
   description:
     'A Benavera entra quando o paciente quer realizar o tratamento, mas as formas de pagamento disponíveis não funcionam para ele. Saiba como funciona para sua clínica.',
-  alternates: { canonical: 'https://benavera.com.br/clinicas' },
+  alternates: { canonical: 'https://www.benavera.com.br/clinicas' },
 };
 
 const faqClinicItems = [
