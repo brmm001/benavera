@@ -1,5 +1,4 @@
 import type { NextRequest } from 'next/server';
-import crypto from 'crypto';
 
 /**
  * Sanitiza strings removendo tags HTML, scripts e caracteres perigosos.
@@ -53,12 +52,10 @@ export function maskPII(str: string | undefined): string {
   return parts.map((p) => (p.length > 1 ? `${p[0]}***` : p)).join(' ');
 }
 
-import { SignJWT, jwtVerify } from 'jose';
-
-// Chave secreta em Uint8Array para uso do jose
-function getJwtSecret(): Uint8Array {
-  const secret = process.env.ADMIN_SECRET || 'benavera-admin-secret-2026-very-long-string-for-security';
-  return new TextEncoder().encode(secret);
+export function getAdminTokenString(): string {
+  // Retorna um token estático (string) baseado no SECRET para ser usado no cookie.
+  // Isso elimina qualquer complexidade de JWT, relógios fora de sincronia ou módulos incompatíveis com o Edge.
+  return process.env.ADMIN_SECRET || 'benavera-admin-token-2026-fallback';
 }
 
 /**
@@ -69,31 +66,18 @@ export function getAdminPassword(): string {
 }
 
 /**
- * Gera um token JWT seguro para o administrador
+ * Retorna o token para setar no cookie.
  */
 export async function signAdminToken(): Promise<string> {
-  return new SignJWT({ role: 'admin' })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .sign(getJwtSecret());
+  return getAdminTokenString();
 }
 
 /**
- * Valida um token JWT e retorna verdadeiro se for válido
+ * Valida o token comparando strings simples. 100% compatível com Edge Runtime.
  */
 export async function verifyAdminToken(token: string | undefined): Promise<boolean> {
   if (!token) return false;
-  
-  try {
-    const { payload } = await jwtVerify(token, getJwtSecret(), {
-      clockTolerance: 120, // 2 minutos de tolerância para desincronização de relógio entre Edge e Node
-    });
-    return payload.role === 'admin';
-  } catch (error) {
-    console.log('[DEBUG AUTH] Token JWT inválido ou expirado:', error);
-    return false;
-  }
+  return token === getAdminTokenString();
 }
 
 /**
