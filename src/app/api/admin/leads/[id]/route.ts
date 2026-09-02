@@ -8,9 +8,9 @@ import {
 } from '@/lib/db';
 import type { PatientLeadStatus, ClinicLeadStatus } from '@/types';
 
-interface Props {
-  params: Promise<{ id: string }>;
-}
+type Props = {
+  params: Promise<any>;
+};
 
 export async function GET(request: NextRequest, { params }: Props) {
 
