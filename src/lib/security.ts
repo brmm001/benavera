@@ -55,7 +55,7 @@ export function maskPII(str: string | undefined): string {
 export function getAdminTokenString(): string {
   // Retorna um token estático (string) baseado no SECRET para ser usado no cookie.
   // Isso elimina qualquer complexidade de JWT, relógios fora de sincronia ou módulos incompatíveis com o Edge.
-  return process.env.ADMIN_SECRET || 'benavera-admin-token-2026-fallback';
+  return process.env.ADMIN_SECRET || 'bv-admin-secret-fallback-2026';
 }
 
 /**
