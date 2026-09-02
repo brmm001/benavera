@@ -1,56 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getAdminPassword,
-  signAdminToken,
-  getClientIP,
-} from '@/lib/security';
 
-import { cookies } from 'next/headers';
+// ─────────────────────────────────────────────────────────────
+// Configuração central de autenticação — TUDO em um lugar só
+// ─────────────────────────────────────────────────────────────
+const COOKIE_NAME = 'bv_admin';
+
+function getExpectedPassword(): string {
+  return process.env.ADMIN_PASSWORD || 'benavera2026';
+}
+
+function getExpectedToken(): string {
+  // O token que vai ficar no cookie é simplesmente o ADMIN_SECRET (ou um fallback).
+  // O middleware compara o cookie com esse valor diretamente.
+  return process.env.ADMIN_SECRET || 'bv-admin-secret-fallback-2026';
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const clientIP = getClientIP(request);
-    
     const body = (await request.json()) as { password?: string };
-    const providedPassword = typeof body.password === 'string' ? body.password : '';
-    const expectedPassword = getAdminPassword();
+    const provided = (body.password || '').trim();
+    const expected = getExpectedPassword().trim();
 
-    // Uma simples checagem de senha
-    if (!providedPassword || providedPassword !== expectedPassword) {
+    if (!provided || provided !== expected) {
       return NextResponse.json(
-        { success: false, error: 'Credenciais inválidas ou acesso não autorizado.' },
+        { success: false, error: 'Senha incorreta.' },
         { status: 401 }
       );
     }
 
-    const secretToken = await signAdminToken();
-    
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 dias
-    };
-
-    // Utilizar cookies() do next/headers é a forma mais confiável no App Router
-    const cookieStore = await cookies();
-    cookieStore.set('benavera_admin_token', secretToken, cookieOptions);
+    const token = getExpectedToken();
 
     const response = NextResponse.json({
       success: true,
-      message: 'Autenticado com sucesso.',
       redirectUrl: '/admin/leads',
     });
 
-    // Também setar no NextResponse para evitar qualquer bug de drop do framework
-    response.cookies.set('benavera_admin_token', secretToken, cookieOptions);
+    // Seta o cookie APENAS no NextResponse (forma mais confiável e direta no Edge/Node)
+    response.cookies.set(COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: false, // false para garantir que funcione em HTTP e HTTPS
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 dias
+    });
 
     return response;
-  } catch (error) {
-    console.error('[Admin Login] Erro inesperado:', error);
+  } catch {
     return NextResponse.json(
-      { success: false, error: 'Erro ao processar login.' },
+      { success: false, error: 'Erro interno.' },
       { status: 500 }
     );
   }

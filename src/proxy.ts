@@ -1,63 +1,52 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyAdminToken } from '@/lib/security';
+
+const COOKIE_NAME = 'bv_admin';
+
+function getExpectedToken(): string {
+  return process.env.ADMIN_SECRET || 'bv-admin-secret-fallback-2026';
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Intercepta rotas administrativas e rotas da API admin
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    
-    // Ignora rotas de autenticação da API (para permitir login/logout)
-    if (pathname.startsWith('/api/admin/auth/')) {
-      return NextResponse.next();
+  // Só atua em rotas /admin e /api/admin
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/admin')) {
+    return NextResponse.next();
+  }
+
+  // Rotas de autenticação: sempre liberadas
+  if (pathname.startsWith('/api/admin/auth/')) {
+    return NextResponse.next();
+  }
+
+  // Página de login: sempre liberada
+  if (pathname === '/admin/login') {
+    return NextResponse.next();
+  }
+
+  // Verifica o cookie
+  const token = request.cookies.get(COOKIE_NAME)?.value;
+  const expectedToken = getExpectedToken();
+  const isAuthenticated = !!token && token === expectedToken;
+
+  if (!isAuthenticated) {
+    // API retorna 401
+    if (pathname.startsWith('/api/admin')) {
+      return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
     }
+    // Página redireciona para login
+    return NextResponse.redirect(new URL('/admin/login', request.url));
+  }
 
-    const adminToken = request.cookies.get('benavera_admin_token')?.value;
-    const isAuthenticated = await verifyAdminToken(adminToken);
-
-    const isApiRoute = pathname.startsWith('/api/admin');
-
-    // Se não estiver autenticado e tentar acessar área protegida
-    if (!isAuthenticated) {
-      if (pathname === '/admin/login') {
-        // Permitir acesso à tela de login
-        return NextResponse.next();
-      }
-      
-      // Se for rota da API, retorna erro 401
-      if (isApiRoute) {
-        return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-      }
-      
-      // Se for página web, redireciona para login
-      const response = NextResponse.redirect(new URL('/admin/login', request.url));
-      response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-      return response;
-    }
-
-    // Se JÁ estiver autenticado e tentar acessar /admin/login ou /admin, redireciona para /admin/leads
-    if (isAuthenticated && (pathname === '/admin/login' || pathname === '/admin' || pathname === '/admin/')) {
-      const response = NextResponse.redirect(new URL('/admin/leads', request.url));
-      response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-      return response;
-    }
-
-    // Passou em tudo, permite o acesso e previne indexação
-    const response = NextResponse.next();
-    response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-    
-    if (!isApiRoute) {
-      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    }
-    
-    return response;
+  // Autenticado e tentando acessar /admin ou /admin/ → manda para /admin/leads
+  if (pathname === '/admin' || pathname === '/admin/') {
+    return NextResponse.redirect(new URL('/admin/leads', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  // O matcher pega qualquer rota em /admin e /api/admin
   matcher: ['/admin/:path*', '/api/admin/:path*'],
 };
