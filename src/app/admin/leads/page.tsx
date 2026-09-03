@@ -24,6 +24,7 @@ import {
   LogOut,
   Loader2,
 } from 'lucide-react';
+import { logout } from '@/app/actions/auth';
 import type { PatientLead, ClinicLead, LeadHistoryEvent, PatientLeadStatus, ClinicLeadStatus } from '@/types';
 
 function formatDate(iso?: string) {
@@ -84,10 +85,9 @@ export default function AdminLeadsPage() {
     try {
       const res = await fetch(`/api/admin/leads?type=all&status=${statusFilter}&search=${encodeURIComponent(search)}`);
       if (res.status === 401) {
-        try { await fetch('/api/admin/auth/logout', { method: 'POST' }); } catch {}
         setAuthenticated(false);
         setLoading(false);
-        router.replace('/admin/login');
+        await logout();
         return;
       }
       const data = await res.json();
@@ -97,15 +97,13 @@ export default function AdminLeadsPage() {
         setClinicLeads(data.clinicLeads || []);
         setMetrics(data.metrics || null);
       } else {
-        try { await fetch('/api/admin/auth/logout', { method: 'POST' }); } catch {}
         setAuthenticated(false);
-        router.replace('/admin/login');
+        await logout();
       }
     } catch (e) {
       console.error('[Admin] Erro ao carregar dados:', e);
-      try { await fetch('/api/admin/auth/logout', { method: 'POST' }); } catch {}
       setAuthenticated(false);
-      router.replace('/admin/login');
+      await logout();
     } finally {
       setLoading(false);
     }
@@ -117,12 +115,7 @@ export default function AdminLeadsPage() {
   }, [fetchLeads]);
 
   const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/auth/logout', { method: 'POST' });
-    } catch {
-      // Ignora erro
-    }
-    router.replace('/admin/login');
+    await logout();
   };
 
   const openLeadDetails = async (id: string, type: 'patient' | 'clinic', data: PatientLead | ClinicLead) => {
