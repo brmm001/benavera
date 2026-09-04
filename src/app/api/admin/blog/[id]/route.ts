@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import {
   getBlogArticleById,
   updateBlogArticle,
@@ -20,6 +21,8 @@ export async function PATCH(req: NextRequest, { params }: Props) {
     const body = await req.json();
     const updated = await updateBlogArticle(id, body);
     if (!updated) return NextResponse.json({ success: false, error: 'Artigo não encontrado.' }, { status: 404 });
+    revalidatePath('/admin/blog');
+    revalidatePath('/conteudos');
     return NextResponse.json({ success: true, article: updated });
   } catch (e) {
     return NextResponse.json({ success: false, error: 'Dados inválidos.' }, { status: 400 });
@@ -30,5 +33,7 @@ export async function DELETE(_req: NextRequest, { params }: Props) {
   const { id } = await params;
   const ok = await deleteBlogArticle(id);
   if (!ok) return NextResponse.json({ success: false, error: 'Artigo não encontrado.' }, { status: 404 });
+  revalidatePath('/admin/blog');
+  revalidatePath('/conteudos');
   return NextResponse.json({ success: true });
 }
