@@ -5,8 +5,15 @@ let sql: NeonQueryFunction<false, false> | null = null;
 export function getNeonClient(): NeonQueryFunction<false, false> | null {
   const url = process.env.DATABASE_URL;
   if (!url) return null;
+  const cleanUrl = url.replace(/^["']|["']$/g, '').trim();
+  if (!cleanUrl) return null;
   if (!sql) {
-    sql = neon(url);
+    try {
+      sql = neon(cleanUrl);
+    } catch (e) {
+      console.error('[neon] Failed to initialize client:', e);
+      return null;
+    }
   }
   return sql;
 }
