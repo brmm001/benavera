@@ -167,12 +167,12 @@ export async function createBlogArticle(data: BlogArticleInput): Promise<BlogArt
         author, reviewer, category, keywords, related_articles,
         sources, status, published_at
       ) VALUES (
-        ${id}, ${data.slug}, ${data.title}, ${data.seoTitle ?? null},
-        ${data.description}, ${data.content}, ${data.author},
-        ${data.reviewer ?? null}, ${data.category},
-        ${data.keywords}, ${data.relatedArticles},
-        ${JSON.stringify(data.sources)},
-        ${data.status},
+        ${id}, ${data.slug ?? null}, ${data.title ?? null}, ${data.seoTitle ?? null},
+        ${data.description ?? null}, ${data.content ?? null}, ${data.author ?? null},
+        ${data.reviewer ?? null}, ${data.category ?? null},
+        ${data.keywords ?? []}, ${data.relatedArticles ?? []},
+        ${JSON.stringify(data.sources ?? [])}::jsonb,
+        ${data.status ?? 'draft'},
         ${data.status === 'published' ? (data.publishedAt ?? now) : null}
       )
     `;
