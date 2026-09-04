@@ -670,21 +670,31 @@ export function BlogManager({ initialArticles }: { initialArticles: BlogArticle[
   const handleBulkImport = async (json: string) => {
     setIsImporting(true);
     try {
-      const parsed = JSON.parse(json);
-      const articles = Array.isArray(parsed) ? parsed : [parsed];
+      let articles: any[] = [];
+      try {
+        const parsed = JSON.parse(json);
+        articles = Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        // Fallback to JSONL format
+        const lines = json.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0) throw new Error('Empty input');
+        articles = lines.map(l => JSON.parse(l));
+      }
+
       const res = await fetch('/api/admin/blog', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bulk: true, articles }),
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`✓ ${data.created} artigo(s) importado(s)!`);
+        const errorsMsg = data.errors?.length > 0 ? ` (${data.errors.length} erros)` : '';
+        showToast(`✓ ${data.created} artigo(s) importado(s)!${errorsMsg}`);
         await refreshArticles();
       } else {
         showToast('Erro na importação.', 'err');
       }
     } catch {
-      showToast('JSON inválido. Verifique o formato.', 'err');
+      showToast('Formato inválido. Use JSON ou JSONL válido.', 'err');
     }
     setIsImporting(false);
   };
