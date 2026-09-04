@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import {
   getBlogArticles,
   createBlogArticle,
@@ -22,6 +23,8 @@ export async function POST(req: NextRequest) {
     // Importação em massa
     if (body.bulk === true && Array.isArray(body.articles)) {
       const result = await bulkCreateBlogArticles(body.articles);
+      revalidatePath('/admin/blog');
+      revalidatePath('/blog');
       return NextResponse.json({ success: true, ...result });
     }
 
@@ -30,6 +33,8 @@ export async function POST(req: NextRequest) {
     if (!article) {
       return NextResponse.json({ success: false, error: 'Falha ao criar artigo.' }, { status: 500 });
     }
+    revalidatePath('/admin/blog');
+    revalidatePath('/blog');
     return NextResponse.json({ success: true, article }, { status: 201 });
   } catch (e) {
     console.error('[api/admin/blog] POST error:', e);
