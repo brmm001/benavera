@@ -2,31 +2,50 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Calendar, User, CheckCircle, ExternalLink } from 'lucide-react';
-import { getArticleBySlug, getRelatedArticles, articleContent } from '@/content/articles';
+import { getBlogArticleBySlug, staticToBlogArticle, getPublishedSlugs, getBlogArticles } from '@/lib/blog-db';
+import { getArticleBySlug as getStaticArticleBySlug, articleContent as staticArticleContent } from '@/content/articles';
 import { ArticleCard } from '@/components/ArticleCard';
 import { CATEGORY_LABELS } from '@/types';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 
+// Revalidar a página a cada 1 hora (ISR)
+export const revalidate = 3600;
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
+async function fetchArticle(slug: string) {
+  // Tenta DB primeiro
+  const dbArticle = await getBlogArticleBySlug(slug);
+  if (dbArticle && dbArticle.status === 'published') {
+    return dbArticle;
+  }
+  // Fallback para estático
+  const staticArticle = getStaticArticleBySlug(slug);
+  if (staticArticle) {
+    const content = staticArticleContent[slug] ?? '';
+    return staticToBlogArticle(staticArticle, content);
+  }
+  return null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const article = await fetchArticle(slug);
   if (!article) return {};
 
   const canonicalUrl = `https://www.benavera.com.br/conteudos/${slug}`;
 
   return {
-    title: article.title,
+    title: article.seoTitle || article.title,
     description: article.description,
     keywords: article.keywords,
     alternates: { canonical: canonicalUrl },
     robots: { index: true, follow: true },
     openGraph: {
-      title: article.title,
+      title: article.seoTitle || article.title,
       description: article.description,
       type: 'article',
       url: canonicalUrl,
@@ -36,15 +55,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: article.title,
+      title: article.seoTitle || article.title,
       description: article.description,
     },
   };
 }
 
 export async function generateStaticParams() {
-  const { articles } = await import('@/content/articles');
-  return articles.map((a) => ({ slug: a.slug }));
+  const { articles: staticArticles } = await import('@/content/articles');
+  const dbSlugs = await getPublishedSlugs();
+  const staticSlugs = staticArticles.map(a => a.slug);
+  const allSlugs = Array.from(new Set([...dbSlugs, ...staticSlugs]));
+  return allSlugs.map(slug => ({ slug }));
 }
 
 function renderInline(text: string): string {
@@ -98,24 +120,17 @@ function renderContent(content: string) {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {h}
+                  {renderInline(h)}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {rows.map((row, ri) => (
-              <tr key={ri} style={{ background: ri % 2 === 0 ? 'white' : '#f8fafc' }}>
+              <tr key={ri} style={{ borderBottom: '1px solid #e2e8f0' }}>
                 {row.map((cell, ci) => (
-                  <td
-                    key={ci}
-                    style={{
-                      padding: '0.75rem 1rem',
-                      color: '#475569',
-                      border: '1px solid #e2e8f0',
-                    }}
-                  >
-                    {cell}
+                  <td key={ci} style={{ padding: '0.75rem 1rem', color: '#334155' }}>
+                    <span dangerouslySetInnerHTML={{ __html: renderInline(cell) }} />
                   </td>
                 ))}
               </tr>
@@ -125,13 +140,18 @@ function renderContent(content: string) {
       </div>
     );
     tableLines = [];
-    inTable = false;
   };
 
   while (i < lines.length) {
     const line = lines[i];
 
-    // Table
+    // Ignorar separadores de tabela (|---|---|)
+    if (line.match(/^\|(?:-+|:?-+:?|\|)+\|$/)) {
+      i++;
+      continue;
+    }
+
+    // Tabela
     if (line.startsWith('|')) {
       inTable = true;
       tableLines.push(line);
@@ -139,216 +159,264 @@ function renderContent(content: string) {
       continue;
     } else if (inTable) {
       flushTable();
+      inTable = false;
     }
 
-    // H2
-    if (line.startsWith('## ')) {
-      elements.push(
-        <h2
-          key={i}
-          style={{
-            fontSize: 'clamp(1.25rem, 3vw, 1.5rem)',
-            fontWeight: '700',
-            color: '#0f172a',
-            marginTop: '2.5rem',
-            marginBottom: '1rem',
-            letterSpacing: '-0.015em',
-          }}
-        >
-          {line.replace('## ', '')}
-        </h2>
-      );
+    if (!line.trim()) {
+      i++;
+      continue;
     }
-    // H3
-    else if (line.startsWith('### ')) {
+
+    // Headers
+    if (line.startsWith('### ')) {
       elements.push(
         <h3
           key={i}
           style={{
-            fontSize: '1.125rem',
+            fontSize: '1.25rem',
             fontWeight: '700',
             color: '#0f172a',
             marginTop: '2rem',
-            marginBottom: '0.75rem',
+            marginBottom: '1rem',
+            lineHeight: '1.4',
+            letterSpacing: '-0.01em',
           }}
         >
-          {line.replace('### ', '')}
+          <span dangerouslySetInnerHTML={{ __html: renderInline(line.replace('### ', '')) }} />
         </h3>
       );
+    } else if (line.startsWith('## ')) {
+      elements.push(
+        <h2
+          key={i}
+          style={{
+            fontSize: '1.5rem',
+            fontWeight: '800',
+            color: '#0f172a',
+            marginTop: '2.5rem',
+            marginBottom: '1rem',
+            lineHeight: '1.3',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          <span dangerouslySetInnerHTML={{ __html: renderInline(line.replace('## ', '')) }} />
+        </h2>
+      );
     }
-    // Bullet list
+    // Listas
     else if (line.startsWith('- ')) {
-      const items: string[] = [];
+      const listItems = [];
       while (i < lines.length && lines[i].startsWith('- ')) {
-        items.push(lines[i].replace(/^- /, ''));
+        listItems.push(lines[i].replace('- ', ''));
         i++;
       }
       elements.push(
         <ul
-          key={`ul-${i}`}
+          key={i}
           style={{
-            paddingLeft: '1.5rem',
-            margin: '0.75rem 0 1.25rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.375rem',
+            margin: '1rem 0',
+            paddingLeft: '1.25rem',
+            color: '#334155',
+            lineHeight: '1.7',
+            fontSize: '1.0625rem',
           }}
         >
-          {items.map((item, ii) => (
-            <li
-              key={ii}
-              style={{ fontSize: '0.9375rem', color: '#475569', lineHeight: '1.65' }}
-              dangerouslySetInnerHTML={{ __html: renderInline(item) }}
-            />
+          {listItems.map((item, idx) => (
+            <li key={idx} style={{ marginBottom: '0.5rem' }}>
+              <span dangerouslySetInnerHTML={{ __html: renderInline(item) }} />
+            </li>
           ))}
         </ul>
       );
-      continue;
+      continue; // Não incrementa 'i' aqui, pois o while já o fez
     }
-    // Numbered list
-    else if (/^\d+\. /.test(line)) {
-      const items: string[] = [];
-      while (i < lines.length && /^\d+\. /.test(lines[i])) {
-        items.push(lines[i].replace(/^\d+\. /, ''));
-        i++;
-      }
-      elements.push(
-        <ol
-          key={`ol-${i}`}
-          style={{
-            paddingLeft: '1.5rem',
-            margin: '0.75rem 0 1.25rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.375rem',
-          }}
-        >
-          {items.map((item, ii) => (
-            <li
-              key={ii}
-              style={{ fontSize: '0.9375rem', color: '#475569', lineHeight: '1.65' }}
-              dangerouslySetInnerHTML={{ __html: renderInline(item) }}
-            />
-          ))}
-        </ol>
-      );
-      continue;
-    }
-    // Paragraph
-    else if (line.trim() !== '') {
+    // Parágrafos
+    else {
       elements.push(
         <p
           key={i}
           style={{
-            fontSize: '0.9375rem',
-            color: '#475569',
-            lineHeight: '1.75',
-            margin: '0 0 1rem',
+            fontSize: '1.0625rem',
+            lineHeight: '1.7',
+            color: '#334155',
+            marginBottom: '1.25rem',
           }}
-          dangerouslySetInnerHTML={{ __html: renderInline(line) }}
-        />
+        >
+          <span dangerouslySetInnerHTML={{ __html: renderInline(line) }} />
+        </p>
       );
     }
-
     i++;
   }
-
   if (inTable) flushTable();
 
   return elements;
 }
 
-const articleSchema = (article: ReturnType<typeof getArticleBySlug>) => {
-  if (!article) return null;
-  const url = `https://www.benavera.com.br/conteudos/${article.slug}`;
-  return {
+export default async function ArticlePage({ params }: Props) {
+  const { slug } = await params;
+  const article = await fetchArticle(slug);
+
+  if (!article) {
+    notFound();
+  }
+
+  // Related articles fetching
+  let related: any[] = [];
+  if (article.relatedArticles && article.relatedArticles.length > 0) {
+    const promises = article.relatedArticles.map(async (rSlug) => {
+      const rel = await fetchArticle(rSlug);
+      if (rel) {
+        return {
+          title: rel.title,
+          slug: rel.slug,
+          description: rel.description,
+          category: rel.category,
+        };
+      }
+      return null;
+    });
+    const results = await Promise.all(promises);
+    related = results.filter(Boolean);
+  } else {
+    // Busca 3 da mesma categoria se não tiver related específicos
+    const allArticles = await getBlogArticles({ status: 'published', category: article.category, limit: 4 });
+    related = allArticles
+      .filter(a => a.slug !== article.slug)
+      .slice(0, 3)
+      .map(a => ({ title: a.title, slug: a.slug, description: a.description, category: a.category }));
+    
+    // Fallback pra static se precisar
+    if (related.length < 3) {
+      const { articles: staticArticles } = await import('@/content/articles');
+      const staticRelated = staticArticles
+        .filter(a => a.category === article.category && a.slug !== article.slug)
+        .slice(0, 3 - related.length)
+        .map(a => ({ title: a.title, slug: a.slug, description: a.description, category: a.category }));
+      related = [...related, ...staticRelated];
+    }
+  }
+
+  const categoryLabel = CATEGORY_LABELS[article.category] || 'Conteúdo';
+  
+  // Format dates
+  const publishDate = article.publishedAt
+    ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(article.publishedAt))
+    : 'Data não informada';
+    
+  const updateDate = article.updatedAt
+    ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(article.updatedAt))
+    : null;
+
+  // JSON-LD SEO Generation
+  const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: article.title,
     description: article.description,
-    datePublished: article.publishedAt,
-    dateModified: article.updatedAt,
+    author: {
+      '@type': 'Person',
+      name: article.author,
+    },
+    datePublished: article.publishedAt || article.createdAt,
+    dateModified: article.updatedAt || article.publishedAt || article.createdAt,
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': url,
-    },
-    author: {
-      '@type': 'Organization',
-      name: article.author || 'Equipe Benavera',
-      url: 'https://www.benavera.com.br',
+      '@id': `https://www.benavera.com.br/conteudos/${article.slug}`,
     },
     publisher: {
       '@type': 'Organization',
       name: 'Benavera',
-      url: 'https://www.benavera.com.br',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://www.benavera.com.br/logo.png',
+        url: 'https://www.benavera.com.br/icon.svg',
       },
     },
   };
-};
 
-export default async function ArticlePage({ params }: Props) {
-  const { slug } = await params;
-  const article = getArticleBySlug(slug);
-  if (!article) notFound();
+  // Detect FAQs from Markdown for rich snippets
+  const faqs: { question: string; answer: string }[] = [];
+  const lines = article.content.split('\n');
+  let currentQ = '';
+  let currentA = '';
+  let inFaqSection = false;
 
-  const content = articleContent[slug] || '';
-  const related = article.relatedArticles ? getRelatedArticles(article.relatedArticles) : [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.toLowerCase().includes('perguntas frequentes') && line.startsWith('##')) {
+      inFaqSection = true;
+      continue;
+    }
+    if (inFaqSection) {
+      if (line.startsWith('## ') || line.startsWith('### ')) {
+        inFaqSection = false; // Next section started
+      } else if (line.startsWith('**') && line.endsWith('?**')) {
+        if (currentQ && currentA) {
+          faqs.push({ question: currentQ, answer: currentA.trim() });
+          currentA = '';
+        }
+        currentQ = line.replace(/\*\*/g, '');
+      } else if (currentQ && line) {
+        currentA += line + ' ';
+      }
+    }
+  }
+  if (currentQ && currentA) {
+    faqs.push({ question: currentQ, answer: currentA.trim() });
+  }
 
-  const publishDate = new Date(article.publishedAt).toLocaleDateString('pt-BR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-
-  const updateDate = new Date(article.updatedAt).toLocaleDateString('pt-BR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-
-  const schema = articleSchema(article);
+  const faqJsonLd = faqs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      }
+    }))
+  } : null;
 
   return (
     <>
-      {schema && (
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {faqJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
       )}
 
-      {/* ===== HERO ===== */}
+      {/* ===== HEADER DO ARTIGO ===== */}
       <section
         style={{
-          paddingTop: '8rem',
-          paddingBottom: '3rem',
-          background: 'linear-gradient(160deg, #f8fafc 0%, #f0f4ff 50%, #f8fafc 100%)',
+          background: '#f8fafc',
           borderBottom: '1px solid #e2e8f0',
+          padding: '4rem 0 3rem',
         }}
       >
         <div className="container-benavera">
-          <Breadcrumb
-            items={[{ label: 'Conteúdos', href: '/conteudos' }, { label: article.title }]}
-          />
-
-          <div style={{ maxWidth: '720px', marginTop: '1.5rem' }}>
-            <span
-              className="badge badge-blue"
-              style={{ marginBottom: '1.25rem', display: 'inline-block' }}
-            >
-              {CATEGORY_LABELS[article.category]}
-            </span>
+          <div style={{ maxWidth: '800px' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <Breadcrumb
+                items={[
+                  { label: 'Conteúdos', href: '/conteudos' },
+                  { label: categoryLabel },
+                ]}
+              />
+            </div>
 
             <h1
               style={{
-                fontSize: 'clamp(1.625rem, 4vw, 2.25rem)',
+                fontSize: 'clamp(2rem, 4vw, 2.75rem)',
                 fontWeight: '800',
                 color: '#0f172a',
-                lineHeight: '1.2',
-                letterSpacing: '-0.02em',
+                lineHeight: '1.15',
+                letterSpacing: '-0.03em',
                 marginBottom: '1.25rem',
               }}
             >
@@ -357,26 +425,24 @@ export default async function ArticlePage({ params }: Props) {
 
             <p
               style={{
-                fontSize: '1.0625rem',
+                fontSize: '1.125rem',
                 color: '#475569',
-                lineHeight: '1.75',
-                marginBottom: '1.5rem',
-                maxWidth: '620px',
+                lineHeight: '1.6',
+                marginBottom: '2rem',
+                fontWeight: '400',
               }}
             >
               {article.description}
             </p>
 
-            {/* Metadados E-E-A-T */}
             <div
               style={{
                 display: 'flex',
+                flexWrap: 'wrap',
                 alignItems: 'center',
-                gap: '1.25rem',
+                gap: '1.5rem',
                 fontSize: '0.875rem',
                 color: '#64748b',
-                flexWrap: 'wrap',
-                paddingTop: '0.5rem',
               }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
@@ -424,8 +490,8 @@ export default async function ArticlePage({ params }: Props) {
           >
             {/* Artigo */}
             <article style={{ maxWidth: '740px' }}>
-              {content ? (
-                renderContent(content)
+              {article.content ? (
+                renderContent(article.content)
               ) : (
                 <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>Conteúdo em elaboração.</p>
               )}
@@ -478,7 +544,7 @@ export default async function ArticlePage({ params }: Props) {
                             gap: '0.375rem',
                           }}
                         >
-                          {source.title} — {source.organization}
+                          {source.title} {source.organization && `— ${source.organization}`}
                           <ExternalLink size={12} />
                         </a>
                       </li>

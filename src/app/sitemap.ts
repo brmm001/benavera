@@ -1,7 +1,11 @@
 import type { MetadataRoute } from 'next';
-import { articles } from '@/content/articles';
+import { getBlogArticles } from '@/lib/blog-db';
+import { articles as staticArticles } from '@/content/articles';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Revalidar a cada 24 horas
+export const revalidate = 86400;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.benavera.com.br';
   const siteReleaseDate = new Date('2026-09-01T00:00:00.000Z');
 
@@ -109,10 +113,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // Artigos de conteúdo dinâmicos
-  const articlePages: MetadataRoute.Sitemap = articles.map((article) => ({
+  // Artigos de conteúdo dinâmicos do DB
+  const dbArticles = await getBlogArticles({ status: 'published' });
+  const dbSlugs = new Set(dbArticles.map(a => a.slug));
+  
+  // Merge com estáticos para não quebrar SEO de nada
+  const allArticles = [...dbArticles];
+  for (const st of staticArticles) {
+    if (!dbSlugs.has(st.slug)) {
+      allArticles.push({
+        ...st,
+        id: `static_${st.slug}`,
+        content: '',
+        status: 'published',
+        createdAt: st.publishedAt,
+        updatedAt: st.updatedAt || st.publishedAt,
+        relatedArticles: st.relatedArticles || [],
+        keywords: st.keywords || [],
+        sources: st.sources || [],
+      });
+    }
+  }
+
+  const articlePages: MetadataRoute.Sitemap = allArticles.map((article) => ({
     url: `${baseUrl}/conteudos/${article.slug}`,
-    lastModified: new Date(article.updatedAt || article.publishedAt),
+    lastModified: new Date(article.updatedAt || article.publishedAt || article.createdAt),
     changeFrequency: 'monthly',
     priority: 0.7,
   }));

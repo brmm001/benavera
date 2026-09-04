@@ -97,4 +97,31 @@ export async function ensureNeonSchema(
   await db`CREATE INDEX IF NOT EXISTS idx_clinic_leads_status    ON clinic_leads(status_comercial)`;
   await db`CREATE INDEX IF NOT EXISTS idx_clinic_leads_created   ON clinic_leads(created_at DESC)`;
   await db`CREATE INDEX IF NOT EXISTS idx_lead_events_lead_id    ON lead_events(lead_id)`;
+
+  // ── Blog Articles ─────────────────────────────────────────────────────────
+  await db`
+    CREATE TABLE IF NOT EXISTS blog_articles (
+      id           TEXT PRIMARY KEY,
+      slug         TEXT UNIQUE NOT NULL,
+      title        TEXT NOT NULL,
+      seo_title    TEXT,
+      description  TEXT NOT NULL,
+      content      TEXT NOT NULL DEFAULT '',
+      author       TEXT NOT NULL DEFAULT 'Equipe Benavera',
+      reviewer     TEXT,
+      category     TEXT NOT NULL DEFAULT 'tratamentos-e-custos',
+      keywords     TEXT[] NOT NULL DEFAULT '{}',
+      related_articles TEXT[] DEFAULT '{}',
+      sources      JSONB DEFAULT '[]',
+      status       TEXT NOT NULL DEFAULT 'draft',
+      published_at TIMESTAMPTZ,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+
+  await db`CREATE INDEX IF NOT EXISTS idx_blog_articles_slug    ON blog_articles(slug)`;
+  await db`CREATE INDEX IF NOT EXISTS idx_blog_articles_status  ON blog_articles(status)`;
+  await db`CREATE INDEX IF NOT EXISTS idx_blog_articles_cat     ON blog_articles(category)`;
+  await db`CREATE INDEX IF NOT EXISTS idx_blog_articles_pub     ON blog_articles(published_at DESC NULLS LAST)`;
 }
