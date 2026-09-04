@@ -1,18 +1,11 @@
 'use server';
 
+// No Next.js 16 (Turbopack), arquivos 'use server' só podem exportar funções async.
+// Constantes e helpers ficam em @/lib/auth-config
+
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-
-export const COOKIE_NAME = 'bv_admin';
-export const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 dias
-
-function getAdminPassword(): string {
-  return process.env.ADMIN_PASSWORD ?? 'Bvr@Admin#2026!';
-}
-
-export function getAdminToken(): string {
-  return process.env.ADMIN_SECRET ?? 'bv-secure-token-9x2k7p4m8q1r';
-}
+import { COOKIE_NAME, COOKIE_MAX_AGE, getAdminPassword, getAdminToken } from '@/lib/auth-config';
 
 export async function login(
   _prevState: unknown,
@@ -27,15 +20,14 @@ export async function login(
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, getAdminToken(), {
     httpOnly: true,
-    // Em produção Vercel o NODE_ENV é 'production', mas mesmo em HTTP local não deve bloquear
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: COOKIE_MAX_AGE,
   });
 
-  // Retorna sucesso — o cliente faz a navegação com window.location
-  // para garantir que o cookie seja enviado no próximo request (reload completo)
+  // Retorna sucesso — o cliente navega via window.location (reload completo)
+  // para garantir que o cookie seja enviado no próximo request ao servidor.
   return { success: true };
 }
 
@@ -45,7 +37,6 @@ export async function logout() {
   redirect('/admin/login');
 }
 
-/** Verifica a sessão no servidor (Server Components) */
 export async function verifySession(): Promise<boolean> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
