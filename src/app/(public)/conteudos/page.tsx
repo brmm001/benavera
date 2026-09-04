@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { articles } from '@/content/articles';
+import { getBlogArticles } from '@/lib/blog-db';
+import { articles as staticArticles } from '@/content/articles';
 import { ArticleCard } from '@/components/ArticleCard';
 import { CATEGORY_LABELS } from '@/types';
 import type { ArticleCategory } from '@/types';
+
+// Revalidar a cada 1 hora (ISR)
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Conteúdos e guias sobre tratamentos',
@@ -29,7 +33,36 @@ const CATEGORIES: ArticleCategory[] = [
   'para-clinicas',
 ];
 
-export default function ConteudosPage() {
+export default async function ConteudosPage() {
+  // Buscar artigos do BD
+  const dbArticles = await getBlogArticles({ status: 'published' });
+
+  // Merge estáticos com BD (evitando duplicação de slug)
+  const allArticles = [...dbArticles];
+  const dbSlugs = new Set(dbArticles.map(a => a.slug));
+  for (const st of staticArticles) {
+    if (!dbSlugs.has(st.slug)) {
+      allArticles.push({
+        ...st,
+        id: `static_${st.slug}`,
+        content: '',
+        status: 'published',
+        createdAt: st.publishedAt,
+        updatedAt: st.updatedAt || st.publishedAt,
+        relatedArticles: st.relatedArticles || [],
+        keywords: st.keywords || [],
+        sources: st.sources || [],
+      });
+    }
+  }
+
+  // Ordenar por data mais recente
+  allArticles.sort((a, b) => {
+    const dA = new Date(a.publishedAt || a.createdAt).getTime();
+    const dB = new Date(b.publishedAt || b.createdAt).getTime();
+    return dB - dA;
+  });
+
   return (
     <>
       <script
@@ -93,7 +126,7 @@ export default function ConteudosPage() {
               gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
               gap: '1.25rem',
             }}>
-              {articles.map((article) => (
+              {allArticles.slice(0, 6).map((article) => (
                 <ArticleCard key={article.slug} {...article} />
               ))}
             </div>
@@ -101,7 +134,7 @@ export default function ConteudosPage() {
 
           {/* Por categoria */}
           {CATEGORIES.map((category) => {
-            const categoryArticles = articles.filter((a) => a.category === category);
+            const categoryArticles = allArticles.filter((a) => a.category === category);
             if (categoryArticles.length === 0) return null;
             return (
               <div key={category} style={{ marginBottom: '3.5rem' }}>

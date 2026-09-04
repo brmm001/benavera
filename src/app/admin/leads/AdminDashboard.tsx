@@ -6,7 +6,7 @@ import {
   Users, Building2, BarChart3, Download, Search, RefreshCw,
   LogOut, X, Clock, TrendingUp, ChevronRight, Loader2,
   Trash2, Activity, AlertCircle, CheckCircle, Circle,
-  Eye, EyeOff, Send, ArrowUpRight,
+  Eye, EyeOff, Send, ArrowUpRight, BookOpen,
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
 import type { PatientLead, ClinicLead, LeadHistoryEvent, PatientLeadStatus, ClinicLeadStatus } from '@/types';
@@ -523,6 +523,19 @@ export function AdminDashboard({ patientLeads: initialPatients, clinicLeads: ini
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <a
+              href="/admin/blog"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '7px 14px', borderRadius: '8px',
+                background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)',
+                color: '#818cf8', fontSize: '13px', fontWeight: '600', textDecoration: 'none',
+              }}
+            >
+              <BookOpen size={13} />
+              Blog
+            </a>
+
             <button
               onClick={refresh}
               disabled={refreshing || isPending}
