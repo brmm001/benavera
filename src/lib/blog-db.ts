@@ -167,16 +167,31 @@ export async function createBlogArticle(data: BlogArticleInput): Promise<BlogArt
         author, reviewer, category, keywords, related_articles,
         sources, status, published_at
       ) VALUES (
-        ${id}, ${data.slug ?? `slug-${id}`}, ${data.title ?? 'Sem título'}, ${data.seoTitle ?? null},
-        ${data.description ?? ''}, ${data.content ?? ''}, ${data.author ?? 'Equipe Benavera'},
-        ${data.reviewer ?? null}, ${data.category ?? 'tratamentos-e-custos'},
+        ${id}, ${data.slug || `slug-${id}`}, ${data.title || 'Sem título'}, ${data.seoTitle || null},
+        ${data.description ?? ''}, ${data.content ?? ''}, ${data.author || 'Equipe Benavera'},
+        ${data.reviewer || null}, ${data.category || 'tratamentos-e-custos'},
         ${data.keywords ?? []}::text[], ${data.relatedArticles ?? []}::text[],
         ${JSON.stringify(data.sources ?? [])}::jsonb,
-        ${data.status ?? 'draft'},
-        ${data.status === 'published' ? (data.publishedAt ?? now) : null}
+        ${data.status || 'draft'},
+        ${data.status === 'published' ? (data.publishedAt || now) : null}
       )
+      ON CONFLICT (slug) DO UPDATE SET
+        title = EXCLUDED.title,
+        seo_title = EXCLUDED.seo_title,
+        description = EXCLUDED.description,
+        content = EXCLUDED.content,
+        author = EXCLUDED.author,
+        reviewer = EXCLUDED.reviewer,
+        category = EXCLUDED.category,
+        keywords = EXCLUDED.keywords,
+        related_articles = EXCLUDED.related_articles,
+        sources = EXCLUDED.sources,
+        status = EXCLUDED.status,
+        published_at = COALESCE(EXCLUDED.published_at, blog_articles.published_at),
+        updated_at = NOW()
     `;
-    return getBlogArticleById(id);
+    // We need to return the article by slug because the ID might not be the new one if we updated an existing row.
+    return getBlogArticleBySlug(data.slug || `slug-${id}`);
   } catch (e) {
     console.error('[blog-db] createBlogArticle error:', e);
     return null;
