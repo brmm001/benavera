@@ -12,7 +12,13 @@ const organizationSchema = {
   '@type': 'Organization',
   name: 'Benavera',
   url: SITE_URL,
-  logo: `${SITE_URL}/logo.png`,
+  logo: {
+    '@type': 'ImageObject',
+    url: `${SITE_URL}/logo.png`,
+    width: 800,
+    height: 200,
+  },
+  image: `${SITE_URL}/og-image.png`,
   description:
     'A Benavera conecta pacientes a alternativas de pagamento para tratamentos de saúde particulares e apoia clínicas na viabilização de orçamentos.',
   contactPoint: {
