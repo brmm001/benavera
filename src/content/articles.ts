@@ -1624,6 +1624,1926 @@ export const articles: ArticleFrontmatter[] = [
         "organization": "Conselho Federal de Medicina"
       }
     ]
+  },
+  {
+    "title": "Harmonização facial parcelada: como avaliar plano, etapas e pagamento",
+    "slug": "harmonizacao-facial-parcelada",
+    "description": "Entenda como parcelar harmonização facial e compare plano, produtos, etapas, acompanhamento, entrada e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "harmonização facial parcelada",
+      "harmonização facial no boleto",
+      "financiamento harmonização facial",
+      "parcelar harmonização orofacial",
+      "procedimento facial parcelado"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/harmonizacao-facial-parcelada",
+    "relatedArticles": [
+      "procedimento-estetico-parcelado",
+      "lente-de-contato-dental-parcelada",
+      "simulacao-pagamento-tratamento-saude"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário Simplificado de Termos Financeiros",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Informacoes_gerais/glossario_cidadania_financeira.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "CFM moderniza resolução da publicidade médica",
+        "url": "https://portal.cfm.org.br/noticias/cfm-atualiza-resolucao-da-publicidade-medica/",
+        "organization": "Conselho Federal de Medicina"
+      },
+      {
+        "title": "Harmonização Orofacial: especialidade odontológica",
+        "url": "https://website.cfo.org.br/harmonizacao-orofacial-especialidade-odontologica-completa-tres-anos-de-conquista-e-avanco-etico/",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Toxina botulínica parcelada: sessões, áreas e custo total",
+    "slug": "toxina-botulinica-parcelada",
+    "description": "Veja como comparar o parcelamento de aplicação de toxina botulínica, incluindo áreas, produto, retorno e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "toxina botulínica parcelada",
+      "botox parcelado",
+      "botox no boleto",
+      "parcelar procedimento facial",
+      "financiamento estética facial"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/toxina-botulinica-parcelada",
+    "relatedArticles": [
+      "harmonizacao-facial-parcelada",
+      "procedimento-estetico-parcelado",
+      "boleto-cartao-financiamento-tratamento"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário Simplificado de Termos Financeiros",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Informacoes_gerais/glossario_cidadania_financeira.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "CFM moderniza resolução da publicidade médica",
+        "url": "https://portal.cfm.org.br/noticias/cfm-atualiza-resolucao-da-publicidade-medica/",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Lipoaspiração parcelada: como calcular o orçamento completo",
+    "slug": "lipoaspiracao-parcelada-orcamento-completo",
+    "description": "Saiba como parcelar lipoaspiração e quais despesas médicas, hospitalares, anestésicas e pós-operatórias confirmar.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "lipoaspiração parcelada",
+      "lipo no boleto",
+      "financiamento lipoaspiração",
+      "cirurgia plástica parcelada",
+      "como pagar lipoaspiração"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/lipoaspiracao-parcelada-orcamento-completo",
+    "relatedArticles": [
+      "cirurgia-plastica-parcelada",
+      "abdominoplastia-parcelada-orcamento",
+      "simulacao-pagamento-tratamento-saude"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário Simplificado de Termos Financeiros",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Informacoes_gerais/glossario_cidadania_financeira.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "CFM moderniza resolução da publicidade médica",
+        "url": "https://portal.cfm.org.br/noticias/cfm-atualiza-resolucao-da-publicidade-medica/",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Otoplastia parcelada: custos da cirurgia e formas de pagamento",
+    "slug": "otoplastia-parcelada",
+    "description": "Entenda como organizar o pagamento da otoplastia e quais honorários, hospital, anestesia, exames e retornos confirmar.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "otoplastia parcelada",
+      "cirurgia de orelha parcelada",
+      "otoplastia no boleto",
+      "financiamento otoplastia",
+      "cirurgia plástica pagamento"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/otoplastia-parcelada",
+    "relatedArticles": [
+      "cirurgia-plastica-parcelada",
+      "rinoplastia-parcelada-planejar-pagamento",
+      "blefaroplastia-parcelada-custos"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário Simplificado de Termos Financeiros",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Informacoes_gerais/glossario_cidadania_financeira.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "CFM moderniza resolução da publicidade médica",
+        "url": "https://portal.cfm.org.br/noticias/cfm-atualiza-resolucao-da-publicidade-medica/",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Vasectomia particular parcelada: consulta, exames e procedimento",
+    "slug": "vasectomia-particular-parcelada",
+    "description": "Veja como planejar o pagamento da vasectomia particular e confirmar consulta, exames, equipe, estrutura e acompanhamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "vasectomia parcelada",
+      "vasectomia particular",
+      "financiamento vasectomia",
+      "vasectomia no boleto",
+      "parcelar cirurgia particular"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/vasectomia-particular-parcelada",
+    "relatedArticles": [
+      "tratamento-medico-particular-parcelado",
+      "cirurgia-hernia-particular-parcelada",
+      "exames-medicos-parcelados"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário Simplificado de Termos Financeiros",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Informacoes_gerais/glossario_cidadania_financeira.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "CFM moderniza resolução da publicidade médica",
+        "url": "https://portal.cfm.org.br/noticias/cfm-atualiza-resolucao-da-publicidade-medica/",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Depilação a laser parcelada: pacote, sessões e regras de cancelamento",
+    "slug": "depilacao-laser-parcelada",
+    "description": "Compare pacotes de depilação a laser, número de sessões, áreas, manutenção, cancelamento, parcelas e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "depilação a laser parcelada",
+      "depilação a laser no boleto",
+      "pacote depilação laser",
+      "parcelar tratamento estético",
+      "pagamento clínica estética"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/depilacao-laser-parcelada",
+    "relatedArticles": [
+      "procedimento-estetico-parcelado",
+      "fisioterapia-parcelada-pacotes-sessoes",
+      "boleto-cartao-financiamento-tratamento"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário Simplificado de Termos Financeiros",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Informacoes_gerais/glossario_cidadania_financeira.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "CFM moderniza resolução da publicidade médica",
+        "url": "https://portal.cfm.org.br/noticias/cfm-atualiza-resolucao-da-publicidade-medica/",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Como reativar pacientes antigos da clínica sem parecer spam",
+    "slug": "reativar-pacientes-antigos-clinica",
+    "description": "Aprenda a segmentar e reativar pacientes antigos com contexto, consentimento, mensagens úteis e métricas de retorno.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "reativar pacientes antigos",
+      "recuperação de pacientes clínica",
+      "campanha de reativação odontologia",
+      "base inativa clínica",
+      "CRM para clínicas"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/reativar-pacientes-antigos-clinica",
+    "relatedArticles": [
+      "recuperacao-leads-clinicas",
+      "follow-up-orcamento-odontologico-mensagens",
+      "qualificacao-leads-clinicas"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Harmonização Orofacial: especialidade odontológica",
+        "url": "https://website.cfo.org.br/harmonizacao-orofacial-especialidade-odontologica-completa-tres-anos-de-conquista-e-avanco-etico/",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Treinamento de recepção para clínicas: roteiro comercial e limites éticos",
+    "slug": "treinamento-recepcao-clinicas",
+    "description": "Estruture o treinamento da recepção da clínica para atender, qualificar, agendar e explicar pagamentos sem ultrapassar limites clínicos.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "treinamento recepção clínica",
+      "script recepcionista clínica",
+      "atendimento comercial odontologia",
+      "treinar secretária clínica",
+      "conversão de pacientes"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/treinamento-recepcao-clinicas",
+    "relatedArticles": [
+      "atendimento-leads-whatsapp-clinicas",
+      "objecao-preco-clinica-respostas",
+      "funil-vendas-clinica-odontologica"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Harmonização Orofacial: especialidade odontológica",
+        "url": "https://website.cfo.org.br/harmonizacao-orofacial-especialidade-odontologica-completa-tres-anos-de-conquista-e-avanco-etico/",
+        "organization": "Conselho Federal de Odontologia"
+      },
+      {
+        "title": "CFM moderniza resolução da publicidade médica",
+        "url": "https://portal.cfm.org.br/noticias/cfm-atualiza-resolucao-da-publicidade-medica/",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Política de parcelamento para clínicas: regras, risco e margem",
+    "slug": "politica-parcelamento-clinicas",
+    "description": "Crie uma política de parcelamento com elegibilidade, entrada, prazo, alçadas, cobrança, margem e regras claras para pacientes.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "política de parcelamento clínica",
+      "parcelamento para pacientes",
+      "crediário clínica odontológica",
+      "gestão de inadimplência clínica",
+      "margem tratamento odontológico"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/politica-parcelamento-clinicas",
+    "relatedArticles": [
+      "parcelamento-no-boleto-clinica-odontologica",
+      "financiamento-pacientes-clinicas",
+      "indicadores-clinica-orcamento-recebimento"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário Simplificado de Termos Financeiros",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Informacoes_gerais/glossario_cidadania_financeira.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Harmonização Orofacial: especialidade odontológica",
+        "url": "https://website.cfo.org.br/harmonizacao-orofacial-especialidade-odontologica-completa-tres-anos-de-conquista-e-avanco-etico/",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Proposta de pagamento para pacientes: como apresentar sem confundir",
+    "slug": "proposta-pagamento-pacientes-clinica",
+    "description": "Monte uma proposta de pagamento clara com orçamento, entrada, parcelas, custo total, validade e próximos passos para o paciente.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "proposta de pagamento paciente",
+      "apresentar parcelamento clínica",
+      "proposta financeira clínica",
+      "simulação de tratamento odontológico",
+      "condições de pagamento clínica"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/proposta-pagamento-pacientes-clinica",
+    "relatedArticles": [
+      "como-apresentar-orcamento-odontologico",
+      "jornada-financiamento-clinica-orcamento-tratamento",
+      "objecao-preco-clinica-respostas"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário Simplificado de Termos Financeiros",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Informacoes_gerais/glossario_cidadania_financeira.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      }
+    ]
+  },
+  {
+    "title": "Enxerto ósseo dentário parcelado: custos, etapas e pagamento",
+    "slug": "enxerto-osseo-dentario-parcelado",
+    "description": "Entenda como parcelar enxerto ósseo dentário e confirme exames, materiais, cirurgia, retornos e relação com o implante.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "enxerto ósseo dentário parcelado",
+      "enxerto ósseo no boleto",
+      "financiamento implante dentário",
+      "cirurgia odontológica parcelada",
+      "parcelar enxerto dentário"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/enxerto-osseo-dentario-parcelado",
+    "relatedArticles": [
+      "implante-dentario-parcelado-no-boleto",
+      "como-parcelar-implante-dentario",
+      "cirurgia-ortognatica-parcelada"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário do Banco Central",
+        "url": "https://www.bcb.gov.br/acessoinformacao/glossario",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Odontológica",
+        "url": "https://website.cfo.org.br/wp-content/uploads/2012/07/codigo_etica_Atual.pdf",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Coroa dentária parcelada: material, laboratório e custo total",
+    "slug": "coroa-dentaria-parcelada",
+    "description": "Veja como parcelar coroa dentária e compare material, laboratório, provisório, instalação, ajustes e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "coroa dentária parcelada",
+      "coroa dental no boleto",
+      "prótese fixa parcelada",
+      "parcelar coroa de porcelana",
+      "financiamento prótese dentária"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/coroa-dentaria-parcelada",
+    "relatedArticles": [
+      "protese-dentaria-parcelada",
+      "tratamento-de-canal-parcelado",
+      "como-parcelar-tratamento-odontologico"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário do Banco Central",
+        "url": "https://www.bcb.gov.br/acessoinformacao/glossario",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Odontológica",
+        "url": "https://website.cfo.org.br/wp-content/uploads/2012/07/codigo_etica_Atual.pdf",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia gengival parcelada: como organizar o orçamento",
+    "slug": "cirurgia-gengival-parcelada",
+    "description": "Saiba como parcelar cirurgia gengival e quais exames, áreas, materiais, sessões e retornos confirmar antes de contratar.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia gengival parcelada",
+      "gengivoplastia parcelada",
+      "cirurgia de gengiva no boleto",
+      "parcelar periodontia",
+      "financiamento odontológico"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-gengival-parcelada",
+    "relatedArticles": [
+      "tratamento-periodontal-parcelado",
+      "clareamento-dental-parcelado",
+      "como-parcelar-tratamento-odontologico"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário do Banco Central",
+        "url": "https://www.bcb.gov.br/acessoinformacao/glossario",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Odontológica",
+        "url": "https://website.cfo.org.br/wp-content/uploads/2012/07/codigo_etica_Atual.pdf",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia de ginecomastia parcelada: orçamento e formas de pagamento",
+    "slug": "cirurgia-ginecomastia-parcelada",
+    "description": "Entenda como parcelar cirurgia de ginecomastia e confirme equipe, hospital, anestesia, exames, materiais e acompanhamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "ginecomastia parcelada",
+      "cirurgia ginecomastia no boleto",
+      "financiamento ginecomastia",
+      "cirurgia plástica masculina parcelada",
+      "como pagar ginecomastia"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-ginecomastia-parcelada",
+    "relatedArticles": [
+      "cirurgia-plastica-parcelada",
+      "lipoaspiracao-parcelada-orcamento-completo",
+      "tratamento-medico-particular-parcelado"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário do Banco Central",
+        "url": "https://www.bcb.gov.br/acessoinformacao/glossario",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Ninfoplastia parcelada: como comparar orçamento e pagamento",
+    "slug": "ninfoplastia-parcelada",
+    "description": "Veja como planejar o pagamento da ninfoplastia e quais honorários, estrutura, anestesia, exames e retornos confirmar.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "ninfoplastia parcelada",
+      "ninfoplastia no boleto",
+      "financiamento ninfoplastia",
+      "cirurgia íntima parcelada",
+      "cirurgia plástica pagamento"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/ninfoplastia-parcelada",
+    "relatedArticles": [
+      "cirurgia-plastica-parcelada",
+      "mamoplastia-parcelada-custos-condicoes",
+      "simulacao-pagamento-tratamento-saude"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário do Banco Central",
+        "url": "https://www.bcb.gov.br/acessoinformacao/glossario",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia de pterígio parcelada: custos e opções de pagamento",
+    "slug": "cirurgia-pterigio-parcelada",
+    "description": "Saiba como organizar o pagamento da cirurgia de pterígio e confirmar exames, equipe, estrutura, materiais e retornos.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia de pterígio parcelada",
+      "pterígio no boleto",
+      "financiamento cirurgia ocular",
+      "cirurgia de pterígio particular",
+      "parcelar oftalmologia"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-pterigio-parcelada",
+    "relatedArticles": [
+      "cirurgia-catarata-particular-parcelada",
+      "cirurgia-refrativa-parcelada",
+      "tratamento-medico-particular-parcelado"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário do Banco Central",
+        "url": "https://www.bcb.gov.br/acessoinformacao/glossario",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Como reduzir a inadimplência da clínica sem travar as vendas",
+    "slug": "reduzir-inadimplencia-clinica",
+    "description": "Reduza a inadimplência da clínica com política de entrada, análise, cobrança preventiva, indicadores e opções financeiras claras.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "reduzir inadimplência clínica",
+      "inadimplência odontologia",
+      "cobrança pacientes clínica",
+      "crediário clínica",
+      "gestão financeira clínica"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/reduzir-inadimplencia-clinica",
+    "relatedArticles": [
+      "politica-parcelamento-clinicas",
+      "parcelamento-no-boleto-clinica-odontologica",
+      "indicadores-clinica-orcamento-recebimento"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Código de Ética Odontológica",
+        "url": "https://website.cfo.org.br/wp-content/uploads/2012/07/codigo_etica_Atual.pdf",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Antecipação de recebíveis para clínicas: quando faz sentido",
+    "slug": "antecipacao-recebiveis-clinicas",
+    "description": "Entenda como avaliar antecipação de recebíveis na clínica comparando taxa, prazo, fluxo de caixa, margem e alternativas.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "antecipação de recebíveis clínicas",
+      "antecipar cartão clínica",
+      "fluxo de caixa clínica odontológica",
+      "capital de giro clínica",
+      "taxa antecipação recebíveis"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/antecipacao-recebiveis-clinicas",
+    "relatedArticles": [
+      "indicadores-clinica-orcamento-recebimento",
+      "politica-parcelamento-clinicas",
+      "financiamento-pacientes-aumenta-conversao-clinica"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário do Banco Central",
+        "url": "https://www.bcb.gov.br/acessoinformacao/glossario",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Link de pagamento para clínicas: segurança, conversão e conciliação",
+    "slug": "link-pagamento-clinicas",
+    "description": "Saiba como usar link de pagamento em clínicas com segurança, identificação, confirmação, conciliação e proteção contra fraudes.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "link de pagamento para clínicas",
+      "cobrança online clínica",
+      "pagamento WhatsApp clínica",
+      "conciliação clínica odontológica",
+      "parcelamento por link"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/link-pagamento-clinicas",
+    "relatedArticles": [
+      "jornada-financiamento-clinica-orcamento-tratamento",
+      "proposta-pagamento-pacientes-clinica",
+      "atendimento-leads-whatsapp-clinicas"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Odontológica",
+        "url": "https://website.cfo.org.br/wp-content/uploads/2012/07/codigo_etica_Atual.pdf",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Como escolher um parceiro financeiro para a clínica",
+    "slug": "escolher-parceiro-financeiro-clinica",
+    "description": "Compare parceiros financeiros para clínicas por aprovação, custo, repasse, risco, integração, suporte, dados e experiência do paciente.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "parceiro financeiro para clínicas",
+      "financiamento para pacientes clínica",
+      "empresa de crédito saúde",
+      "parcelamento odontológico parceiro",
+      "solução financeira clínica"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/escolher-parceiro-financeiro-clinica",
+    "relatedArticles": [
+      "financiamento-pacientes-clinicas",
+      "financiamento-pacientes-aumenta-conversao-clinica",
+      "jornada-financiamento-clinica-orcamento-tratamento"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Glossário do Banco Central",
+        "url": "https://www.bcb.gov.br/acessoinformacao/glossario",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Código de Ética Odontológica",
+        "url": "https://website.cfo.org.br/wp-content/uploads/2012/07/codigo_etica_Atual.pdf",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Septoplastia particular parcelada: orçamento, cobertura e pagamento",
+    "slug": "septoplastia-particular-parcelada",
+    "description": "Entenda como parcelar septoplastia particular e confirmar cobertura, exames, equipe, hospital, anestesia e acompanhamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "septoplastia parcelada",
+      "septoplastia particular",
+      "financiamento septoplastia",
+      "cirurgia nasal no boleto",
+      "parcelar cirurgia otorrino"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/septoplastia-particular-parcelada",
+    "relatedArticles": [
+      "rinoplastia-parcelada-planejar-pagamento",
+      "tratamento-medico-particular-parcelado",
+      "cirurgia-pterigio-parcelada"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano de saúde",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Uso do Crédito e Administração das Dívidas",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Cuidando_do_seu_dinheiro_Gestao_de_Financas_Pessoais/v4_modulo_3_caderno_educacao_financeira_430206_2026.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia de vesícula particular parcelada: como planejar o pagamento",
+    "slug": "cirurgia-vesicula-particular-parcelada",
+    "description": "Veja como organizar o pagamento da cirurgia de vesícula e confirmar equipe, hospital, anestesia, materiais, exames e retornos.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia de vesícula parcelada",
+      "cirurgia vesícula particular",
+      "financiamento colecistectomia",
+      "cirurgia no boleto",
+      "parcelar hospital particular"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-vesicula-particular-parcelada",
+    "relatedArticles": [
+      "cirurgia-hernia-particular-parcelada",
+      "tratamento-medico-particular-parcelado",
+      "simulacao-pagamento-tratamento-saude"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano de saúde",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Uso do Crédito e Administração das Dívidas",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Cuidando_do_seu_dinheiro_Gestao_de_Financas_Pessoais/v4_modulo_3_caderno_educacao_financeira_430206_2026.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia de joelho particular parcelada: custos e etapas",
+    "slug": "cirurgia-joelho-particular-parcelada",
+    "description": "Saiba como parcelar cirurgia de joelho e confirmar exames, equipe, hospital, materiais, fisioterapia e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia de joelho parcelada",
+      "cirurgia joelho particular",
+      "financiamento ortopedia",
+      "cirurgia ortopédica no boleto",
+      "parcelar prótese de joelho"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-joelho-particular-parcelada",
+    "relatedArticles": [
+      "fisioterapia-parcelada-pacotes-sessoes",
+      "tratamento-medico-particular-parcelado",
+      "exames-medicos-parcelados"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano de saúde",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Uso do Crédito e Administração das Dívidas",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Cuidando_do_seu_dinheiro_Gestao_de_Financas_Pessoais/v4_modulo_3_caderno_educacao_financeira_430206_2026.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia de hemorroidas parcelada: orçamento e formas de pagamento",
+    "slug": "cirurgia-hemorroidas-parcelada",
+    "description": "Entenda como organizar o pagamento da cirurgia de hemorroidas e confirmar consulta, exames, equipe, estrutura e acompanhamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia de hemorroidas parcelada",
+      "hemorroida cirurgia particular",
+      "financiamento proctologia",
+      "cirurgia no boleto",
+      "parcelar procedimento médico"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-hemorroidas-parcelada",
+    "relatedArticles": [
+      "endoscopia-colonoscopia-parceladas",
+      "cirurgia-hernia-particular-parcelada",
+      "tratamento-medico-particular-parcelado"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano de saúde",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Uso do Crédito e Administração das Dívidas",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Cuidando_do_seu_dinheiro_Gestao_de_Financas_Pessoais/v4_modulo_3_caderno_educacao_financeira_430206_2026.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia de endometriose particular parcelada: como organizar os custos",
+    "slug": "cirurgia-endometriose-particular-parcelada",
+    "description": "Veja como planejar o pagamento da cirurgia de endometriose e mapear equipe, hospital, exames, materiais e acompanhamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia endometriose parcelada",
+      "endometriose cirurgia particular",
+      "financiamento cirurgia ginecológica",
+      "cirurgia no boleto",
+      "parcelar tratamento endometriose"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-endometriose-particular-parcelada",
+    "relatedArticles": [
+      "tratamento-medico-particular-parcelado",
+      "exames-medicos-parcelados",
+      "cirurgia-bariatrica-particular-parcelada"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano de saúde",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Uso do Crédito e Administração das Dívidas",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Cuidando_do_seu_dinheiro_Gestao_de_Financas_Pessoais/v4_modulo_3_caderno_educacao_financeira_430206_2026.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Tratamento dermatológico parcelado: consultas, procedimentos e custo total",
+    "slug": "tratamento-dermatologico-parcelado",
+    "description": "Aprenda a comparar consultas, procedimentos e pacotes dermatológicos, incluindo parcelas, recorrência, manutenção e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "tratamento dermatológico parcelado",
+      "dermatologista no boleto",
+      "procedimento dermatológico parcelado",
+      "tratamento acne parcelado",
+      "financiamento dermatologia"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/tratamento-dermatologico-parcelado",
+    "relatedArticles": [
+      "procedimento-estetico-parcelado",
+      "depilacao-laser-parcelada",
+      "tratamento-medico-particular-parcelado"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano de saúde",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Uso do Crédito e Administração das Dívidas",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Cuidando_do_seu_dinheiro_Gestao_de_Financas_Pessoais/v4_modulo_3_caderno_educacao_financeira_430206_2026.pdf",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "ROI do financiamento para clínicas: como calcular sem métricas de vaidade",
+    "slug": "roi-financiamento-clinicas",
+    "description": "Calcule o retorno de oferecer financiamento na clínica usando margem incremental, conversão, taxas, repasse, cancelamento e perdas.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "ROI financiamento clínicas",
+      "retorno parcelamento pacientes",
+      "margem financiamento odontológico",
+      "conversão clínica",
+      "indicadores financeiros clínica"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/roi-financiamento-clinicas",
+    "relatedArticles": [
+      "financiamento-pacientes-aumenta-conversao-clinica",
+      "indicadores-clinica-orcamento-recebimento",
+      "escolher-parceiro-financeiro-clinica"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Uso do Crédito e Administração das Dívidas",
+        "url": "https://www.bcb.gov.br/content/cidadaniafinanceira/documentos_cidadania/Cuidando_do_seu_dinheiro_Gestao_de_Financas_Pessoais/v4_modulo_3_caderno_educacao_financeira_430206_2026.pdf",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Simulação de crédito abandonada: como recuperar o paciente",
+    "slug": "recuperar-simulacao-credito-abandonada",
+    "description": "Recupere simulações de crédito abandonadas identificando a etapa, removendo dúvidas e retomando o paciente sem pressão ou spam.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "simulação de crédito abandonada",
+      "recuperar financiamento paciente",
+      "abandono formulário clínica",
+      "follow-up simulação",
+      "recuperação de leads financeiros"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/recuperar-simulacao-credito-abandonada",
+    "relatedArticles": [
+      "recuperacao-leads-clinicas",
+      "jornada-financiamento-clinica-orcamento-tratamento",
+      "follow-up-orcamento-odontologico-mensagens"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Conciliação financeira para clínicas: do pagamento ao repasse",
+    "slug": "conciliacao-financeira-clinicas",
+    "description": "Organize a conciliação de cartão, boleto, Pix e financiamento entre orçamento, taxa, valor líquido, repasse, estorno e divergência.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "conciliação financeira clínicas",
+      "conciliação cartão clínica",
+      "controle de recebíveis clínica",
+      "repasse financiamento pacientes",
+      "gestão financeira odontologia"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/conciliacao-financeira-clinicas",
+    "relatedArticles": [
+      "link-pagamento-clinicas",
+      "indicadores-clinica-orcamento-recebimento",
+      "antecipacao-recebiveis-clinicas"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Painel semanal da clínica: 10 números para acompanhar",
+    "slug": "painel-semanal-clinica-metricas",
+    "description": "Monte um painel semanal com leads, resposta, agenda, presença, orçamentos, propostas, fechamentos, margem e recebimentos.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "painel semanal clínica",
+      "dashboard clínica odontológica",
+      "métricas semanais clínica",
+      "KPI recepção clínica",
+      "indicadores comerciais saúde"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/painel-semanal-clinica-metricas",
+    "relatedArticles": [
+      "indicadores-clinica-orcamento-recebimento",
+      "funil-vendas-clinica-odontologica",
+      "roi-financiamento-clinicas"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      }
+    ]
+  },
+  {
+    "title": "Tratamento de DTM parcelado: avaliação, placa e fisioterapia",
+    "slug": "tratamento-dtm-parcelado",
+    "description": "Entenda como parcelar tratamento de DTM e comparar avaliação, exames, placa, fisioterapia, retornos e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "tratamento DTM parcelado",
+      "ATM tratamento no boleto",
+      "placa DTM parcelada",
+      "financiamento odontológico",
+      "dor na mandíbula tratamento parcelado"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/tratamento-dtm-parcelado",
+    "relatedArticles": [
+      "placa-bruxismo-parcelada",
+      "fisioterapia-parcelada-pacotes-sessoes",
+      "tratamento-odontologico-parcelado"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Resolução CMN nº 4.881/2020",
+        "url": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=4881&tipo=Resolu%C3%A7%C3%A3o+CMN",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Placa para bruxismo parcelada: material, ajustes e custo",
+    "slug": "placa-bruxismo-parcelada",
+    "description": "Veja como parcelar placa para bruxismo e confirmar avaliação, material, laboratório, instalação, ajustes e acompanhamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "placa bruxismo parcelada",
+      "placa de mordida no boleto",
+      "placa dental parcelada",
+      "financiamento odontológico",
+      "preço placa bruxismo"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/placa-bruxismo-parcelada",
+    "relatedArticles": [
+      "tratamento-dtm-parcelado",
+      "coroa-dentaria-parcelada",
+      "como-parcelar-tratamento-odontologico"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Resolução CMN nº 4.881/2020",
+        "url": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=4881&tipo=Resolu%C3%A7%C3%A3o+CMN",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Odontopediatria parcelada: como organizar o tratamento infantil",
+    "slug": "odontopediatria-parcelada",
+    "description": "Saiba como organizar o pagamento do tratamento odontológico infantil, incluindo consultas, prevenção, exames e procedimentos.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "odontopediatria parcelada",
+      "dentista infantil no boleto",
+      "tratamento dentário infantil parcelado",
+      "financiamento odontológico infantil",
+      "parcelar dentista criança"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/odontopediatria-parcelada",
+    "relatedArticles": [
+      "como-parcelar-tratamento-odontologico",
+      "aparelho-ortodontico-parcelado-custo-total",
+      "extracao-siso-parcelada"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Resolução CMN nº 4.881/2020",
+        "url": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=4881&tipo=Resolu%C3%A7%C3%A3o+CMN",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Sedação odontológica: custos, segurança e parcelamento",
+    "slug": "sedacao-odontologica-custos-parcelamento",
+    "description": "Entenda quais custos podem envolver sedação odontológica, quais profissionais participam e como comparar formas de pagamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "sedação odontológica preço parcelado",
+      "sedação dentista no boleto",
+      "odontologia com sedação",
+      "parcelar cirurgia odontológica",
+      "custo sedação odontológica"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/sedacao-odontologica-custos-parcelamento",
+    "relatedArticles": [
+      "extracao-siso-parcelada",
+      "cirurgia-ortognatica-parcelada",
+      "como-parcelar-tratamento-odontologico"
+    ],
+    "sources": [
+      {
+        "title": "Resolução CFO nº 295/2026 — Sedação em Odontologia",
+        "url": "https://website.cfo.org.br/wp-content/uploads/2026/07/Resolucao-CFO-295-2026.pdf",
+        "organization": "Conselho Federal de Odontologia"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Resolução CMN nº 4.881/2020",
+        "url": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=4881&tipo=Resolu%C3%A7%C3%A3o+CMN",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Tratamento de glaucoma particular parcelado: consultas, exames e custos",
+    "slug": "tratamento-glaucoma-particular-parcelado",
+    "description": "Organize o pagamento do tratamento de glaucoma particular e confirme consultas, exames, medicamentos e procedimentos no orçamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "tratamento glaucoma parcelado",
+      "glaucoma particular",
+      "cirurgia glaucoma parcelada",
+      "exames oftalmológicos no boleto",
+      "financiamento oftalmologia"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/tratamento-glaucoma-particular-parcelado",
+    "relatedArticles": [
+      "cirurgia-catarata-particular-parcelada",
+      "cirurgia-pterigio-parcelada",
+      "exames-medicos-parcelados"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano de saúde",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "CPAP parcelado: aparelho, máscara, adaptação e manutenção",
+    "slug": "cpap-parcelado-aparelho-mascara",
+    "description": "Veja como parcelar CPAP e comparar aparelho, máscara, umidificador, adaptação, garantia, manutenção e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "CPAP parcelado",
+      "CPAP no boleto",
+      "financiamento aparelho CPAP",
+      "aluguel CPAP",
+      "aparelho apneia parcelado"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cpap-parcelado-aparelho-mascara",
+    "relatedArticles": [
+      "aparelho-auditivo-parcelado",
+      "tratamento-medico-particular-parcelado",
+      "exames-medicos-parcelados"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano de saúde",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia de próstata particular parcelada: orçamento e cobertura",
+    "slug": "cirurgia-prostata-particular-parcelada",
+    "description": "Entenda como organizar o pagamento da cirurgia de próstata e confirmar equipe, hospital, anestesia, materiais e acompanhamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia próstata parcelada",
+      "cirurgia próstata particular",
+      "financiamento urologia",
+      "cirurgia no boleto",
+      "parcelar cirurgia particular"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-prostata-particular-parcelada",
+    "relatedArticles": [
+      "vasectomia-particular-parcelada",
+      "cirurgia-hernia-particular-parcelada",
+      "tratamento-medico-particular-parcelado"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano de saúde",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Resolução CMN nº 4.881/2020",
+        "url": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=4881&tipo=Resolu%C3%A7%C3%A3o+CMN",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "CAC para clínicas: como calcular o custo por paciente conquistado",
+    "slug": "cac-clinicas-custo-aquisicao-paciente",
+    "description": "Calcule o CAC da clínica incluindo mídia, ferramentas, equipe, agência e leads perdidos, e compare por canal e tratamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "CAC clínica",
+      "custo aquisição paciente",
+      "marketing clínica odontológica",
+      "ROI clínica",
+      "métricas aquisição saúde"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cac-clinicas-custo-aquisicao-paciente",
+    "relatedArticles": [
+      "roi-financiamento-clinicas",
+      "funil-vendas-clinica-odontologica",
+      "painel-semanal-clinica-metricas"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      }
+    ]
+  },
+  {
+    "title": "Experiência pós-financiamento: como acompanhar o paciente",
+    "slug": "experiencia-pos-financiamento-paciente",
+    "description": "Organize confirmação, repasse, início, suporte, cobrança e feedback após a contratação financeira sem misturar papéis.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "experiência pós financiamento",
+      "jornada paciente clínica",
+      "suporte financiamento saúde",
+      "NPS clínica",
+      "onboarding paciente"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/experiencia-pos-financiamento-paciente",
+    "relatedArticles": [
+      "jornada-financiamento-clinica-orcamento-tratamento",
+      "conciliacao-financeira-clinicas",
+      "escolher-parceiro-financeiro-clinica"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Cuidados na hora de contratar uma operação de crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Auditoria do CRM da clínica: dados, acessos e qualidade do funil",
+    "slug": "auditoria-crm-clinica",
+    "description": "Faça uma auditoria do CRM da clínica revisando duplicados, campos, etapas, acessos, dados sensíveis, integrações e retenção.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "auditoria CRM clínica",
+      "LGPD CRM saúde",
+      "qualidade dados clínica",
+      "segurança CRM odontológico",
+      "gestão de leads clínica"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/auditoria-crm-clinica",
+    "relatedArticles": [
+      "lgpd-clinicas-leads-dados-crm",
+      "funil-vendas-clinica-odontologica",
+      "painel-semanal-clinica-metricas"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados Pessoais",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      }
+    ]
+  },
+  {
+    "title": "Faceta de resina parcelada: como comparar quantidade e custo total",
+    "slug": "faceta-resina-parcelada",
+    "description": "Entenda como parcelar facetas de resina e compare quantidade, planejamento, material, ajustes, manutenção e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "faceta de resina parcelada",
+      "facetas no boleto",
+      "parcelar estética dental",
+      "preço faceta resina",
+      "financiamento odontológico"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/faceta-resina-parcelada",
+    "relatedArticles": [
+      "lente-de-contato-dental-parcelada",
+      "clareamento-dental-parcelado",
+      "como-parcelar-tratamento-odontologico"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados ao contratar crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Odontológica",
+        "url": "https://website.cfo.org.br/codigos/",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Ponte dentária parcelada: materiais, etapas e formas de pagamento",
+    "slug": "ponte-dentaria-parcelada",
+    "description": "Veja como parcelar ponte dentária e confirmar preparo, material, laboratório, provisório, instalação, ajustes e custo total.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "ponte dentária parcelada",
+      "ponte fixa no boleto",
+      "prótese dentária parcelada",
+      "financiamento prótese",
+      "parcelar ponte dental"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/ponte-dentaria-parcelada",
+    "relatedArticles": [
+      "protese-dentaria-parcelada",
+      "coroa-dentaria-parcelada",
+      "implante-dentario-parcelado-no-boleto"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados ao contratar crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Odontológica",
+        "url": "https://website.cfo.org.br/codigos/",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Implante dentário com carga imediata parcelado: o que avaliar",
+    "slug": "implante-carga-imediata-parcelado",
+    "description": "Entenda como parcelar implante com carga imediata e confirme avaliação, exames, cirurgia, provisório, prótese e retornos.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "implante carga imediata parcelado",
+      "carga imediata no boleto",
+      "financiamento implante",
+      "dentes fixos parcelados",
+      "implante dentário pagamento"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/implante-carga-imediata-parcelado",
+    "relatedArticles": [
+      "implante-dentario-parcelado-no-boleto",
+      "protese-protocolo-parcelada-custos-pagamento",
+      "enxerto-osseo-dentario-parcelado"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados ao contratar crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Odontológica",
+        "url": "https://website.cfo.org.br/codigos/",
+        "organization": "Conselho Federal de Odontologia"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia de amígdalas e adenoide parcelada: custos e cobertura",
+    "slug": "cirurgia-amigdalas-adenoide-parcelada",
+    "description": "Organize o pagamento da cirurgia de amígdalas e adenoide e confirme exames, equipe, hospital, anestesia e cobertura.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia amígdalas parcelada",
+      "adenoide cirurgia particular",
+      "financiamento otorrino",
+      "cirurgia no boleto",
+      "amigdalectomia parcelada"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-amigdalas-adenoide-parcelada",
+    "relatedArticles": [
+      "septoplastia-particular-parcelada",
+      "tratamento-medico-particular-parcelado",
+      "cirurgia-pterigio-parcelada"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados ao contratar crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia de coluna particular parcelada: como planejar o orçamento",
+    "slug": "cirurgia-coluna-particular-parcelada",
+    "description": "Saiba como organizar o pagamento da cirurgia de coluna e mapear equipe, hospital, materiais, exames e reabilitação.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia coluna parcelada",
+      "cirurgia coluna particular",
+      "financiamento ortopedia",
+      "cirurgia no boleto",
+      "parcelar hospital"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-coluna-particular-parcelada",
+    "relatedArticles": [
+      "cirurgia-joelho-particular-parcelada",
+      "fisioterapia-parcelada-pacotes-sessoes",
+      "tratamento-medico-particular-parcelado"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados ao contratar crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Cirurgia do túnel do carpo parcelada: orçamento e pagamento",
+    "slug": "cirurgia-tunel-carpo-parcelada",
+    "description": "Entenda como parcelar cirurgia do túnel do carpo e confirmar exames, equipe, estrutura, anestesia e acompanhamento.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "tratamentos-e-custos",
+    "keywords": [
+      "cirurgia túnel do carpo parcelada",
+      "túnel do carpo particular",
+      "financiamento cirurgia mão",
+      "cirurgia ortopédica no boleto",
+      "parcelar procedimento"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/cirurgia-tunel-carpo-parcelada",
+    "relatedArticles": [
+      "cirurgia-joelho-particular-parcelada",
+      "fisioterapia-parcelada-pacotes-sessoes",
+      "exames-medicos-parcelados"
+    ],
+    "sources": [
+      {
+        "title": "Verificar cobertura de plano",
+        "url": "https://www.ans.gov.br/planos-de-saude-e-operadoras/espaco-do-consumidor/o-que-o-seu-plano-de-saude-deve-cobrir/verificar-cobertura-de-plano-de-saude",
+        "organization": "Agência Nacional de Saúde Suplementar"
+      },
+      {
+        "title": "Cuidados ao contratar crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      },
+      {
+        "title": "Código de Ética Médica",
+        "url": "https://portal.cfm.org.br/images/PDF/cem2019.pdf",
+        "organization": "Conselho Federal de Medicina"
+      }
+    ]
+  },
+  {
+    "title": "Rentabilidade por tratamento na clínica: como calcular corretamente",
+    "slug": "rentabilidade-por-tratamento-clinica",
+    "description": "Calcule receita, custos diretos, taxas, impostos, aquisição, inadimplência e margem por tratamento para decidir com dados.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "rentabilidade clínica",
+      "margem tratamento odontológico",
+      "lucro clínica",
+      "custo por procedimento",
+      "gestão financeira clínica"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/rentabilidade-por-tratamento-clinica",
+    "relatedArticles": [
+      "indicadores-clinica-orcamento-recebimento",
+      "roi-financiamento-clinicas",
+      "antecipacao-recebiveis-clinicas"
+    ],
+    "sources": [
+      {
+        "title": "Cuidados ao contratar crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "Documentos pendentes na simulação: como cobrar sem perder o paciente",
+    "slug": "documentos-pendentes-simulacao-clinica",
+    "description": "Recupere documentos pendentes explicando finalidade, canal seguro, prazo e próximo passo sem expor dados ou pressionar o paciente.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "documentos pendentes crédito",
+      "follow-up documentos paciente",
+      "simulação incompleta clínica",
+      "LGPD documentos clínica",
+      "recuperar proposta crédito"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/documentos-pendentes-simulacao-clinica",
+    "relatedArticles": [
+      "recuperar-simulacao-credito-abandonada",
+      "jornada-financiamento-clinica-orcamento-tratamento",
+      "auditoria-crm-clinica"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      },
+      {
+        "title": "Cuidados ao contratar crédito",
+        "url": "https://www.bcb.gov.br/meubc/faqs/p/cuidados-na-hora-de-contratar-uma-operacao-de-credito",
+        "organization": "Banco Central do Brasil"
+      }
+    ]
+  },
+  {
+    "title": "SLA comercial para clínicas: prazos por etapa do atendimento",
+    "slug": "sla-comercial-clinicas",
+    "description": "Defina prazos para responder leads, confirmar consultas, enviar orçamentos, acompanhar propostas e resolver pendências.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "SLA comercial clínica",
+      "prazo atendimento leads",
+      "gestão recepção clínica",
+      "tempo resposta WhatsApp",
+      "processo comercial odontologia"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/sla-comercial-clinicas",
+    "relatedArticles": [
+      "tempo-resposta-leads-clinicas",
+      "painel-semanal-clinica-metricas",
+      "funil-vendas-clinica-odontologica"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      }
+    ]
+  },
+  {
+    "title": "Integração entre CRM, agenda e pagamentos na clínica",
+    "slug": "integracao-crm-agenda-pagamentos-clinica",
+    "description": "Integre CRM, agenda e pagamentos usando identificadores, estados confiáveis, permissões e automações sem duplicar dados sensíveis.",
+    "publishedAt": "2026-09-04",
+    "updatedAt": "2026-09-04",
+    "author": "Equipe Benavera",
+    "reviewer": "Revisão Editorial Benavera",
+    "category": "para-clinicas",
+    "keywords": [
+      "integração CRM clínica",
+      "agenda pagamentos clínica",
+      "software clínica odontológica",
+      "automação financeira clínica",
+      "CRM saúde"
+    ],
+    "canonical": "https://www.benavera.com.br/conteudos/integracao-crm-agenda-pagamentos-clinica",
+    "relatedArticles": [
+      "jornada-financiamento-clinica-orcamento-tratamento",
+      "conciliacao-financeira-clinicas",
+      "auditoria-crm-clinica"
+    ],
+    "sources": [
+      {
+        "title": "Lei Geral de Proteção de Dados",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm",
+        "organization": "Presidência da República"
+      }
+    ]
   }
 ];
 
@@ -1689,5 +3609,55 @@ export const articleContent: Record<string, string> = {
   "aparelho-auditivo-parcelado": "## Resposta rápida\n\nAparelhos auditivos podem ser parcelados no cartão, pela empresa ou via crédito. Antes de comparar preço, confirme avaliação, adaptação, quantidade de aparelhos, acessórios, garantia, retornos e assistência. Verifique também a regularização do produto nos canais da Anvisa.\n\n## Compare o pacote, não só o dispositivo\n\nDois preços podem incluir serviços diferentes. Pergunte sobre testes, programação, período de adaptação, manutenção, baterias ou carregador, garantia e suporte. Confirme se o orçamento é para um ou dois aparelhos.\n\n## Formas de pagamento\n\nNo cartão, observe o limite. No boleto próprio, leia entrada e vencimentos. No crédito, compare CET e total. Pergunte como cancelamento ou troca durante a adaptação afetam o contrato.\n\n## Segurança da compra\n\nUse empresa identificada, exija nota e documentação e consulte produtos regularizados. A indicação e a adaptação precisam de profissional habilitado.\n\n## Benavera\n\nA Benavera ajuda a comparar condições financeiras disponíveis a partir de um orçamento real.\n\n**Próximo passo:** [faça uma simulação](/simular).\n\n## Perguntas frequentes\n\n### Aparelho auditivo pode ser parcelado no boleto?\n\nPode haver essa opção conforme fornecedor ou parceiro.\n\n### O valor é por unidade?\n\nMuitas propostas são unitárias. Confirme expressamente.\n\n### A adaptação está incluída?\n\nDepende do pacote. Verifique retornos e suporte.\n\n### Como consultar regularização?\n\nUse o sistema público de consultas da Anvisa com os dados do produto.\n\n> Condições, taxas e prazos dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
   "qualificacao-leads-clinicas": "## Resposta rápida\n\nQualificar um lead é identificar necessidade geral, estágio, disponibilidade e próximo passo com poucas perguntas. Não é realizar diagnóstico por mensagem nem exigir dados sensíveis antes da hora. Uma boa qualificação prioriza quem precisa de resposta rápida sem abandonar contatos ainda imaturos.\n\n## Quatro dimensões\n\n**Intenção:** busca informação, avaliação ou já possui orçamento?  \n**Momento:** quer agendar agora ou está pesquisando?  \n**Disponibilidade:** consegue comparecer nos horários?  \n**Barreira:** dúvida, distância, entrada, parcela ou confiança?\n\n## Lead scoring simples\n\nAtribua pontos a ações verificáveis: respondeu, informou objetivo geral, aceitou agenda, compareceu e pediu condições. Não pontue condição de saúde ou atributos discriminatórios. Revise o modelo para não excluir pessoas injustamente.\n\n## Roteiro curto\n\n“Para direcionar você corretamente: procura uma avaliação ou já tem um plano? Qual período funciona melhor? Existe alguma dúvida que impede o próximo passo?”\n\n## Dados e privacidade\n\nColete somente o necessário. Detalhes clínicos pertencem ao fluxo profissional adequado, não ao CRM comercial aberto.\n\n## Benavera\n\nA Benavera registra estágio e barreira financeira, ajudando a equipe a priorizar sem perder contexto.\n\n**Próximo passo:** [conheça a solução B2B](/para-clinicas).\n\n## Perguntas frequentes\n\n### Lead frio deve ser descartado?\n\nNão. Pode entrar em nutrição moderada, respeitando preferências e consentimento.\n\n### Devo perguntar renda no primeiro contato?\n\nEvite coleta prematura. Dados financeiros só devem entrar quando necessários ao fluxo apropriado.\n\n### IA pode pontuar leads?\n\nPode apoiar, mas critérios precisam ser auditáveis e supervisionados.\n\n### Qualificação substitui atendimento humano?\n\nNão. Ela organiza prioridade; a conversa continua decisiva.\n\n> Este conteúdo é informativo e não substitui orientação jurídica ou profissional específica.",
   "como-reduzir-faltas-clinicas": "## Resposta rápida\n\nPara reduzir faltas, confirme o agendamento no momento da marcação, envie lembrete com opção fácil de confirmar ou remarcar e mantenha lista de espera. Meça por origem, horário e antecedência. A meta não é pressionar: é remover esquecimento e fricção.\n\n## Fluxo recomendado\n\nEnvie confirmação imediata com data, hora, endereço e preparo autorizado. Faça novo lembrete entre 24 e 48 horas, conforme a operação. Inclua botões ou respostas simples: confirmar, remarcar ou cancelar.\n\n## Mensagem modelo\n\n“Olá, [nome]. Sua avaliação na [clínica] está marcada para [dia], às [hora]. Responda 1 para confirmar ou 2 para remarcar. Se precisar, aqui está o endereço: [link].”\n\nEvite expor tratamento na tela de bloqueio e não envie repetidamente após resposta.\n\n## Identifique causas\n\nSepare esquecimento, conflito de horário, distância, medo, condição financeira e falha de comunicação. Uma taxa geral não mostra qual ação tomar.\n\n## Lista de espera\n\nPeça autorização para avisar sobre encaixes e organize disponibilidade. Não crie urgência falsa.\n\n## Benavera\n\nA Benavera conecta agenda, orçamento e próxima ação, permitindo acompanhar onde o paciente parou.\n\n**Próximo passo:** [veja a solução para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Quantos lembretes enviar?\n\nUse o mínimo necessário e teste. Um imediato e outro próximo da consulta costuma ser um ponto inicial.\n\n### Posso cobrar sinal?\n\nAvalie regras profissionais, consumeristas e contratuais com orientação adequada.\n\n### WhatsApp é suficiente?\n\nDepende do público. Confirme o canal preferido e mantenha telefone quando necessário.\n\n### Como calcular no-show?\n\nDivida faltas sem comparecimento pelos agendamentos confirmados do período.\n\n> Este conteúdo é informativo e não substitui orientação jurídica ou profissional específica.",
-  "objecao-preco-clinica-respostas": "## Resposta rápida\n\nQuando o paciente diz “está caro”, não rebata nem ofereça desconto imediatamente. Confirme o que ele quis dizer: valor total, entrada, parcela, comparação, falta de confiança ou prioridade. A resposta certa depende da objeção real e deve preservar autonomia e ética.\n\n## Pergunta de diagnóstico comercial\n\n“Entendo. Para eu ajudar sem insistir: o principal ponto é o valor total, a entrada, a parcela ou ainda ficou alguma dúvida sobre o plano?”\n\nEssa pergunta abre caminhos sem transformar a conversa em pressão.\n\n## Respostas por cenário\n\n**Entrada:** “Posso verificar se existe outra composição disponível.”  \n**Parcela:** “Vamos comparar prazo e custo total, sem prometer uma condição antes da análise.”  \n**Confiança:** “Posso chamar o profissional para esclarecer as etapas.”  \n**Comparação:** “Confira se os dois orçamentos incluem os mesmos itens.”  \n**Momento:** “Podemos combinar uma data para retomar, sem compromisso.”\n\n## O que evitar\n\nNão critique concorrentes, não prometa resultado, não esconda custos e não use urgência falsa. Desconto sem cálculo pode eliminar margem e ensinar a equipe a negociar contra si mesma.\n\n## Registre e meça\n\nPadronize motivos de perda e acompanhe recuperação, margem e satisfação. Se “parcela” domina, revise as opções; se “confiança” domina, o problema pode estar na apresentação.\n\n## Benavera\n\nA Benavera registra barreiras e conecta o orçamento a alternativas disponíveis.\n\n**Próximo passo:** [conheça a Benavera para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Devo baixar o preço na hora?\n\nNão antes de entender a objeção e calcular a margem.\n\n### Posso prometer aprovação?\n\nNão. Condições sujeitas a análise devem ser apresentadas como tal.\n\n### Quem responde dúvidas clínicas?\n\nO profissional responsável, não a equipe comercial.\n\n### Como treinar a recepção?\n\nUse cenários, limites de atuação, respostas curtas e revisão de conversas reais devidamente protegidas.\n\n> Este conteúdo é informativo e não substitui orientação jurídica ou profissional específica."
+  "objecao-preco-clinica-respostas": "## Resposta rápida\n\nQuando o paciente diz “está caro”, não rebata nem ofereça desconto imediatamente. Confirme o que ele quis dizer: valor total, entrada, parcela, comparação, falta de confiança ou prioridade. A resposta certa depende da objeção real e deve preservar autonomia e ética.\n\n## Pergunta de diagnóstico comercial\n\n“Entendo. Para eu ajudar sem insistir: o principal ponto é o valor total, a entrada, a parcela ou ainda ficou alguma dúvida sobre o plano?”\n\nEssa pergunta abre caminhos sem transformar a conversa em pressão.\n\n## Respostas por cenário\n\n**Entrada:** “Posso verificar se existe outra composição disponível.”  \n**Parcela:** “Vamos comparar prazo e custo total, sem prometer uma condição antes da análise.”  \n**Confiança:** “Posso chamar o profissional para esclarecer as etapas.”  \n**Comparação:** “Confira se os dois orçamentos incluem os mesmos itens.”  \n**Momento:** “Podemos combinar uma data para retomar, sem compromisso.”\n\n## O que evitar\n\nNão critique concorrentes, não prometa resultado, não esconda custos e não use urgência falsa. Desconto sem cálculo pode eliminar margem e ensinar a equipe a negociar contra si mesma.\n\n## Registre e meça\n\nPadronize motivos de perda e acompanhe recuperação, margem e satisfação. Se “parcela” domina, revise as opções; se “confiança” domina, o problema pode estar na apresentação.\n\n## Benavera\n\nA Benavera registra barreiras e conecta o orçamento a alternativas disponíveis.\n\n**Próximo passo:** [conheça a Benavera para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Devo baixar o preço na hora?\n\nNão antes de entender a objeção e calcular a margem.\n\n### Posso prometer aprovação?\n\nNão. Condições sujeitas a análise devem ser apresentadas como tal.\n\n### Quem responde dúvidas clínicas?\n\nO profissional responsável, não a equipe comercial.\n\n### Como treinar a recepção?\n\nUse cenários, limites de atuação, respostas curtas e revisão de conversas reais devidamente protegidas.\n\n> Este conteúdo é informativo e não substitui orientação jurídica ou profissional específica.",
+  "harmonizacao-facial-parcelada": "## Resposta rápida\n\nA harmonização facial pode ter pagamento no cartão, parcelamento direto ou solução de crédito, conforme a clínica e as condições disponíveis. Antes de comparar parcelas, faça a avaliação com profissional habilitado e peça um orçamento individual que detalhe procedimentos propostos, produtos, quantidade, etapas, retornos e manutenção. A forma de pagamento não determina indicação, segurança ou resultado.\n\n## O que deve constar no orçamento\n\nPeça que cada item seja identificado, inclusive cobranças de terceiros. Confirme o número previsto de sessões ou etapas, o período de acompanhamento e o que pode gerar custo adicional. Um anúncio com “valor a partir de” não substitui uma proposta completa para o seu caso.\n\n## Cartão, boleto ou financiamento\n\nO cartão costuma ser simples, mas compromete o limite total. O boleto da própria clínica pode exigir entrada e regras específicas para começar. Uma solução de crédito passa por análise e pode incluir juros, tarifas e tributos. Compare propostas de mesmo valor e prazo pelo Custo Efetivo Total, além do total a pagar.\n\n## Como evitar uma parcela que não cabe\n\nSome entrada e todas as prestações. Considere despesas já existentes e preserve margem para imprevistos. Prazo maior reduz a parcela, porém pode elevar o custo final. Não pague depósito antecipado para “liberar” crédito e use somente canais oficiais.\n\n## Checklist de decisão\n\n- avaliação e indicação registradas;\n- escopo completo do orçamento;\n- profissional e estrutura responsáveis;\n- entrada, parcelas, CET e total;\n- datas de cobrança e de realização;\n- regras para remarcação e cancelamento.\n\n## Como a Benavera pode ajudar\n\nA Benavera organiza o orçamento e permite consultar alternativas financeiras disponíveis com clareza. A simulação não garante aprovação e não substitui a relação com o profissional.\n\n**Próximo passo:** [simule suas opções de pagamento](/simular).\n\n## Perguntas frequentes\n\n### Harmonização facial pode ser parcelada no boleto?\n\nPode haver essa modalidade conforme o prestador, o valor e a análise aplicável.\n\n### Produtos estão incluídos no orçamento?\n\nDevem ser discriminados. Confirme quantidade, regularização e responsabilidade profissional.\n\n### Manutenção faz parte do valor?\n\nNem sempre. Pergunte sobre duração do plano e cobranças futuras.\n\n### A simulação garante o procedimento?\n\nNão. A realização depende de avaliação, contratação e confirmação da clínica.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "toxina-botulinica-parcelada": "## Resposta rápida\n\nA aplicação de toxina botulínica pode ter pagamento no cartão, parcelamento direto ou solução de crédito, conforme a clínica e as condições disponíveis. Antes de comparar parcelas, faça a avaliação com profissional habilitado e peça um orçamento individual que detalhe áreas tratadas, produto utilizado, quantidade planejada, retorno e eventuais ajustes. A forma de pagamento não determina indicação, segurança ou resultado.\n\n## O que deve constar no orçamento\n\nPeça que cada item seja identificado, inclusive cobranças de terceiros. Confirme o número previsto de sessões ou etapas, o período de acompanhamento e o que pode gerar custo adicional. Um anúncio com “valor a partir de” não substitui uma proposta completa para o seu caso.\n\n## Cartão, boleto ou financiamento\n\nO cartão costuma ser simples, mas compromete o limite total. O boleto da própria clínica pode exigir entrada e regras específicas para começar. Uma solução de crédito passa por análise e pode incluir juros, tarifas e tributos. Compare propostas de mesmo valor e prazo pelo Custo Efetivo Total, além do total a pagar.\n\n## Como evitar uma parcela que não cabe\n\nSome entrada e todas as prestações. Considere despesas já existentes e preserve margem para imprevistos. Prazo maior reduz a parcela, porém pode elevar o custo final. Não pague depósito antecipado para “liberar” crédito e use somente canais oficiais.\n\n## Checklist de decisão\n\n- avaliação e indicação registradas;\n- escopo completo do orçamento;\n- profissional e estrutura responsáveis;\n- entrada, parcelas, CET e total;\n- datas de cobrança e de realização;\n- regras para remarcação e cancelamento.\n\n## Como a Benavera pode ajudar\n\nA Benavera organiza o orçamento e permite consultar alternativas financeiras disponíveis com clareza. A simulação não garante aprovação e não substitui a relação com o profissional.\n\n**Próximo passo:** [simule suas opções de pagamento](/simular).\n\n## Perguntas frequentes\n\n### Toxina botulínica pode ser parcelada?\n\nPode haver cartão, pagamento direto ou outra condição conforme o prestador.\n\n### O retorno está incluído?\n\nDepende da proposta. Confirme prazo, finalidade e cobrança.\n\n### A parcela inclui aplicações futuras?\n\nSomente se houver um plano claramente descrito; não presuma manutenção.\n\n### Posso contratar sem avaliação?\n\nA decisão deve vir depois da avaliação do profissional habilitado.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "lipoaspiracao-parcelada-orcamento-completo": "## Resposta rápida\n\nA lipoaspiração pode ter pagamento no cartão, parcelamento direto ou solução de crédito, conforme a clínica e as condições disponíveis. Antes de comparar parcelas, faça a avaliação com profissional habilitado e peça um orçamento individual que detalhe honorários, hospital, anestesia, exames, materiais e acompanhamento pós-operatório. A forma de pagamento não determina indicação, segurança ou resultado.\n\n## O que deve constar no orçamento\n\nPeça que cada item seja identificado, inclusive cobranças de terceiros. Confirme o número previsto de sessões ou etapas, o período de acompanhamento e o que pode gerar custo adicional. Um anúncio com “valor a partir de” não substitui uma proposta completa para o seu caso.\n\n## Cartão, boleto ou financiamento\n\nO cartão costuma ser simples, mas compromete o limite total. O boleto da própria clínica pode exigir entrada e regras específicas para começar. Uma solução de crédito passa por análise e pode incluir juros, tarifas e tributos. Compare propostas de mesmo valor e prazo pelo Custo Efetivo Total, além do total a pagar.\n\n## Como evitar uma parcela que não cabe\n\nSome entrada e todas as prestações. Considere despesas já existentes e preserve margem para imprevistos. Prazo maior reduz a parcela, porém pode elevar o custo final. Não pague depósito antecipado para “liberar” crédito e use somente canais oficiais.\n\n## Checklist de decisão\n\n- avaliação e indicação registradas;\n- escopo completo do orçamento;\n- profissional e estrutura responsáveis;\n- entrada, parcelas, CET e total;\n- datas de cobrança e de realização;\n- regras para remarcação e cancelamento.\n\n## Como a Benavera pode ajudar\n\nA Benavera organiza o orçamento e permite consultar alternativas financeiras disponíveis com clareza. A simulação não garante aprovação e não substitui a relação com o profissional.\n\n**Próximo passo:** [simule suas opções de pagamento](/simular).\n\n## Perguntas frequentes\n\n### Lipoaspiração pode ser parcelada sem cartão?\n\nPode haver boleto ou crédito, sujeitos às condições do prestador e à análise.\n\n### Hospital e anestesia estão incluídos?\n\nNem sempre. Confirme todas as cobranças por escrito.\n\n### A cinta está incluída?\n\nDepende do orçamento e da orientação profissional.\n\n### Parcela pequena significa cirurgia barata?\n\nNão. Some entrada, prazo e custo total.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "otoplastia-parcelada": "## Resposta rápida\n\nA otoplastia pode ter pagamento no cartão, parcelamento direto ou solução de crédito, conforme a clínica e as condições disponíveis. Antes de comparar parcelas, faça a avaliação com profissional habilitado e peça um orçamento individual que detalhe honorários, estrutura, anestesia, exames, materiais, curativos e retornos. A forma de pagamento não determina indicação, segurança ou resultado.\n\n## O que deve constar no orçamento\n\nPeça que cada item seja identificado, inclusive cobranças de terceiros. Confirme o número previsto de sessões ou etapas, o período de acompanhamento e o que pode gerar custo adicional. Um anúncio com “valor a partir de” não substitui uma proposta completa para o seu caso.\n\n## Cartão, boleto ou financiamento\n\nO cartão costuma ser simples, mas compromete o limite total. O boleto da própria clínica pode exigir entrada e regras específicas para começar. Uma solução de crédito passa por análise e pode incluir juros, tarifas e tributos. Compare propostas de mesmo valor e prazo pelo Custo Efetivo Total, além do total a pagar.\n\n## Como evitar uma parcela que não cabe\n\nSome entrada e todas as prestações. Considere despesas já existentes e preserve margem para imprevistos. Prazo maior reduz a parcela, porém pode elevar o custo final. Não pague depósito antecipado para “liberar” crédito e use somente canais oficiais.\n\n## Checklist de decisão\n\n- avaliação e indicação registradas;\n- escopo completo do orçamento;\n- profissional e estrutura responsáveis;\n- entrada, parcelas, CET e total;\n- datas de cobrança e de realização;\n- regras para remarcação e cancelamento.\n\n## Como a Benavera pode ajudar\n\nA Benavera organiza o orçamento e permite consultar alternativas financeiras disponíveis com clareza. A simulação não garante aprovação e não substitui a relação com o profissional.\n\n**Próximo passo:** [simule suas opções de pagamento](/simular).\n\n## Perguntas frequentes\n\n### Otoplastia pode ser parcelada no boleto?\n\nPode haver essa alternativa conforme clínica, parceiro e análise.\n\n### O orçamento é por orelha?\n\nConfirme o escopo individual diretamente com a equipe.\n\n### Retornos estão incluídos?\n\nIsso deve estar descrito na proposta.\n\n### Menores podem contratar?\n\nA contratação e o consentimento seguem regras específicas e participação dos responsáveis.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "vasectomia-particular-parcelada": "## Resposta rápida\n\nA vasectomia particular pode ter pagamento no cartão, parcelamento direto ou solução de crédito, conforme a clínica e as condições disponíveis. Antes de comparar parcelas, faça a avaliação com profissional habilitado e peça um orçamento individual que detalhe consulta, exames, honorários, estrutura, anestesia quando aplicável e acompanhamento. A forma de pagamento não determina indicação, segurança ou resultado.\n\n## O que deve constar no orçamento\n\nPeça que cada item seja identificado, inclusive cobranças de terceiros. Confirme o número previsto de sessões ou etapas, o período de acompanhamento e o que pode gerar custo adicional. Um anúncio com “valor a partir de” não substitui uma proposta completa para o seu caso.\n\n## Cartão, boleto ou financiamento\n\nO cartão costuma ser simples, mas compromete o limite total. O boleto da própria clínica pode exigir entrada e regras específicas para começar. Uma solução de crédito passa por análise e pode incluir juros, tarifas e tributos. Compare propostas de mesmo valor e prazo pelo Custo Efetivo Total, além do total a pagar.\n\n## Como evitar uma parcela que não cabe\n\nSome entrada e todas as prestações. Considere despesas já existentes e preserve margem para imprevistos. Prazo maior reduz a parcela, porém pode elevar o custo final. Não pague depósito antecipado para “liberar” crédito e use somente canais oficiais.\n\n## Checklist de decisão\n\n- avaliação e indicação registradas;\n- escopo completo do orçamento;\n- profissional e estrutura responsáveis;\n- entrada, parcelas, CET e total;\n- datas de cobrança e de realização;\n- regras para remarcação e cancelamento.\n\n## Como a Benavera pode ajudar\n\nA Benavera organiza o orçamento e permite consultar alternativas financeiras disponíveis com clareza. A simulação não garante aprovação e não substitui a relação com o profissional.\n\n**Próximo passo:** [simule suas opções de pagamento](/simular).\n\n## Perguntas frequentes\n\n### Vasectomia pode ser parcelada?\n\nPode haver cartão, parcelamento direto ou crédito, dependendo do prestador.\n\n### O plano de saúde pode cobrir?\n\nA cobertura depende do contrato e das regras aplicáveis; consulte a operadora.\n\n### Exames estão incluídos?\n\nNem sempre. Peça a discriminação completa.\n\n### A Benavera define se posso operar?\n\nNão. Critérios e indicação são médicos.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "depilacao-laser-parcelada": "## Resposta rápida\n\nA depilação a laser pode ter pagamento no cartão, parcelamento direto ou solução de crédito, conforme a clínica e as condições disponíveis. Antes de comparar parcelas, faça a avaliação com profissional habilitado e peça um orçamento individual que detalhe áreas, número de sessões, equipamento, intervalos, manutenção e política para faltas. A forma de pagamento não determina indicação, segurança ou resultado.\n\n## O que deve constar no orçamento\n\nPeça que cada item seja identificado, inclusive cobranças de terceiros. Confirme o número previsto de sessões ou etapas, o período de acompanhamento e o que pode gerar custo adicional. Um anúncio com “valor a partir de” não substitui uma proposta completa para o seu caso.\n\n## Cartão, boleto ou financiamento\n\nO cartão costuma ser simples, mas compromete o limite total. O boleto da própria clínica pode exigir entrada e regras específicas para começar. Uma solução de crédito passa por análise e pode incluir juros, tarifas e tributos. Compare propostas de mesmo valor e prazo pelo Custo Efetivo Total, além do total a pagar.\n\n## Como evitar uma parcela que não cabe\n\nSome entrada e todas as prestações. Considere despesas já existentes e preserve margem para imprevistos. Prazo maior reduz a parcela, porém pode elevar o custo final. Não pague depósito antecipado para “liberar” crédito e use somente canais oficiais.\n\n## Checklist de decisão\n\n- avaliação e indicação registradas;\n- escopo completo do orçamento;\n- profissional e estrutura responsáveis;\n- entrada, parcelas, CET e total;\n- datas de cobrança e de realização;\n- regras para remarcação e cancelamento.\n\n## Como a Benavera pode ajudar\n\nA Benavera organiza o orçamento e permite consultar alternativas financeiras disponíveis com clareza. A simulação não garante aprovação e não substitui a relação com o profissional.\n\n**Próximo passo:** [simule suas opções de pagamento](/simular).\n\n## Perguntas frequentes\n\n### Depilação a laser pode ser parcelada no boleto?\n\nAlgumas clínicas ou soluções podem oferecer essa forma.\n\n### Sessões vencem?\n\nPacotes podem ter validade; leia as regras antes da compra.\n\n### Manutenção está incluída?\n\nNem sempre. Confirme o que ocorre após as sessões previstas.\n\n### Posso cancelar o pacote?\n\nConsulte contrato, serviços já realizados e legislação aplicável.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "reativar-pacientes-antigos-clinica": "## Resposta rápida\n\nPara reativar pacientes antigos, não dispare a mesma promoção para toda a base. Separe contatos por último atendimento, etapa, motivo de perda e autorização de comunicação. Envie uma mensagem contextual, ofereça utilidade e permita encerrar o contato facilmente.\n\n## Limpe e segmente a base\n\nRemova duplicados, números inválidos e pessoas que recusaram mensagens. Diferencie antigos pacientes, avaliações sem fechamento, faltas e leads que nunca compareceram. Dados de saúde não devem virar filtros comerciais indiscriminados.\n\n## Quatro campanhas possíveis\n\n1. **Retorno pendente:** lembrete administrativo sem diagnóstico.\n2. **Orçamento não concluído:** pergunta sobre dúvidas e condições.\n3. **Falta:** convite simples para remarcar.\n4. **Contato antigo:** confirmação de interesse antes de continuar.\n\n## Mensagem modelo\n\n“Olá, [nome]. Aqui é [atendente], da [clínica]. Nosso último contato foi sobre uma avaliação. Você ainda gostaria de retomar essa conversa? Se não quiser receber mensagens, é só me avisar.”\n\n## Métricas\n\nAcompanhe entregas, respostas, agendamentos, comparecimento, fechamento e pedidos de descadastro. Taxa de resposta sem conversão pode indicar curiosidade, não resultado.\n\n## Benavera\n\nA Benavera organiza a base por estágio e barreira, permitindo retomadas mais relevantes.\n\n**Próximo passo:** [conheça a solução para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Posso falar com toda a base antiga?\n\nAvalie finalidade, base legal, preferência e histórico. Não presuma autorização ilimitada.\n\n### Quantas mensagens enviar?\n\nUse uma sequência curta e pare diante de silêncio persistente ou recusa.\n\n### Posso mencionar o tratamento?\n\nMinimize dados sensíveis e preserve privacidade no canal.\n\n### Desconto é necessário?\n\nNão. Muitas retomadas dependem de contexto, confiança ou condição de pagamento.",
+  "treinamento-recepcao-clinicas": "## Resposta rápida\n\nO treinamento da recepção deve cobrir acolhimento, qualificação mínima, agenda, confirmação, registro, orçamento e encaminhamento. A equipe pode explicar processos e condições reais, mas não deve diagnosticar, prometer resultado ou garantir aprovação financeira.\n\n## Competências essenciais\n\nTreine escrita clara, escuta, perguntas abertas, uso do CRM, proteção de dados e passagem correta ao profissional. Use simulações de conversas reais sem expor pacientes.\n\n## Roteiro operacional\n\n1. Identifique-se e acolha.\n2. Entenda o objetivo geral.\n3. Ofereça o próximo passo adequado.\n4. Confirme informações práticas.\n5. Registre responsável, prazo e status.\n\n## Limites que precisam estar explícitos\n\nA recepção não define técnica, urgência ou resultado. Também não inventa preço individual, não promete crédito e não envia documentos por canais não autorizados.\n\n## Avaliação semanal\n\nRevise tempo de resposta, qualidade do registro, agendamento, comparecimento e reclamações. Dê feedback sobre comportamentos observáveis, não apenas metas de venda.\n\n## Benavera\n\nA Benavera oferece um fluxo único para orçamento, simulação e acompanhamento, reduzindo improviso.\n\n**Próximo passo:** [veja a Benavera para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### A recepção pode explicar financiamento?\n\nPode explicar o fluxo e condições apresentadas, sem atuar além de sua função ou prometer aprovação.\n\n### Deve ter comissão?\n\nAvalie ética, qualidade, cultura e efeitos indesejados antes de definir incentivos.\n\n### Como medir qualidade?\n\nCombine conversão com registros corretos, satisfação, privacidade e baixa reclamação.\n\n### Scripts deixam o atendimento robótico?\n\nDeixam quando são decorados. Use princípios e exemplos, permitindo adaptação humana.",
+  "politica-parcelamento-clinicas": "## Resposta rápida\n\nUma política de parcelamento define tratamentos elegíveis, entrada, prazo máximo, responsáveis, exceções, início, cobrança e cancelamento. Ela impede que cada atendente negocie de um jeito e ajuda a proteger caixa, margem e experiência do paciente.\n\n## Elementos mínimos\n\n- modalidades aceitas;\n- valor mínimo e máximo;\n- entrada por faixa de risco ou procedimento;\n- prazo e alçada para exceções;\n- confirmação necessária antes do início;\n- atraso, renegociação e cancelamento;\n- tratamento de dados e documentos.\n\n## Calcule a margem real\n\nInclua taxas, custo financeiro, impostos, materiais, comissão, atraso esperado e tempo de repasse. Uma venda maior pode gerar resultado menor se prazo e descontos forem combinados sem controle.\n\n## Separe modelos\n\nNo parcelamento próprio, a clínica tende a financiar o paciente e manter exposição. Com parceiro, contrato define repasse e risco. Pagamento por etapas é outro desenho. Não chame todos de financiamento.\n\n## Governança\n\nDocumente quem pode aprovar exceções e revise mensalmente conversão, atraso, margem e cancelamento. A comunicação ao paciente deve refletir as condições reais.\n\n## Benavera\n\nA Benavera conecta regras, simulação e status para tornar a política executável no dia a dia.\n\n**Próximo passo:** [conheça a Benavera para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Toda clínica precisa da mesma entrada?\n\nNão. Estrutura de custo, procedimento e risco variam.\n\n### Prazo maior aumenta conversão?\n\nPode reduzir a parcela, mas também aumentar custo e exposição.\n\n### Quem aprova exceções?\n\nDefina uma alçada clara; não deixe a decisão solta na recepção.\n\n### Política deve ser revisada?\n\nSim. Use dados de margem, conversão e atraso.",
+  "proposta-pagamento-pacientes-clinica": "## Resposta rápida\n\nUma proposta financeira clara mostra o orçamento de referência, entrada, valor financiado, número e valor das parcelas, total, CET quando aplicável, validade e responsável pela oferta. Ela deve ser separada da explicação clínica, mas conectada ao mesmo plano.\n\n## Estrutura recomendada\n\n1. Identificação do orçamento e data.\n2. Itens clínicos incluídos, conforme documento profissional.\n3. Modalidades disponíveis.\n4. Entrada, prazo, parcela e total.\n5. Condições sujeitas à análise.\n6. Validade e próximos passos.\n7. Canais oficiais para dúvidas.\n\n## Evite ambiguidades\n\nNão use apenas “a partir de”, não esconda entrada e não misture desconto à vista com total financiado. Explique quem oferece o crédito e quando a clínica considera o pagamento confirmado.\n\n## Apresentação em conversa\n\nPergunte qual formato o paciente prefere, mostre no máximo algumas opções relevantes e dê tempo para leitura. A equipe não deve pressionar nem responder dúvidas clínicas fora de sua competência.\n\n## Acompanhe o resultado\n\nRegistre proposta enviada, visualizada, aceita, recusada ou expirada. Capture o motivo sem coletar dados excessivos.\n\n## Benavera\n\nA Benavera organiza a proposta e acompanha cada etapa até o tratamento, reduzindo mensagens desencontradas.\n\n**Próximo passo:** [veja a solução para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### A proposta precisa mostrar CET?\n\nQuando se tratar de operação de crédito sujeita a essa informação, o custo deve ser apresentado conforme as regras aplicáveis.\n\n### Posso enviar por WhatsApp?\n\nUse canal autorizado, documento protegido e cuidado com dados pessoais.\n\n### Quantas opções mostrar?\n\nMostre alternativas reais suficientes para comparar, sem excesso confuso.\n\n### Simulação e proposta são iguais?\n\nNão necessariamente. A simulação pode ser estimativa; a proposta contém condições confirmadas e validade.",
+  "enxerto-osseo-dentario-parcelado": "## Resposta rápida\n\nO enxerto ósseo dentário pode fazer parte de um planejamento maior, como a preparação para implantes. O pagamento pode ocorrer no cartão, por etapas, diretamente com a clínica ou por crédito, conforme disponibilidade. Antes de decidir, peça um orçamento individual com exames, região tratada, materiais, cirurgia, retornos e etapas posteriores. A indicação pertence ao profissional habilitado; a condição financeira não garante resultado.\n\n## Por que o orçamento pode variar\n\nComplexidade, exames, materiais, estrutura, quantidade de etapas e acompanhamento mudam entre pacientes e prestadores. Confirme se os valores apresentados representam todo o plano ou apenas uma fase. Compare propostas somente quando o escopo for equivalente.\n\n## O que perguntar antes de parcelar\n\n- quais etapas e materiais estão incluídos;\n- quem são os responsáveis e quem fará cada cobrança;\n- o que pode gerar custo adicional;\n- quando o tratamento pode começar;\n- como funcionam remarcação, alteração e cancelamento;\n- qual acompanhamento está previsto.\n\n## Cartão, boleto e crédito\n\nO cartão compromete limite. O boleto próprio pode exigir entrada e quitação parcial antes do início. Em uma operação de crédito, compare prazo, parcela, valor total e Custo Efetivo Total. Não pague depósito prévio para “liberar” crédito e use apenas canais oficiais.\n\n## Planejamento financeiro\n\nSome entrada e todas as parcelas. Preserve reserva para despesas não previstas e verifique se a prestação continuaria confortável em um mês difícil. Um prazo maior pode reduzir a parcela e aumentar o custo final.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e apresenta alternativas disponíveis de forma comparável, sem substituir a avaliação profissional.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Enxerto ósseo pode ser parcelado no boleto?\n\nPode haver essa alternativa conforme clínica, parceiro e análise.\n\n### O implante está incluído?\n\nNem sempre. Enxerto e implante podem pertencer a etapas e orçamentos diferentes.\n\n### Exames estão incluídos?\n\nConfirme quais exames fazem parte da proposta.\n\n### O tratamento começa após a quitação?\n\nIsso depende do contrato e do cronograma definido pela clínica.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "coroa-dentaria-parcelada": "## Resposta rápida\n\nA coroa dentária pode ser parcelada quando a clínica oferece condições próprias ou trabalha com soluções financeiras. O pagamento pode ocorrer no cartão, por etapas, diretamente com a clínica ou por crédito, conforme disponibilidade. Antes de decidir, peça um orçamento individual com material, laboratório, provisório, preparo, instalação, ajustes e retornos. A indicação pertence ao profissional habilitado; a condição financeira não garante resultado.\n\n## Por que o orçamento pode variar\n\nComplexidade, exames, materiais, estrutura, quantidade de etapas e acompanhamento mudam entre pacientes e prestadores. Confirme se os valores apresentados representam todo o plano ou apenas uma fase. Compare propostas somente quando o escopo for equivalente.\n\n## O que perguntar antes de parcelar\n\n- quais etapas e materiais estão incluídos;\n- quem são os responsáveis e quem fará cada cobrança;\n- o que pode gerar custo adicional;\n- quando o tratamento pode começar;\n- como funcionam remarcação, alteração e cancelamento;\n- qual acompanhamento está previsto.\n\n## Cartão, boleto e crédito\n\nO cartão compromete limite. O boleto próprio pode exigir entrada e quitação parcial antes do início. Em uma operação de crédito, compare prazo, parcela, valor total e Custo Efetivo Total. Não pague depósito prévio para “liberar” crédito e use apenas canais oficiais.\n\n## Planejamento financeiro\n\nSome entrada e todas as parcelas. Preserve reserva para despesas não previstas e verifique se a prestação continuaria confortável em um mês difícil. Um prazo maior pode reduzir a parcela e aumentar o custo final.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e apresenta alternativas disponíveis de forma comparável, sem substituir a avaliação profissional.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Coroa pode ser parcelada no boleto?\n\nPode haver essa modalidade, conforme as condições disponíveis.\n\n### O provisório está incluído?\n\nNão presuma; peça que conste no orçamento.\n\n### Tratamento de canal faz parte?\n\nPode ser uma etapa separada e só deve ser indicado após avaliação.\n\n### A garantia cobre tudo?\n\nLeia prazo, limites e responsabilidades descritos pela clínica.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-gengival-parcelada": "## Resposta rápida\n\nUma cirurgia gengival exige avaliação e pode ter finalidades e extensões diferentes. O pagamento pode ocorrer no cartão, por etapas, diretamente com a clínica ou por crédito, conforme disponibilidade. Antes de decidir, peça um orçamento individual com exames, áreas tratadas, técnica indicada, materiais, sessões e acompanhamento. A indicação pertence ao profissional habilitado; a condição financeira não garante resultado.\n\n## Por que o orçamento pode variar\n\nComplexidade, exames, materiais, estrutura, quantidade de etapas e acompanhamento mudam entre pacientes e prestadores. Confirme se os valores apresentados representam todo o plano ou apenas uma fase. Compare propostas somente quando o escopo for equivalente.\n\n## O que perguntar antes de parcelar\n\n- quais etapas e materiais estão incluídos;\n- quem são os responsáveis e quem fará cada cobrança;\n- o que pode gerar custo adicional;\n- quando o tratamento pode começar;\n- como funcionam remarcação, alteração e cancelamento;\n- qual acompanhamento está previsto.\n\n## Cartão, boleto e crédito\n\nO cartão compromete limite. O boleto próprio pode exigir entrada e quitação parcial antes do início. Em uma operação de crédito, compare prazo, parcela, valor total e Custo Efetivo Total. Não pague depósito prévio para “liberar” crédito e use apenas canais oficiais.\n\n## Planejamento financeiro\n\nSome entrada e todas as parcelas. Preserve reserva para despesas não previstas e verifique se a prestação continuaria confortável em um mês difícil. Um prazo maior pode reduzir a parcela e aumentar o custo final.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e apresenta alternativas disponíveis de forma comparável, sem substituir a avaliação profissional.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Cirurgia gengival pode ser parcelada?\n\nPode haver cartão, parcelamento direto ou crédito.\n\n### O preço é por dente ou região?\n\nIsso varia; confirme como o orçamento foi calculado.\n\n### Retornos estão incluídos?\n\nA proposta deve explicar o acompanhamento.\n\n### Posso combinar com outro procedimento?\n\nA combinação depende da indicação clínica e de orçamentos compatíveis.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-ginecomastia-parcelada": "## Resposta rápida\n\nA cirurgia de ginecomastia particular pode envolver despesas médicas e hospitalares separadas. O pagamento pode ocorrer no cartão, por etapas, diretamente com a clínica ou por crédito, conforme disponibilidade. Antes de decidir, peça um orçamento individual com honorários, hospital, anestesia, exames, materiais e acompanhamento pós-operatório. A indicação pertence ao profissional habilitado; a condição financeira não garante resultado.\n\n## Por que o orçamento pode variar\n\nComplexidade, exames, materiais, estrutura, quantidade de etapas e acompanhamento mudam entre pacientes e prestadores. Confirme se os valores apresentados representam todo o plano ou apenas uma fase. Compare propostas somente quando o escopo for equivalente.\n\n## O que perguntar antes de parcelar\n\n- quais etapas e materiais estão incluídos;\n- quem são os responsáveis e quem fará cada cobrança;\n- o que pode gerar custo adicional;\n- quando o tratamento pode começar;\n- como funcionam remarcação, alteração e cancelamento;\n- qual acompanhamento está previsto.\n\n## Cartão, boleto e crédito\n\nO cartão compromete limite. O boleto próprio pode exigir entrada e quitação parcial antes do início. Em uma operação de crédito, compare prazo, parcela, valor total e Custo Efetivo Total. Não pague depósito prévio para “liberar” crédito e use apenas canais oficiais.\n\n## Planejamento financeiro\n\nSome entrada e todas as parcelas. Preserve reserva para despesas não previstas e verifique se a prestação continuaria confortável em um mês difícil. Um prazo maior pode reduzir a parcela e aumentar o custo final.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e apresenta alternativas disponíveis de forma comparável, sem substituir a avaliação profissional.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Ginecomastia pode ser parcelada sem cartão?\n\nPode haver boleto ou crédito, sujeitos às condições e análise.\n\n### Hospital e anestesia estão incluídos?\n\nNem sempre. Confirme cobranças separadas.\n\n### O plano pode cobrir?\n\nDepende da indicação e do contrato; consulte a operadora.\n\n### A simulação garante agendamento?\n\nNão. É necessária confirmação clínica e financeira.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "ninfoplastia-parcelada": "## Resposta rápida\n\nA ninfoplastia pode ter pagamento parcelado, mas a decisão precisa começar por consulta individual e informação médica adequada. O pagamento pode ocorrer no cartão, por etapas, diretamente com a clínica ou por crédito, conforme disponibilidade. Antes de decidir, peça um orçamento individual com honorários, estrutura, anestesia, exames, materiais e retornos. A indicação pertence ao profissional habilitado; a condição financeira não garante resultado.\n\n## Por que o orçamento pode variar\n\nComplexidade, exames, materiais, estrutura, quantidade de etapas e acompanhamento mudam entre pacientes e prestadores. Confirme se os valores apresentados representam todo o plano ou apenas uma fase. Compare propostas somente quando o escopo for equivalente.\n\n## O que perguntar antes de parcelar\n\n- quais etapas e materiais estão incluídos;\n- quem são os responsáveis e quem fará cada cobrança;\n- o que pode gerar custo adicional;\n- quando o tratamento pode começar;\n- como funcionam remarcação, alteração e cancelamento;\n- qual acompanhamento está previsto.\n\n## Cartão, boleto e crédito\n\nO cartão compromete limite. O boleto próprio pode exigir entrada e quitação parcial antes do início. Em uma operação de crédito, compare prazo, parcela, valor total e Custo Efetivo Total. Não pague depósito prévio para “liberar” crédito e use apenas canais oficiais.\n\n## Planejamento financeiro\n\nSome entrada e todas as parcelas. Preserve reserva para despesas não previstas e verifique se a prestação continuaria confortável em um mês difícil. Um prazo maior pode reduzir a parcela e aumentar o custo final.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e apresenta alternativas disponíveis de forma comparável, sem substituir a avaliação profissional.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Ninfoplastia pode ser parcelada?\n\nPode haver cartão, pagamento direto ou crédito conforme o prestador.\n\n### A consulta está incluída?\n\nDepende da proposta; confirme cada item.\n\n### O hospital cobra separadamente?\n\nIsso varia conforme a estrutura utilizada.\n\n### Posso contratar antes da avaliação?\n\nO orçamento final deve seguir avaliação e indicação médica.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-pterigio-parcelada": "## Resposta rápida\n\nA cirurgia de pterígio particular pode ser parcelada conforme as opções do prestador. O pagamento pode ocorrer no cartão, por etapas, diretamente com a clínica ou por crédito, conforme disponibilidade. Antes de decidir, peça um orçamento individual com consulta, exames, honorários, estrutura, materiais e acompanhamento. A indicação pertence ao profissional habilitado; a condição financeira não garante resultado.\n\n## Por que o orçamento pode variar\n\nComplexidade, exames, materiais, estrutura, quantidade de etapas e acompanhamento mudam entre pacientes e prestadores. Confirme se os valores apresentados representam todo o plano ou apenas uma fase. Compare propostas somente quando o escopo for equivalente.\n\n## O que perguntar antes de parcelar\n\n- quais etapas e materiais estão incluídos;\n- quem são os responsáveis e quem fará cada cobrança;\n- o que pode gerar custo adicional;\n- quando o tratamento pode começar;\n- como funcionam remarcação, alteração e cancelamento;\n- qual acompanhamento está previsto.\n\n## Cartão, boleto e crédito\n\nO cartão compromete limite. O boleto próprio pode exigir entrada e quitação parcial antes do início. Em uma operação de crédito, compare prazo, parcela, valor total e Custo Efetivo Total. Não pague depósito prévio para “liberar” crédito e use apenas canais oficiais.\n\n## Planejamento financeiro\n\nSome entrada e todas as parcelas. Preserve reserva para despesas não previstas e verifique se a prestação continuaria confortável em um mês difícil. Um prazo maior pode reduzir a parcela e aumentar o custo final.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e apresenta alternativas disponíveis de forma comparável, sem substituir a avaliação profissional.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Cirurgia de pterígio pode ser parcelada?\n\nPode haver modalidades conforme prestador e análise.\n\n### Exames estão incluídos?\n\nNem sempre. Peça a discriminação no orçamento.\n\n### O plano pode cobrir?\n\nConsulte sua operadora e as regras do contrato.\n\n### A Benavera avalia a necessidade da cirurgia?\n\nNão. A indicação é do oftalmologista.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "reduzir-inadimplencia-clinica": "## Resposta rápida\n\nPara reduzir inadimplência, a clínica precisa parar de decidir parcelamentos caso a caso. Defina entrada, prazo, elegibilidade, alçadas, confirmação antes do início e rotina de cobrança. Quando fizer sentido, compare o risco do crediário próprio com soluções de terceiros.\n\n## Descubra onde nasce o atraso\n\nSepare problemas de cadastro, vencimento mal escolhido, falha de lembrete, parcela incompatível e concessão sem critério. Meça atraso por procedimento, prazo e atendente. O total agregado esconde a origem.\n\n## Controles práticos\n\n- confirmar dados e contrato;\n- oferecer vencimento compreensível;\n- enviar lembrete antes e após a data;\n- registrar acordos;\n- limitar exceções;\n- interromper novas concessões fora da política;\n- proteger dados durante cobrança.\n\n## Entrada e prazo\n\nEntrada reduz exposição, mas não deve ser definida sem considerar custos e acesso. Prazo maior pode elevar conversão e risco. Simule cenários de margem após taxas, atraso e cobrança.\n\n## Terceirizar o crédito\n\nUma solução externa pode mudar quem assume o risco e quando a clínica recebe. Leia o contrato: não presuma risco zero nem repasse imediato.\n\n## Benavera\n\nA Benavera conecta política, simulação e acompanhamento para a equipe saber o que pode oferecer e qual é o status.\n\n**Próximo passo:** [conheça a Benavera para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Parcelamento próprio é sempre mais lucrativo?\n\nNão. Inclua perda, capital de giro e custo de cobrança.\n\n### Posso cobrar por WhatsApp?\n\nUse abordagem respeitosa, canal autorizado e proteção de dados.\n\n### Entrada elimina inadimplência?\n\nNão, mas pode reduzir exposição.\n\n### Qual indicador acompanhar?\n\nAtraso por faixa de dias, recuperação, perda e margem líquida.",
+  "antecipacao-recebiveis-clinicas": "## Resposta rápida\n\nAntecipar recebíveis troca dinheiro futuro por liquidez atual mediante um custo. Pode fazer sentido quando o caixa liberado evita um problema mais caro ou financia atividade com retorno superior ao custo. Não deve ser usada automaticamente em todas as vendas parceladas.\n\n## O que comparar\n\nLevante valor bruto, taxa, valor líquido, data original, data antecipada e eventuais retenções. Compare o custo com capital de giro, reserva própria e negociação com fornecedores.\n\n## Impacto na margem\n\nCalcule por procedimento. Se um tratamento já recebeu desconto e comissão, a antecipação pode comprimir ainda mais a margem. Faturamento não mostra esse efeito.\n\n## Quando pode ajudar\n\nPode alinhar pagamento de laboratório e materiais ao recebimento, cobrir sazonalidade ou evitar atraso operacional. Uso recorrente para tapar prejuízo estrutural exige revisão do modelo.\n\n## Governança\n\nDefina quem autoriza, limite mensal e finalidade. Registre custo efetivo e compare o caixa projetado antes e depois.\n\n## Benavera\n\nA Benavera ajuda a visualizar orçamento, condição e repasse para que a decisão de caixa use dados reais.\n\n**Próximo passo:** [veja a solução para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Antecipação é empréstimo?\n\nSão estruturas diferentes, embora ambas tenham custo financeiro. Leia o contrato.\n\n### Sempre vale antecipar?\n\nNão. Depende do custo, necessidade e retorno do dinheiro.\n\n### Taxa nominal basta?\n\nNão. Compare valor líquido e todos os encargos.\n\n### Como medir?\n\nAcompanhe custo de antecipação sobre receita e margem por procedimento.",
+  "link-pagamento-clinicas": "## Resposta rápida\n\nLink de pagamento permite cobrar à distância, mas precisa ser enviado por canal oficial, identificar valor e prestador e integrar confirmação e conciliação. A equipe nunca deve considerar uma captura de tela como prova suficiente sem verificar o status no sistema.\n\n## Fluxo seguro\n\nGere o link no sistema autorizado, confira paciente e orçamento, envie pelo canal registrado e oriente a verificar domínio e valor. Após o pagamento, valide diretamente no painel antes de liberar a etapa prevista.\n\n## Reduza abandono\n\nEvite links que expiram rápido sem aviso, formulários longos e falta de retorno. Informe validade, meios aceitos e contato para erro. Não peça dados completos de cartão pelo WhatsApp.\n\n## Conciliação\n\nRelacione pagamento a orçamento, paciente, valor líquido, taxa, parcelas e data de repasse. Trate estornos e cancelamentos com fluxo documentado.\n\n## Privacidade e fraude\n\nNão inclua diagnóstico no texto visível do link. Treine a equipe contra troca de conta, links falsos e comprovantes adulterados.\n\n## Benavera\n\nA Benavera conecta a condição aprovada ao status do orçamento para reduzir conferência manual.\n\n**Próximo passo:** [conheça a solução B2B](/para-clinicas).\n\n## Perguntas frequentes\n\n### Posso mandar link por WhatsApp?\n\nSim, usando canal oficial e cuidados de segurança e privacidade.\n\n### Comprovante confirma pagamento?\n\nConfirme no sistema responsável.\n\n### Posso colocar o tratamento na descrição?\n\nMinimize informação de saúde visível e use referência administrativa.\n\n### Link substitui contrato?\n\nNão. Cobrança e documentação possuem funções diferentes.",
+  "escolher-parceiro-financeiro-clinica": "## Resposta rápida\n\nEscolha um parceiro financeiro pela combinação de custo, conversão real, prazo de repasse, distribuição de risco, integração, suporte e experiência do paciente. Promessa de aprovação alta ou parcela baixa, isoladamente, não demonstra qualidade.\n\n## Due diligence básica\n\nIdentifique a empresa, a instituição responsável pela oferta, contratos, canais de suporte e responsabilidades. Verifique quem analisa, quem recebe, quem cobra e quem trata cancelamentos.\n\n## Critérios de comparação\n\n- elegibilidade de tratamentos e valores;\n- taxa de conclusão da simulação;\n- custo total para clínica e paciente;\n- prazo e condição de repasse;\n- risco de inadimplência;\n- integração com CRM e agenda;\n- proteção e minimização de dados;\n- suporte em estorno e disputa.\n\n## Faça um piloto\n\nTeste por período e grupo definidos. Compare com a linha de base: orçamento fechado, tratamento iniciado, margem líquida, tempo de repasse, abandono e reclamações. Não confunda propostas aprovadas com receita.\n\n## Contrato e operação\n\nLeia retenções, exclusões, uso de marca, dados, auditoria e encerramento. Treine a equipe para não prometer condições antes da análise.\n\n## Benavera\n\nA Benavera foi desenhada como camada entre clínica, paciente e opções financeiras, com visibilidade do funil e recuperação de oportunidades.\n\n**Próximo passo:** [converse com a Benavera](/para-clinicas).\n\n## Perguntas frequentes\n\n### Maior aprovação é sempre melhor?\n\nNão. Avalie custo, sustentabilidade, reclamações e tratamentos iniciados.\n\n### A clínica deve assumir o risco?\n\nDepende do modelo e do contrato; não presuma.\n\n### Quanto tempo testar?\n\nUse período suficiente para observar contratação, repasse e cancelamento.\n\n### Quais dados compartilhar?\n\nSomente os necessários à finalidade, com transparência e proteção.",
+  "septoplastia-particular-parcelada": "## Resposta rápida\n\nA septoplastia particular pode envolver despesas de diferentes prestadores. Pode haver pagamento no cartão, parcelamento do prestador ou crédito, conforme disponibilidade. Antes de contratar, peça orçamento individual com consulta, exames, honorários, hospital, anestesia, materiais e retornos. A indicação, a técnica e a urgência devem ser discutidas com o médico.\n\n## Como montar o custo completo\n\nSepare avaliação, exames, honorários, estrutura, anestesia quando aplicável, materiais e acompanhamento. Pergunte quais empresas farão cobranças diferentes e o que pode alterar o plano. Um valor divulgado na internet não substitui o orçamento do seu caso.\n\n## Verifique a cobertura antes de pagar\n\nSe você possui plano de saúde, consulte a operadora e os canais da ANS sobre cobertura, rede, autorização e requisitos. Não presuma que a negativa verbal é definitiva nem que todos os contratos funcionam da mesma forma.\n\n## Compare as formas de pagamento\n\nNo cartão, confira o limite comprometido. No parcelamento direto, verifique entrada, vencimentos e momento de realização. Em crédito, compare o Custo Efetivo Total, a soma das parcelas e o valor final. Não faça depósito prévio sob promessa de liberação.\n\n## Checklist\n\n- orçamento e escopo por escrito;\n- responsáveis e estrutura;\n- entrada, parcelas e total;\n- datas financeiras e clínicas;\n- regras para remarcação e cancelamento;\n- canais oficiais de atendimento.\n\n## Benavera\n\nA Benavera organiza o orçamento e ajuda a consultar alternativas financeiras disponíveis sem interferir na decisão médica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Septoplastia pode ser parcelada?\n\nPode haver cartão, pagamento direto ou crédito, dependendo do prestador.\n\n### Plano de saúde pode cobrir?\n\nA cobertura depende da indicação e do contrato; consulte a operadora.\n\n### Rinoplastia está incluída?\n\nNão presuma. São planejamentos que podem ter escopos e cobranças diferentes.\n\n### A simulação define a técnica?\n\nNão. A técnica é decisão médica.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-vesicula-particular-parcelada": "## Resposta rápida\n\nA cirurgia de vesícula particular exige um orçamento que reúna ou identifique todas as cobranças. Pode haver pagamento no cartão, parcelamento do prestador ou crédito, conforme disponibilidade. Antes de contratar, peça orçamento individual com equipe, hospital, anestesia, exames, materiais e acompanhamento. A indicação, a técnica e a urgência devem ser discutidas com o médico.\n\n## Como montar o custo completo\n\nSepare avaliação, exames, honorários, estrutura, anestesia quando aplicável, materiais e acompanhamento. Pergunte quais empresas farão cobranças diferentes e o que pode alterar o plano. Um valor divulgado na internet não substitui o orçamento do seu caso.\n\n## Verifique a cobertura antes de pagar\n\nSe você possui plano de saúde, consulte a operadora e os canais da ANS sobre cobertura, rede, autorização e requisitos. Não presuma que a negativa verbal é definitiva nem que todos os contratos funcionam da mesma forma.\n\n## Compare as formas de pagamento\n\nNo cartão, confira o limite comprometido. No parcelamento direto, verifique entrada, vencimentos e momento de realização. Em crédito, compare o Custo Efetivo Total, a soma das parcelas e o valor final. Não faça depósito prévio sob promessa de liberação.\n\n## Checklist\n\n- orçamento e escopo por escrito;\n- responsáveis e estrutura;\n- entrada, parcelas e total;\n- datas financeiras e clínicas;\n- regras para remarcação e cancelamento;\n- canais oficiais de atendimento.\n\n## Benavera\n\nA Benavera organiza o orçamento e ajuda a consultar alternativas financeiras disponíveis sem interferir na decisão médica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Cirurgia de vesícula pode ser parcelada?\n\nPode haver opções conforme hospital, equipe e parceiro financeiro.\n\n### Anestesia está incluída?\n\nNem sempre. Confirme cobranças separadas.\n\n### O plano cobre?\n\nConsulte contrato, rede e autorização com a operadora.\n\n### Posso aguardar uma condição melhor?\n\nSomente o médico pode orientar sobre urgência e segurança de aguardar.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-joelho-particular-parcelada": "## Resposta rápida\n\nA cirurgia de joelho pode envolver custos antes, durante e depois do procedimento. Pode haver pagamento no cartão, parcelamento do prestador ou crédito, conforme disponibilidade. Antes de contratar, peça orçamento individual com exames, equipe, hospital, anestesia, materiais, retornos e reabilitação. A indicação, a técnica e a urgência devem ser discutidas com o médico.\n\n## Como montar o custo completo\n\nSepare avaliação, exames, honorários, estrutura, anestesia quando aplicável, materiais e acompanhamento. Pergunte quais empresas farão cobranças diferentes e o que pode alterar o plano. Um valor divulgado na internet não substitui o orçamento do seu caso.\n\n## Verifique a cobertura antes de pagar\n\nSe você possui plano de saúde, consulte a operadora e os canais da ANS sobre cobertura, rede, autorização e requisitos. Não presuma que a negativa verbal é definitiva nem que todos os contratos funcionam da mesma forma.\n\n## Compare as formas de pagamento\n\nNo cartão, confira o limite comprometido. No parcelamento direto, verifique entrada, vencimentos e momento de realização. Em crédito, compare o Custo Efetivo Total, a soma das parcelas e o valor final. Não faça depósito prévio sob promessa de liberação.\n\n## Checklist\n\n- orçamento e escopo por escrito;\n- responsáveis e estrutura;\n- entrada, parcelas e total;\n- datas financeiras e clínicas;\n- regras para remarcação e cancelamento;\n- canais oficiais de atendimento.\n\n## Benavera\n\nA Benavera organiza o orçamento e ajuda a consultar alternativas financeiras disponíveis sem interferir na decisão médica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Cirurgia de joelho pode ser parcelada?\n\nPode haver cartão, parcelamento direto ou crédito.\n\n### Materiais estão incluídos?\n\nDepende da cirurgia e do orçamento. Exija discriminação.\n\n### Fisioterapia faz parte?\n\nGeralmente precisa ser confirmada em plano e orçamento próprios.\n\n### O plano de saúde cobre?\n\nDepende do contrato, indicação e rede.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-hemorroidas-parcelada": "## Resposta rápida\n\nA cirurgia de hemorroidas particular pode ter pagamento parcelado, mas o custo depende da avaliação e da estrutura. Pode haver pagamento no cartão, parcelamento do prestador ou crédito, conforme disponibilidade. Antes de contratar, peça orçamento individual com consulta, exames, honorários, anestesia, estrutura, materiais e retornos. A indicação, a técnica e a urgência devem ser discutidas com o médico.\n\n## Como montar o custo completo\n\nSepare avaliação, exames, honorários, estrutura, anestesia quando aplicável, materiais e acompanhamento. Pergunte quais empresas farão cobranças diferentes e o que pode alterar o plano. Um valor divulgado na internet não substitui o orçamento do seu caso.\n\n## Verifique a cobertura antes de pagar\n\nSe você possui plano de saúde, consulte a operadora e os canais da ANS sobre cobertura, rede, autorização e requisitos. Não presuma que a negativa verbal é definitiva nem que todos os contratos funcionam da mesma forma.\n\n## Compare as formas de pagamento\n\nNo cartão, confira o limite comprometido. No parcelamento direto, verifique entrada, vencimentos e momento de realização. Em crédito, compare o Custo Efetivo Total, a soma das parcelas e o valor final. Não faça depósito prévio sob promessa de liberação.\n\n## Checklist\n\n- orçamento e escopo por escrito;\n- responsáveis e estrutura;\n- entrada, parcelas e total;\n- datas financeiras e clínicas;\n- regras para remarcação e cancelamento;\n- canais oficiais de atendimento.\n\n## Benavera\n\nA Benavera organiza o orçamento e ajuda a consultar alternativas financeiras disponíveis sem interferir na decisão médica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### A cirurgia pode ser parcelada?\n\nPode haver condições conforme o prestador e a análise.\n\n### Exames estão incluídos?\n\nNem sempre. Confirme no orçamento.\n\n### O plano pode cobrir?\n\nConsulte a operadora e as regras contratuais.\n\n### A Benavera avalia necessidade cirúrgica?\n\nNão. A indicação é médica.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-endometriose-particular-parcelada": "## Resposta rápida\n\nA cirurgia de endometriose pode envolver planejamento multidisciplinar e cobranças de diferentes prestadores. Pode haver pagamento no cartão, parcelamento do prestador ou crédito, conforme disponibilidade. Antes de contratar, peça orçamento individual com avaliação, exames, especialistas, hospital, anestesia, materiais e acompanhamento. A indicação, a técnica e a urgência devem ser discutidas com o médico.\n\n## Como montar o custo completo\n\nSepare avaliação, exames, honorários, estrutura, anestesia quando aplicável, materiais e acompanhamento. Pergunte quais empresas farão cobranças diferentes e o que pode alterar o plano. Um valor divulgado na internet não substitui o orçamento do seu caso.\n\n## Verifique a cobertura antes de pagar\n\nSe você possui plano de saúde, consulte a operadora e os canais da ANS sobre cobertura, rede, autorização e requisitos. Não presuma que a negativa verbal é definitiva nem que todos os contratos funcionam da mesma forma.\n\n## Compare as formas de pagamento\n\nNo cartão, confira o limite comprometido. No parcelamento direto, verifique entrada, vencimentos e momento de realização. Em crédito, compare o Custo Efetivo Total, a soma das parcelas e o valor final. Não faça depósito prévio sob promessa de liberação.\n\n## Checklist\n\n- orçamento e escopo por escrito;\n- responsáveis e estrutura;\n- entrada, parcelas e total;\n- datas financeiras e clínicas;\n- regras para remarcação e cancelamento;\n- canais oficiais de atendimento.\n\n## Benavera\n\nA Benavera organiza o orçamento e ajuda a consultar alternativas financeiras disponíveis sem interferir na decisão médica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Cirurgia de endometriose pode ser parcelada?\n\nPode haver cartão, condições do prestador ou crédito.\n\n### Todos os especialistas estão incluídos?\n\nNem sempre. Confirme a composição da equipe e as cobranças.\n\n### Plano pode cobrir?\n\nDepende da indicação, contrato, rede e autorização.\n\n### Posso financiar só a parte particular?\n\nDepende da separação do orçamento e da solução disponível.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "tratamento-dermatologico-parcelado": "## Resposta rápida\n\nUm tratamento dermatológico pode combinar consulta, exames, produtos e procedimentos em momentos diferentes. Pode haver pagamento no cartão, parcelamento do prestador ou crédito, conforme disponibilidade. Antes de contratar, peça orçamento individual com consultas, exames, sessões, produtos fornecidos, retornos e manutenção. A indicação, a técnica e a urgência devem ser discutidas com o médico.\n\n## Como montar o custo completo\n\nSepare avaliação, exames, honorários, estrutura, anestesia quando aplicável, materiais e acompanhamento. Pergunte quais empresas farão cobranças diferentes e o que pode alterar o plano. Um valor divulgado na internet não substitui o orçamento do seu caso.\n\n## Verifique a cobertura antes de pagar\n\nSe você possui plano de saúde, consulte a operadora e os canais da ANS sobre cobertura, rede, autorização e requisitos. Não presuma que a negativa verbal é definitiva nem que todos os contratos funcionam da mesma forma.\n\n## Compare as formas de pagamento\n\nNo cartão, confira o limite comprometido. No parcelamento direto, verifique entrada, vencimentos e momento de realização. Em crédito, compare o Custo Efetivo Total, a soma das parcelas e o valor final. Não faça depósito prévio sob promessa de liberação.\n\n## Checklist\n\n- orçamento e escopo por escrito;\n- responsáveis e estrutura;\n- entrada, parcelas e total;\n- datas financeiras e clínicas;\n- regras para remarcação e cancelamento;\n- canais oficiais de atendimento.\n\n## Benavera\n\nA Benavera organiza o orçamento e ajuda a consultar alternativas financeiras disponíveis sem interferir na decisão médica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Dermatologia pode ser parcelada?\n\nProcedimentos ou pacotes podem ter condições conforme a clínica.\n\n### Produtos estão incluídos?\n\nSomente se estiverem descritos no orçamento.\n\n### Pacote e financiamento são iguais?\n\nNão. Um é contratação de serviços; o outro é operação financeira.\n\n### Manutenção está incluída?\n\nDepende do plano individual e da proposta.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "roi-financiamento-clinicas": "## Resposta rápida\n\nO ROI do financiamento deve comparar o lucro incremental gerado pela nova opção com todos os custos necessários para oferecê-la. Não use apenas quantidade de aprovações ou valor financiado. Meça tratamentos iniciados, margem líquida, taxas, descontos, prazo de repasse, cancelamentos e risco retido.\n\n## Fórmula prática\n\nUse: **ROI = (margem incremental recebida − custo incremental) ÷ custo incremental**. Defina um período e compare com uma linha de base semelhante por origem e tipo de tratamento.\n\n## O que entra na margem incremental\n\nReceita efetivamente recebida, menos custo clínico, taxa financeira, comissão, desconto adicional, cobrança e perdas. Se a venda teria ocorrido sem financiamento, ela não é totalmente incremental.\n\n## Faça análise por coorte\n\nAgrupe orçamentos pelo mês em que foram apresentados e acompanhe até contratação, repasse e início. Isso evita creditar resultado ao mês errado.\n\n## Métricas auxiliares\n\nConversão, conclusão de simulação, aprovação, ticket, tempo de repasse, cancelamento, reclamação e satisfação explicam o resultado, mas não substituem a margem.\n\n## Benavera\n\nA Benavera conecta os estados do funil financeiro para permitir análise de resultado real.\n\n**Próximo passo:** [conheça a Benavera para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Valor aprovado é receita?\n\nNão. Acompanhe contratação, repasse e tratamento iniciado.\n\n### Conversão maior garante ROI positivo?\n\nNão se taxas, descontos e perdas consumirem a margem.\n\n### Quanto tempo medir?\n\nO suficiente para capturar repasses, cancelamentos e início dos tratamentos.\n\n### Devo comparar por tratamento?\n\nSim. Tickets e margens diferentes distorcem médias gerais.",
+  "recuperar-simulacao-credito-abandonada": "## Resposta rápida\n\nPara recuperar uma simulação abandonada, descubra onde ela parou: abertura, dados, documentos, proposta ou aceite. Envie uma mensagem contextual que ofereça ajuda, não pressão. Não presuma que abandono significa falta de interesse; pode ser dúvida, erro técnico, privacidade ou condição inadequada.\n\n## Classifique o abandono\n\nRegistre a última etapa concluída, tempo desde a ação, canal autorizado e motivo quando informado. Não envie o mesmo texto a quem nem iniciou e a quem recusou uma proposta.\n\n## Mensagens por etapa\n\n**Cadastro incompleto:** “Vi que a etapa não foi concluída. Apareceu alguma dúvida ou erro que possamos ajudar a resolver?”  \n**Documento pendente:** explique exatamente o necessário e o canal seguro.  \n**Proposta visualizada:** ofereça explicação sobre entrada, prazo e total.  \n**Condição recusada:** registre o motivo e encerre com respeito.\n\n## Cadência\n\nFaça uma tentativa próxima ao abandono e outra posterior apenas se houver contexto. Pare após recusa ou silêncio persistente. Nunca prometa alteração ou aprovação.\n\n## Privacidade\n\nNão revele valor, tratamento ou dado financeiro na prévia da mensagem. Use autenticação e links oficiais.\n\n## Benavera\n\nA Benavera registra o ponto de abandono e cria a próxima tarefa para a equipe.\n\n**Próximo passo:** [veja a solução para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Quantas tentativas fazer?\n\nUse poucas tentativas contextuais e respeite a preferência do paciente.\n\n### Posso pedir documentos pelo WhatsApp?\n\nPrefira o canal seguro definido pela operação e explique a finalidade.\n\n### Devo oferecer desconto?\n\nNão antes de conhecer o motivo do abandono.\n\n### Como medir recuperação?\n\nSimulações retomadas, propostas, contratações e reclamações por etapa.",
+  "conciliacao-financeira-clinicas": "## Resposta rápida\n\nConciliação financeira é conferir se cada pagamento esperado foi autorizado, liquidado e repassado pelo valor correto. A clínica precisa relacionar orçamento, modalidade, valor bruto, taxa, parcela, valor líquido, data prevista, data real e eventuais estornos.\n\n## Estrutura mínima\n\nCrie um identificador único por orçamento. Registre paciente com acesso restrito, serviço, meio de pagamento, adquirente ou parceiro, número de parcelas, taxa, líquido e calendário de recebimento.\n\n## Rotina diária e mensal\n\nDiariamente, valide pagamentos antes de liberar etapas. Semanalmente, trate divergências. Mensalmente, feche taxas, estornos, chargebacks, antecipações e repasses pendentes.\n\n## Erros comuns\n\nUsar captura de tela como confirmação, misturar competência e caixa, ignorar taxas, não vincular estorno ao orçamento e exportar planilhas sem proteção.\n\n## Indicadores\n\nValor divergente, repasse atrasado, taxa efetiva, estorno, chargeback, tempo de resolução e saldo a receber.\n\n## Benavera\n\nA Benavera conecta proposta, contratação e status de repasse para reduzir conferência manual.\n\n**Próximo passo:** [conheça a solução B2B](/para-clinicas).\n\n## Perguntas frequentes\n\n### Autorizado significa recebido?\n\nNão. Acompanhe liquidação e repasse.\n\n### Faturamento e caixa são iguais?\n\nNão. O reconhecimento e o recebimento podem ocorrer em datas diferentes.\n\n### Como tratar estorno?\n\nVincule ao orçamento e siga o fluxo contratual e contábil.\n\n### Planilha é suficiente?\n\nPode servir no início, desde que haja controle, consistência e proteção.",
+  "painel-semanal-clinica-metricas": "## Resposta rápida\n\nO painel semanal deve caber em uma tela e responder onde o funil travou. Acompanhe entradas e conversões, mas separe indicadores de atividade, resultado e caixa. Compare com a semana anterior e com uma média móvel, evitando conclusões por poucos casos.\n\n## Dez números essenciais\n\n1. Leads qualificados.\n2. Tempo mediano de resposta.\n3. Taxa de contato.\n4. Avaliações agendadas.\n5. Comparecimento.\n6. Orçamentos apresentados.\n7. Simulações concluídas.\n8. Tratamentos fechados e iniciados.\n9. Margem estimada e recebida.\n10. Repasse, atraso e cancelamento.\n\n## Segmente o necessário\n\nAbra por origem, tipo de tratamento e responsável somente quando houver volume suficiente. Segmentação excessiva cria ruído; ausência total esconde gargalos.\n\n## Reunião de 30 minutos\n\nRevise variações, escolha um gargalo, defina uma ação com dono e prazo e confira a ação anterior. Não transforme a reunião em leitura de números.\n\n## Privacidade\n\nUse dados agregados no painel. Detalhes identificáveis devem ficar restritos ao fluxo operacional.\n\n## Benavera\n\nA Benavera conecta orçamento e jornada financeira para alimentar indicadores acionáveis.\n\n**Próximo passo:** [veja a Benavera para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Preciso acompanhar tudo diariamente?\n\nOperação pode ser diária; análise consolidada pode ser semanal.\n\n### Metas devem ser iguais por procedimento?\n\nNão. Ticket, ciclo e conversão variam.\n\n### Qual período comparar?\n\nSemana anterior e média de quatro semanas ajudam a reduzir ruído.\n\n### Quem atualiza o painel?\n\nDefina uma pessoa responsável e automatize apenas dados confiáveis.",
+  "tratamento-dtm-parcelado": "## Resposta rápida\n\nO tratamento de disfunção temporomandibular pode envolver profissionais e etapas diferentes. Antes de escolher a forma de pagamento, faça avaliação profissional e peça um orçamento com consulta, exames, dispositivo, sessões, retornos e reavaliação. Cartão, pagamento por etapas, boleto ou crédito podem existir, conforme o prestador e a análise.\n\n## O que comparar no orçamento\n\nConfirme o objetivo do plano, as etapas previstas, o que está incluído, possíveis cobranças adicionais e o acompanhamento. Compare apenas propostas equivalentes. Preço encontrado na internet não substitui avaliação individual.\n\n## Como analisar o parcelamento\n\nSome a entrada e todas as parcelas. Se houver crédito, confira o Custo Efetivo Total, prazo e valor final. No cartão, avalie o limite comprometido. No pagamento direto, verifique quando o atendimento começa e as regras para atraso, remarcação e cancelamento.\n\n## Segurança antes da conveniência\n\nUse canais oficiais, verifique o profissional e não pague depósito para liberar crédito. A parcela não determina indicação, qualidade ou resultado. Preserve uma reserva para despesas não previstas.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis sem interferir na decisão clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### DTM pode ser tratada de forma parcelada?\n\nPode haver condições para os serviços indicados, conforme cada prestador.\n\n### A placa está incluída?\n\nNem sempre; confirme laboratório, ajustes e retornos.\n\n### Fisioterapia faz parte?\n\nPode ser um serviço separado, conforme indicação.\n\n### A Benavera indica o tratamento?\n\nNão. A decisão é dos profissionais responsáveis.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "placa-bruxismo-parcelada": "## Resposta rápida\n\nA placa para bruxismo pode ser paga à vista ou parcelada conforme a clínica. Antes de escolher a forma de pagamento, faça avaliação profissional e peça um orçamento com avaliação, moldagem ou escaneamento, laboratório, instalação, ajustes e retornos. Cartão, pagamento por etapas, boleto ou crédito podem existir, conforme o prestador e a análise.\n\n## O que comparar no orçamento\n\nConfirme o objetivo do plano, as etapas previstas, o que está incluído, possíveis cobranças adicionais e o acompanhamento. Compare apenas propostas equivalentes. Preço encontrado na internet não substitui avaliação individual.\n\n## Como analisar o parcelamento\n\nSome a entrada e todas as parcelas. Se houver crédito, confira o Custo Efetivo Total, prazo e valor final. No cartão, avalie o limite comprometido. No pagamento direto, verifique quando o atendimento começa e as regras para atraso, remarcação e cancelamento.\n\n## Segurança antes da conveniência\n\nUse canais oficiais, verifique o profissional e não pague depósito para liberar crédito. A parcela não determina indicação, qualidade ou resultado. Preserve uma reserva para despesas não previstas.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis sem interferir na decisão clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Placa pode ser parcelada no boleto?\n\nPode haver essa opção conforme clínica ou parceiro.\n\n### Ajustes estão incluídos?\n\nConfira quantidade e período no orçamento.\n\n### Toda placa é igual?\n\nNão. Material e indicação dependem da avaliação.\n\n### Posso comprar sem consulta?\n\nO dispositivo deve seguir avaliação e orientação profissional.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "odontopediatria-parcelada": "## Resposta rápida\n\nTratamentos odontológicos infantis podem ser pagos por consulta, etapa ou condição parcelada. Antes de escolher a forma de pagamento, faça avaliação profissional e peça um orçamento com consultas, exames, prevenção, procedimentos, retornos e participação do responsável. Cartão, pagamento por etapas, boleto ou crédito podem existir, conforme o prestador e a análise.\n\n## O que comparar no orçamento\n\nConfirme o objetivo do plano, as etapas previstas, o que está incluído, possíveis cobranças adicionais e o acompanhamento. Compare apenas propostas equivalentes. Preço encontrado na internet não substitui avaliação individual.\n\n## Como analisar o parcelamento\n\nSome a entrada e todas as parcelas. Se houver crédito, confira o Custo Efetivo Total, prazo e valor final. No cartão, avalie o limite comprometido. No pagamento direto, verifique quando o atendimento começa e as regras para atraso, remarcação e cancelamento.\n\n## Segurança antes da conveniência\n\nUse canais oficiais, verifique o profissional e não pague depósito para liberar crédito. A parcela não determina indicação, qualidade ou resultado. Preserve uma reserva para despesas não previstas.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis sem interferir na decisão clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Tratamento infantil pode ser parcelado?\n\nPode haver condições conforme clínica e orçamento.\n\n### Todos os procedimentos entram juntos?\n\nDepende do plano e das etapas indicadas.\n\n### Responsável precisa contratar?\n\nMenores exigem participação e autorizações dos responsáveis.\n\n### A simulação substitui avaliação?\n\nNão. O plano é definido pelo dentista.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "sedacao-odontologica-custos-parcelamento": "## Resposta rápida\n\nA sedação em odontologia exige indicação, profissional habilitado, estrutura e protocolos compatíveis. Antes de escolher a forma de pagamento, faça avaliação profissional e peça um orçamento com avaliação, modalidade de sedação, equipe, monitorização, estrutura, procedimento e recuperação. Cartão, pagamento por etapas, boleto ou crédito podem existir, conforme o prestador e a análise.\n\n## O que comparar no orçamento\n\nConfirme o objetivo do plano, as etapas previstas, o que está incluído, possíveis cobranças adicionais e o acompanhamento. Compare apenas propostas equivalentes. Preço encontrado na internet não substitui avaliação individual.\n\n## Como analisar o parcelamento\n\nSome a entrada e todas as parcelas. Se houver crédito, confira o Custo Efetivo Total, prazo e valor final. No cartão, avalie o limite comprometido. No pagamento direto, verifique quando o atendimento começa e as regras para atraso, remarcação e cancelamento.\n\n## Segurança antes da conveniência\n\nUse canais oficiais, verifique o profissional e não pague depósito para liberar crédito. A parcela não determina indicação, qualidade ou resultado. Preserve uma reserva para despesas não previstas.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis sem interferir na decisão clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Sedação pode ser parcelada?\n\nPode integrar o orçamento ou ter cobrança própria, conforme o caso.\n\n### Dentista pode realizar qualquer sedação?\n\nExistem modalidades, requisitos e habilitações específicos; confirme a equipe.\n\n### Anestesia geral é a mesma coisa?\n\nNão. Modalidades e ambientes possuem exigências diferentes.\n\n### O custo inclui o procedimento dental?\n\nNem sempre. Peça a separação dos valores.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "tratamento-glaucoma-particular-parcelado": "## Resposta rápida\n\nO acompanhamento do glaucoma pode incluir consultas, exames, medicamentos e procedimentos ao longo do tempo. Antes de escolher a forma de pagamento, faça avaliação profissional e peça um orçamento com consultas, exames, procedimentos, retornos e itens fornecidos pelo prestador. Cartão, pagamento por etapas, boleto ou crédito podem existir, conforme o prestador e a análise.\n\n## O que comparar no orçamento\n\nConfirme o objetivo do plano, as etapas previstas, o que está incluído, possíveis cobranças adicionais e o acompanhamento. Compare apenas propostas equivalentes. Preço encontrado na internet não substitui avaliação individual.\n\n## Como analisar o parcelamento\n\nSome a entrada e todas as parcelas. Se houver crédito, confira o Custo Efetivo Total, prazo e valor final. No cartão, avalie o limite comprometido. No pagamento direto, verifique quando o atendimento começa e as regras para atraso, remarcação e cancelamento.\n\n## Segurança antes da conveniência\n\nUse canais oficiais, verifique o profissional e não pague depósito para liberar crédito. A parcela não determina indicação, qualidade ou resultado. Preserve uma reserva para despesas não previstas.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis sem interferir na decisão clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Tratamento de glaucoma pode ser parcelado?\n\nServiços particulares podem ter modalidades conforme o prestador.\n\n### Medicamentos estão incluídos?\n\nNormalmente devem ser confirmados separadamente.\n\n### Plano pode cobrir exames?\n\nDepende do contrato e indicação; consulte a operadora.\n\n### Posso adiar por causa do pagamento?\n\nConverse com o oftalmologista sobre urgência e alternativas.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cpap-parcelado-aparelho-mascara": "## Resposta rápida\n\nO CPAP pode ser adquirido ou alugado conforme fornecedores e orientação profissional. Antes de escolher a forma de pagamento, faça avaliação profissional e peça um orçamento com aparelho, máscara, acessórios, adaptação, garantia, manutenção e suporte. Cartão, pagamento por etapas, boleto ou crédito podem existir, conforme o prestador e a análise.\n\n## O que comparar no orçamento\n\nConfirme o objetivo do plano, as etapas previstas, o que está incluído, possíveis cobranças adicionais e o acompanhamento. Compare apenas propostas equivalentes. Preço encontrado na internet não substitui avaliação individual.\n\n## Como analisar o parcelamento\n\nSome a entrada e todas as parcelas. Se houver crédito, confira o Custo Efetivo Total, prazo e valor final. No cartão, avalie o limite comprometido. No pagamento direto, verifique quando o atendimento começa e as regras para atraso, remarcação e cancelamento.\n\n## Segurança antes da conveniência\n\nUse canais oficiais, verifique o profissional e não pague depósito para liberar crédito. A parcela não determina indicação, qualidade ou resultado. Preserve uma reserva para despesas não previstas.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis sem interferir na decisão clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### CPAP pode ser parcelado no boleto?\n\nAlguns fornecedores podem oferecer essa modalidade.\n\n### Comprar ou alugar?\n\nCompare duração, suporte, manutenção e custo total.\n\n### Máscara está incluída?\n\nNem sempre. Confirme modelo, troca e acessórios.\n\n### A Benavera escolhe o aparelho?\n\nNão. A indicação e configuração pertencem ao profissional.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-prostata-particular-parcelada": "## Resposta rápida\n\nA cirurgia de próstata particular pode envolver diferentes técnicas, equipes e estruturas. Antes de escolher a forma de pagamento, faça avaliação profissional e peça um orçamento com consulta, exames, honorários, hospital, anestesia, materiais e acompanhamento. Cartão, pagamento por etapas, boleto ou crédito podem existir, conforme o prestador e a análise.\n\n## O que comparar no orçamento\n\nConfirme o objetivo do plano, as etapas previstas, o que está incluído, possíveis cobranças adicionais e o acompanhamento. Compare apenas propostas equivalentes. Preço encontrado na internet não substitui avaliação individual.\n\n## Como analisar o parcelamento\n\nSome a entrada e todas as parcelas. Se houver crédito, confira o Custo Efetivo Total, prazo e valor final. No cartão, avalie o limite comprometido. No pagamento direto, verifique quando o atendimento começa e as regras para atraso, remarcação e cancelamento.\n\n## Segurança antes da conveniência\n\nUse canais oficiais, verifique o profissional e não pague depósito para liberar crédito. A parcela não determina indicação, qualidade ou resultado. Preserve uma reserva para despesas não previstas.\n\n## Como a Benavera ajuda\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis sem interferir na decisão clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Cirurgia de próstata pode ser parcelada?\n\nPode haver cartão, parcelamento direto ou crédito.\n\n### Hospital está incluído?\n\nNem sempre. Confirme cada cobrança.\n\n### Plano pode cobrir?\n\nDepende da indicação, contrato, rede e autorização.\n\n### A técnica altera o valor?\n\nPode alterar; a escolha deve ser médica.\n\n> Condições, taxas, prazos e valores dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cac-clinicas-custo-aquisicao-paciente": "## Resposta rápida\n\nCAC é o gasto comercial e de marketing dividido pelos novos pacientes conquistados no período. Para ser útil, inclua mídia, agência, ferramentas, comissões e parcela da equipe; depois compare por canal e tipo de tratamento.\n\n## Fórmula\n\n**CAC = custos de aquisição ÷ novos pacientes.** Defina “conquistado” como tratamento contratado e iniciado, não mero lead ou consulta marcada.\n\n## O que incluir\n\nAnúncios, produção, software, agência, telefone, comissões e horas da equipe ligadas à aquisição. Separe manutenção de pacientes existentes quando possível.\n\n## Compare com margem\n\nTicket não basta. Compare CAC com margem de contribuição e tempo para receber. Um canal caro pode funcionar em procedimentos de maior margem; um lead barato pode nunca comparecer.\n\n## Benavera\n\nA Benavera conecta origem, orçamento, simulação e início para melhorar a atribuição.\n\n**Próximo passo:** [conheça a solução para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Consulta agendada conta como aquisição?\n\nPara uma visão conservadora, conte paciente com tratamento iniciado.\n\n### Devo calcular por canal?\n\nSim, mantendo regras de atribuição consistentes.\n\n### CAC baixo é sempre melhor?\n\nNão. Avalie margem e qualidade.\n\n### Quanto tempo analisar?\n\nUse coortes compatíveis com o ciclo de decisão.",
+  "experiencia-pos-financiamento-paciente": "## Resposta rápida\n\nA jornada não termina no aceite. Confirme contratação e repasse, explique o próximo passo, mantenha canais separados para dúvidas clínicas e financeiras e acompanhe início, cancelamento e satisfação.\n\n## Primeiras 24 horas\n\nEnvie resumo da condição, identificação do responsável financeiro, confirmação do status e instrução de agendamento. Não exponha dados sensíveis em mensagens abertas.\n\n## Separe responsabilidades\n\nA clínica responde pelo atendimento; o parceiro, pela operação financeira conforme contrato. A recepção precisa saber direcionar sem dar respostas improvisadas.\n\n## Indicadores\n\nTempo até início, contatos de suporte, divergências, cancelamentos, reclamações e satisfação. Analise por parceiro e tratamento.\n\n## Benavera\n\nA Benavera mantém o status compartilhado e organiza a transição entre contratação e tratamento.\n\n**Próximo passo:** [veja a Benavera para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Aprovação encerra o processo?\n\nNão. Confirme contratação, repasse e início.\n\n### Quem trata cobrança?\n\nDepende do modelo e do contrato.\n\n### Posso medir NPS?\n\nPode, sem misturar avaliação clínica e financeira de forma confusa.\n\n### Como evitar mensagens duplicadas?\n\nDefina responsável e registre cada contato no sistema.",
+  "auditoria-crm-clinica": "## Resposta rápida\n\nUma auditoria de CRM verifica se os dados são necessários, corretos, protegidos e úteis ao funil. Revise usuários, permissões, duplicados, campos livres, integrações, exportações, motivos de perda e registros antigos.\n\n## Checklist de acesso\n\nListe usuários ativos, perfis, administradores, contas compartilhadas e acessos de ex-colaboradores. Aplique o menor privilégio e autenticação forte.\n\n## Qualidade do funil\n\nProcure negócios sem responsável, etapa ou próxima tarefa; slugs não se aplicam aqui, mas nomenclaturas inconsistentes também quebram relatórios. Padronize motivos de perda.\n\n## Dados sensíveis\n\nRemova cópias desnecessárias de prontuários, diagnósticos e documentos financeiros do ambiente comercial. Revise integrações e planilhas exportadas.\n\n## Retenção\n\nDefina prazos conforme finalidade e obrigações aplicáveis. Eliminação deve ser controlada, não improvisada.\n\n## Benavera\n\nA Benavera separa a jornada comercial e financeira para reduzir dados soltos.\n\n**Próximo passo:** [conheça a Benavera para clínicas](/para-clinicas).\n\n## Perguntas frequentes\n\n### Com que frequência auditar?\n\nFaça revisões periódicas e sempre após mudanças de equipe ou integração.\n\n### CRM substitui prontuário?\n\nNão automaticamente; possuem finalidades e requisitos diferentes.\n\n### Posso manter leads para sempre?\n\nRetenção precisa de finalidade e critérios definidos.\n\n### Quem deve participar?\n\nGestão, operação, tecnologia e orientação jurídica quando necessário.",
+  "faceta-resina-parcelada": "## Resposta rápida\n\nFacetas de resina podem ter orçamento por dente ou por conjunto. O pagamento pode ser feito no cartão, por etapas, diretamente ao prestador ou por crédito, conforme disponibilidade. Antes de parcelar, peça um orçamento com quantidade, planejamento, material, acabamento, ajustes e manutenção.\n\n## Compare o tratamento completo\n\nConfirme avaliação, exames, materiais, profissionais, etapas, retornos e possíveis cobranças adicionais. Dois orçamentos com o mesmo nome podem ter escopos diferentes. Indicação e técnica pertencem ao profissional habilitado.\n\n## Compare a forma de pagamento\n\nSome entrada e parcelas. No cartão, observe o limite; no pagamento direto, confira o momento de início; no crédito, compare CET, prazo e total. Não faça depósito prévio para liberar crédito.\n\n## Checklist\n\n- escopo individual por escrito;\n- responsáveis e estrutura;\n- itens incluídos e excluídos;\n- entrada, prazo, parcela e total;\n- remarcação, alteração e cancelamento;\n- canal oficial de suporte.\n\n## Benavera\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis, sem substituir a avaliação clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Faceta de resina pode ser parcelada?\n\nPode haver cartão, boleto ou crédito conforme a clínica.\n\n### O preço é por dente?\n\nFrequentemente varia por unidade; confirme o total.\n\n### Manutenção está incluída?\n\nNem sempre. Peça prazo e condições.\n\n### Resultado é garantido?\n\nNão. Resultados e indicação variam.\n\n> Condições dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "ponte-dentaria-parcelada": "## Resposta rápida\n\nA ponte dentária pode envolver preparo, laboratório e acompanhamento. O pagamento pode ser feito no cartão, por etapas, diretamente ao prestador ou por crédito, conforme disponibilidade. Antes de parcelar, peça um orçamento com dentes envolvidos, material, laboratório, provisório, instalação e ajustes.\n\n## Compare o tratamento completo\n\nConfirme avaliação, exames, materiais, profissionais, etapas, retornos e possíveis cobranças adicionais. Dois orçamentos com o mesmo nome podem ter escopos diferentes. Indicação e técnica pertencem ao profissional habilitado.\n\n## Compare a forma de pagamento\n\nSome entrada e parcelas. No cartão, observe o limite; no pagamento direto, confira o momento de início; no crédito, compare CET, prazo e total. Não faça depósito prévio para liberar crédito.\n\n## Checklist\n\n- escopo individual por escrito;\n- responsáveis e estrutura;\n- itens incluídos e excluídos;\n- entrada, prazo, parcela e total;\n- remarcação, alteração e cancelamento;\n- canal oficial de suporte.\n\n## Benavera\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis, sem substituir a avaliação clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Ponte dentária pode ser parcelada?\n\nPode haver modalidades conforme a clínica.\n\n### Provisório está incluído?\n\nConfirme no orçamento.\n\n### Laboratório cobra separado?\n\nIsso varia entre clínicas.\n\n### Ponte e implante são iguais?\n\nNão; a indicação deve ser explicada pelo dentista.\n\n> Condições dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "implante-carga-imediata-parcelado": "## Resposta rápida\n\nImplante com carga imediata depende de critérios clínicos e não pode ser prometido apenas pela forma de pagamento. O pagamento pode ser feito no cartão, por etapas, diretamente ao prestador ou por crédito, conforme disponibilidade. Antes de parcelar, peça um orçamento com exames, implantes, cirurgia, provisório, prótese definitiva e retornos.\n\n## Compare o tratamento completo\n\nConfirme avaliação, exames, materiais, profissionais, etapas, retornos e possíveis cobranças adicionais. Dois orçamentos com o mesmo nome podem ter escopos diferentes. Indicação e técnica pertencem ao profissional habilitado.\n\n## Compare a forma de pagamento\n\nSome entrada e parcelas. No cartão, observe o limite; no pagamento direto, confira o momento de início; no crédito, compare CET, prazo e total. Não faça depósito prévio para liberar crédito.\n\n## Checklist\n\n- escopo individual por escrito;\n- responsáveis e estrutura;\n- itens incluídos e excluídos;\n- entrada, prazo, parcela e total;\n- remarcação, alteração e cancelamento;\n- canal oficial de suporte.\n\n## Benavera\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis, sem substituir a avaliação clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Carga imediata pode ser parcelada?\n\nPode haver condições para o orçamento aprovado.\n\n### Todo paciente pode fazer?\n\nNão; depende de avaliação clínica.\n\n### Prótese definitiva está incluída?\n\nConfirme as fases no orçamento.\n\n### Enxerto está incluído?\n\nPode ser uma etapa separada.\n\n> Condições dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-amigdalas-adenoide-parcelada": "## Resposta rápida\n\nA cirurgia de amígdalas ou adenoide pode envolver cobranças médicas e hospitalares. O pagamento pode ser feito no cartão, por etapas, diretamente ao prestador ou por crédito, conforme disponibilidade. Antes de parcelar, peça um orçamento com consulta, exames, honorários, hospital, anestesia, materiais e retornos.\n\n## Compare o tratamento completo\n\nConfirme avaliação, exames, materiais, profissionais, etapas, retornos e possíveis cobranças adicionais. Dois orçamentos com o mesmo nome podem ter escopos diferentes. Indicação e técnica pertencem ao profissional habilitado.\n\n## Compare a forma de pagamento\n\nSome entrada e parcelas. No cartão, observe o limite; no pagamento direto, confira o momento de início; no crédito, compare CET, prazo e total. Não faça depósito prévio para liberar crédito.\n\n## Checklist\n\n- escopo individual por escrito;\n- responsáveis e estrutura;\n- itens incluídos e excluídos;\n- entrada, prazo, parcela e total;\n- remarcação, alteração e cancelamento;\n- canal oficial de suporte.\n\n## Benavera\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis, sem substituir a avaliação clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### A cirurgia pode ser parcelada?\n\nPode haver opções conforme equipe e hospital.\n\n### Plano pode cobrir?\n\nDepende do contrato e indicação.\n\n### Anestesia está incluída?\n\nNem sempre; confirme.\n\n### Crianças exigem regras próprias?\n\nSim, com participação e autorização dos responsáveis.\n\n> Condições dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-coluna-particular-parcelada": "## Resposta rápida\n\nA cirurgia de coluna pode envolver equipe, materiais e reabilitação em contratos separados. O pagamento pode ser feito no cartão, por etapas, diretamente ao prestador ou por crédito, conforme disponibilidade. Antes de parcelar, peça um orçamento com exames, honorários, hospital, anestesia, implantes ou materiais, retornos e reabilitação.\n\n## Compare o tratamento completo\n\nConfirme avaliação, exames, materiais, profissionais, etapas, retornos e possíveis cobranças adicionais. Dois orçamentos com o mesmo nome podem ter escopos diferentes. Indicação e técnica pertencem ao profissional habilitado.\n\n## Compare a forma de pagamento\n\nSome entrada e parcelas. No cartão, observe o limite; no pagamento direto, confira o momento de início; no crédito, compare CET, prazo e total. Não faça depósito prévio para liberar crédito.\n\n## Checklist\n\n- escopo individual por escrito;\n- responsáveis e estrutura;\n- itens incluídos e excluídos;\n- entrada, prazo, parcela e total;\n- remarcação, alteração e cancelamento;\n- canal oficial de suporte.\n\n## Benavera\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis, sem substituir a avaliação clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Cirurgia de coluna pode ser parcelada?\n\nPode haver cartão, pagamento direto ou crédito.\n\n### Materiais estão incluídos?\n\nPrecisam ser confirmados no orçamento.\n\n### Fisioterapia faz parte?\n\nPode ter plano e cobrança separados.\n\n### Plano pode cobrir?\n\nConsulte operadora, rede e autorização.\n\n> Condições dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "cirurgia-tunel-carpo-parcelada": "## Resposta rápida\n\nA cirurgia do túnel do carpo particular pode ter opções de parcelamento. O pagamento pode ser feito no cartão, por etapas, diretamente ao prestador ou por crédito, conforme disponibilidade. Antes de parcelar, peça um orçamento com consulta, exames, honorários, estrutura, anestesia, materiais e retornos.\n\n## Compare o tratamento completo\n\nConfirme avaliação, exames, materiais, profissionais, etapas, retornos e possíveis cobranças adicionais. Dois orçamentos com o mesmo nome podem ter escopos diferentes. Indicação e técnica pertencem ao profissional habilitado.\n\n## Compare a forma de pagamento\n\nSome entrada e parcelas. No cartão, observe o limite; no pagamento direto, confira o momento de início; no crédito, compare CET, prazo e total. Não faça depósito prévio para liberar crédito.\n\n## Checklist\n\n- escopo individual por escrito;\n- responsáveis e estrutura;\n- itens incluídos e excluídos;\n- entrada, prazo, parcela e total;\n- remarcação, alteração e cancelamento;\n- canal oficial de suporte.\n\n## Benavera\n\nA Benavera organiza o orçamento e permite consultar alternativas disponíveis, sem substituir a avaliação clínica.\n\n**Próximo passo:** [simule suas opções](/simular).\n\n## Perguntas frequentes\n\n### Pode ser parcelada?\n\nPode haver modalidades conforme o prestador.\n\n### Exames estão incluídos?\n\nNem sempre.\n\n### Plano pode cobrir?\n\nDepende do contrato e indicação.\n\n### A simulação define urgência?\n\nNão. Procure orientação médica.\n\n> Condições dependem da análise e da oferta. A Benavera não realiza diagnóstico nem indica tratamentos.",
+  "rentabilidade-por-tratamento-clinica": "## Resposta rápida\n\nRentabilidade por tratamento é o valor recebido menos todos os custos atribuíveis. Inclua materiais, laboratório, equipe variável, taxas, impostos, aquisição, financiamento, cancelamento e perda esperada.\n\n## Monte a conta\n\nParta da receita líquida, não do preço anunciado. Subtraia custos clínicos diretos, comissão, taxa de pagamento, desconto e inadimplência. Distribua custos fixos com um critério consistente.\n\n## Compare caixa e competência\n\nUma venda parcelada pode parecer lucrativa e pressionar caixa. Registre prazo de repasse e capital necessário antes do recebimento.\n\n## Use por decisão\n\nCompare tratamentos, canais e modalidades. Não corte serviços apenas por margem percentual: considere contribuição absoluta, capacidade e estratégia.\n\n## Benavera\n\nA Benavera conecta orçamento, condição e repasse para revelar margem real.\n\n**Próximo passo:** [conheça a solução](/para-clinicas).\n\n## Perguntas frequentes\n\n### Faturamento é lucro?\n\nNão. Custos e prazos mudam o resultado.\n\n### Taxa do cartão entra?\n\nSim, assim como antecipação quando usada.\n\n### CAC entra na conta?\n\nSim, ao avaliar rentabilidade por origem.\n\n### Qual margem é ideal?\n\nDepende da estrutura e estratégia da clínica.",
+  "documentos-pendentes-simulacao-clinica": "## Resposta rápida\n\nQuando faltam documentos, diga exatamente o que está pendente, por que é necessário, onde enviar e o que acontece depois. Evite cobrança genérica e não solicite arquivos sensíveis por canais improvisados.\n\n## Mensagem modelo\n\n“Olá, [nome]. Para concluir a etapa solicitada, ainda falta [documento]. O envio deve ser feito por [canal oficial]. Ele será usado para [finalidade]. Se tiver dúvida ou preferir não continuar, me avise.”\n\n## Cadência\n\nFaça um lembrete próximo e outro final, conforme consentimento. Pare diante de recusa. Nunca prometa aprovação após o envio.\n\n## Segurança\n\nRestrinja acesso, defina retenção e evite cópias em celulares e planilhas.\n\n## Benavera\n\nA Benavera registra a pendência e o próximo passo sem expor o conteúdo no funil.\n\n**Próximo passo:** [veja a solução](/para-clinicas).\n\n## Perguntas frequentes\n\n### Posso pedir por WhatsApp?\n\nPrefira o canal seguro definido pela operação.\n\n### Documento garante aprovação?\n\nNão.\n\n### Quantos lembretes?\n\nPoucos, contextuais e respeitando preferências.\n\n### Posso guardar indefinidamente?\n\nRetenção precisa de finalidade e regra.",
+  "sla-comercial-clinicas": "## Resposta rápida\n\nSLA comercial define quanto tempo cada etapa pode ficar sem ação. Crie prazos para primeira resposta, confirmação, orçamento, follow-up, documento pendente e divergência financeira.\n\n## Estrutura\n\nAssocie etapa, prazo, responsável, canal, horário de cobertura e escalonamento. Meça mediana e percentual dentro do SLA.\n\n## Evite metas cegas\n\nRapidez sem qualidade gera erro. Combine prazo com agendamento, comparecimento, conversão e reclamação.\n\n## Exemplo inicial\n\nDefina atendimento imediato dentro do possível, confirmação antes da consulta, orçamento após validação e pendências com retorno claro. Ajuste com dados reais, não promessas impossíveis.\n\n## Benavera\n\nA Benavera cria responsáveis, tarefas e alertas por etapa.\n\n**Próximo passo:** [conheça a Benavera](/para-clinicas).\n\n## Perguntas frequentes\n\n### SLA é meta de vendas?\n\nNão; é compromisso operacional.\n\n### Bot cumpre SLA?\n\nMeça resposta automática e humana separadamente.\n\n### Como começar?\n\nUse poucos prazos críticos e revise mensalmente.\n\n### Quem responde por atraso?\n\nO responsável definido para a etapa.",
+  "integracao-crm-agenda-pagamentos-clinica": "## Resposta rápida\n\nA integração deve compartilhar apenas os dados necessários e manter uma fonte oficial para paciente, agenda, orçamento e pagamento. Use identificadores únicos e estados verificáveis.\n\n## Mapa mínimo\n\nCRM guarda estágio e próxima ação; agenda guarda horário e presença; financeiro guarda autorização, liquidação e repasse; prontuário mantém informação clínica.\n\n## Eventos úteis\n\nAgendado, confirmado, compareceu, orçamento liberado, simulação iniciada, proposta aceita, pagamento confirmado e tratamento iniciado.\n\n## Evite\n\nCopiar prontuário para CRM, considerar comprovante como liquidação, criar pacientes duplicados e enviar dados sensíveis ao analytics.\n\n## Benavera\n\nA Benavera funciona como camada de conexão entre orçamento, simulação e acompanhamento.\n\n**Próximo passo:** [veja a solução](/para-clinicas).\n\n## Perguntas frequentes\n\n### Preciso trocar todos os sistemas?\n\nNão necessariamente; integrações podem preservar ferramentas existentes.\n\n### Qual sistema é a fonte do pagamento?\n\nO responsável pela liquidação e repasse.\n\n### Posso sincronizar dados clínicos?\n\nSomente quando necessário e com controles adequados.\n\n### Como evitar duplicados?\n\nUse identificadores e regras de reconciliação."
 };
