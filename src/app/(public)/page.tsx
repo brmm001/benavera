@@ -1,71 +1,91 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, ChevronDown, Building2, Users, CreditCard, TrendingUp, User } from 'lucide-react';
+import {
+  ArrowRight, CheckCircle2, ShieldCheck, Zap, TrendingUp, DollarSign,
+  Users, Building2, CreditCard, ChevronRight, Clock, Star, Phone, FileText
+} from 'lucide-react';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 import { ArticleCard } from '@/components/ArticleCard';
 import { articles } from '@/content/articles';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Benavera | Infraestrutura financeira para clínicas e pacientes',
+    absolute: 'Benavera | Plataforma Clinic-First de Financiamento & CRM para Clínicas',
   },
   description:
-    'A Benavera conecta clínicas a soluções de financiamento para pacientes, aumentando conversão de orçamentos. Para pacientes: simulação gratuita de parcelamento de tratamentos particulares.',
+    'Aumente a conversão de orçamentos particulares da sua clínica com parcelamento em até 36x, repasse em D+1 sem risco de inadimplência e CRM completo. Para pacientes: simule seu tratamento.',
   alternates: { canonical: 'https://www.benavera.com.br' },
 };
 
-const faqItems = [
+const clinicStats = [
+  { value: '+40%', label: 'Aumento na conversão de orçamentos de alto valor' },
+  { value: 'D+1', label: 'Repasse integral na conta da clínica' },
+  { value: 'Até 36x', label: 'Parcelas que cabem no bolso do paciente' },
+  { value: '0 Risco', label: 'Inadimplência 100% assumida pelo parceiro financeiro' },
+];
+
+const howItWorksClinic = [
   {
-    question: 'O que é a Benavera?',
-    answer:
-      'A Benavera é uma plataforma B2B2C que conecta clínicas a soluções financeiras para pacientes. Para clínicas, oferece proposta digital, CRM e gestão de crédito. Para pacientes, conecta a opções viáveis de parcelamento para tratamentos particulares.',
+    step: '01',
+    title: 'Gere a proposta no balcão em 1 minuto',
+    desc: 'Durante ou após a consulta, sua equipe insere o valor do tratamento no Portal Benavera e gera opções personalizadas de parcelamento.',
   },
   {
-    question: 'A Benavera é para clínicas ou para pacientes?',
-    answer:
-      'Para ambos. Para clínicas: aumenta a taxa de conversão de orçamentos, oferece proposta digital e acompanha o paciente até o fechamento. Para pacientes: conecta a alternativas de parcelamento compatíveis com seu orçamento.',
+    step: '02',
+    title: 'Envie o link direto no WhatsApp do paciente',
+    desc: 'O paciente abre a proposta no próprio smartphone, visualiza o valor planejado e escolhe o número de parcelas ideal (6x a 36x).',
   },
   {
-    question: 'A simulação garante que vou conseguir crédito?',
-    answer:
-      'Não. A simulação serve para você entender o que precisaria e consultar se existem opções compatíveis. Qualquer concessão de crédito depende da análise e dos critérios do parceiro financeiro responsável.',
+    step: '03',
+    title: 'Aprovação de crédito e aceite digital',
+    desc: 'Análise ágil com validação simplificada. O paciente assina digitalmente sem burocracia nem papéis.',
   },
   {
-    question: 'Preciso já ter escolhido uma clínica?',
-    answer:
-      'Não. Você pode simular mesmo antes de ter um orçamento fechado. Se já tiver o orçamento em mãos, informe o valor para ter uma simulação mais precisa.',
-  },
-  {
-    question: 'A simulação tem algum custo?',
-    answer: 'Não. A simulação inicial é totalmente gratuita para o paciente.',
-  },
-  {
-    question: 'Posso desistir depois de simular?',
-    answer:
-      'Sim. Fazer a simulação não gera nenhuma obrigação de contratação. Você avalia as condições com total liberdade antes de qualquer decisão.',
-  },
-  {
-    question: 'Quanto custa para a clínica usar a Benavera?',
-    answer:
-      'Estamos em fase de expansão com clínicas parceiras. Entre em contato pelo formulário de credenciamento para conhecer as condições disponíveis nesta fase.',
+    step: '04',
+    title: 'Repasse D+1 e início do tratamento',
+    desc: 'Sua clínica recebe o valor líquido diretamente via Pix/TED no dia útil seguinte e inicia o procedimento com total segurança.',
   },
 ];
 
-const clinicBenefits = [
+const treatments = [
+  { label: 'Odontologia & Implantes', href: '/parcelamento-tratamento-odontologico', icon: '🦷' },
+  { label: 'Cirurgias Particulares', href: '/parcelamento-cirurgia-particular', icon: '🏥' },
+  { label: 'Implantes & Próteses Dentárias', href: '/financiamento-implante-dentario', icon: '✨' },
+  { label: 'Cirurgias Oftalmológicas & Lentes', href: '/parcelamento-cirurgia-oftalmologica', icon: '👁️' },
+  { label: 'Procedimentos Estéticos & Plástica', href: '/parcelamento-procedimento-estetico', icon: '💎' },
+  { label: 'Outros Tratamentos Médicos', href: '/simular', icon: '🩺' },
+];
+
+const faqItems = [
   {
-    icon: TrendingUp,
-    title: 'Mais orçamentos viram tratamentos',
-    desc: 'Ofereça condições de parcelamento que o paciente consegue pagar. Reduza a perda por restrições financeiras.',
+    question: 'Como a Benavera ajuda minha clínica a faturar mais?',
+    answer:
+      'A maior causa de perda de orçamentos em clínicas privadas é a falta de limite no cartão ou a impossibilidade de pagar à vista. A Benavera oferece parcelamento facilitado em até 36x via boleto/crédito direto, permitindo que pacientes que não fechariam aprovem o tratamento imediatamente.',
   },
   {
-    icon: CreditCard,
-    title: 'Proposta digital em minutos',
-    desc: 'Crie e envie propostas por WhatsApp ou link. O paciente recebe, analisa e avança sem sair de casa.',
+    question: 'A clínica assume risco de inadimplência caso o paciente atrase?',
+    answer:
+      'Não. O risco de crédito é 100% absorvido pelo parceiro financeiro. A clínica recebe o repasse integral (descontada a taxa de intermediação) em D+1 após a aprovação.',
   },
   {
-    icon: Users,
-    title: 'CRM e acompanhamento',
-    desc: 'Acompanhe cada paciente desde o orçamento até o repasse. Sem planilha, sem papel.',
+    question: 'Como a clínica acessa o sistema e envia propostas?',
+    answer:
+      'Após o credenciamento gratuito, a clínica tem acesso ao Portal Benavera, onde pode gerar propostas instantâneas, acompanhar o status no CRM Kanban, verificar repasses e gerenciar pacientes.',
+  },
+  {
+    question: 'Quanto custa para a clínica se credenciar?',
+    answer:
+      'Nesta fase de expansão com clínicas parceiras, não cobramos taxa de adesão, mensalidade ou custo de implantação. A clínica só paga a taxa percentual sobre os tratamentos efetivamente aprovados e liquidados.',
+  },
+  {
+    question: 'Como funciona para o paciente que quer parcelar?',
+    answer:
+      'O paciente pode receber uma proposta diretamente de uma clínica parceira credenciada ou simular seu tratamento em nosso site para ser encaminhado a uma clínica da nossa rede.',
+  },
+  {
+    question: 'A simulação do paciente é gratuita e sem compromisso?',
+    answer:
+      'Sim, a simulação é 100% gratuita. O paciente avalia os prazos e condições com total transparência antes de qualquer confirmação.',
   },
 ];
 
@@ -82,16 +102,7 @@ const faqSchema = {
   })),
 };
 
-const treatments = [
-  { label: 'Odontologia', href: '/parcelamento-tratamento-odontologico' },
-  { label: 'Implantes e próteses', href: '/financiamento-implante-dentario' },
-  { label: 'Cirurgias particulares', href: '/parcelamento-cirurgia-particular' },
-  { label: 'Oftalmologia', href: '/parcelamento-cirurgia-oftalmologica' },
-  { label: 'Estética', href: '/parcelamento-procedimento-estetico' },
-  { label: 'Outros tratamentos', href: '/simular' },
-];
-
-export default function HomePage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+export default function HomePage() {
   const featuredArticles = articles.slice(0, 3);
 
   return (
@@ -101,779 +112,536 @@ export default function HomePage({ searchParams }: { searchParams: Promise<{ vie
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      {/* ===== HERO B2C (padrao SEO, H1 canonico) ===== */}
+      {/* =========================================================================
+          HERO PRINCIPAL B2B — CLINIC-FIRST
+      ========================================================================= */}
       <section
-        className="hero-section"
         style={{
-          paddingTop: '8rem',
-          paddingBottom: '5rem',
-          background: '#fafafa',
-          borderBottom: '1px solid #e2e8f0',
-          overflow: 'hidden',
+          paddingTop: '7.5rem',
+          paddingBottom: '5.5rem',
+          background: 'linear-gradient(180deg, #090d16 0%, #0f172a 100%)',
+          color: 'white',
           position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div className="container-benavera">
-          <div className="grid-lg-2" style={{ alignItems: 'center' }}>
-            {/* Left: Copy */}
+        {/* Glow de fundo */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-20%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '800px',
+            height: '400px',
+            background: 'radial-gradient(circle, rgba(99,112,241,0.18) 0%, rgba(15,23,42,0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div className="container-benavera" style={{ position: 'relative', zIndex: 2 }}>
+          <div className="grid-lg-2" style={{ alignItems: 'center', gap: '3.5rem' }}>
+            {/* Coluna da Esquerda: Proposta de Valor B2B */}
             <div>
-              <span
-                className="section-label"
+              <div
                 style={{
-                  color: '#3730a3',
-                  marginBottom: '0.875rem',
-                  display: 'inline-block',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.375rem 0.875rem',
+                  background: 'rgba(99,112,241,0.15)',
+                  border: '1px solid rgba(99,112,241,0.3)',
+                  borderRadius: '20px',
+                  fontSize: '0.8125rem',
                   fontWeight: '700',
+                  color: '#a5b4fc',
+                  marginBottom: '1.25rem',
                 }}
               >
-                Alternativas de pagamento para tratamentos particulares
-              </span>
+                <Zap size={14} color="#818cf8" />
+                Infraestrutura Financeira & CRM para Clínicas
+              </div>
 
               <h1
                 style={{
-                  fontSize: 'clamp(2.125rem, 5vw, 3.375rem)',
-                  fontWeight: '800',
-                  lineHeight: '1.12',
-                  color: '#0f172a',
+                  fontSize: 'clamp(2.25rem, 4.8vw, 3.5rem)',
+                  fontWeight: '900',
+                  lineHeight: '1.1',
                   letterSpacing: '-0.035em',
+                  color: 'white',
                   marginBottom: '1.25rem',
-                  maxWidth: '540px',
                 }}
               >
-                Recebeu um orçamento e a parcela ficou pesada?
+                A infraestrutura financeira que faz sua clínica{' '}
+                <span
+                  style={{
+                    background: 'linear-gradient(135deg, #818cf8 0%, #34d399 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  aprovar mais orçamentos.
+                </span>
               </h1>
 
               <p
                 style={{
-                  fontSize: 'clamp(1.0625rem, 2vw, 1.1875rem)',
-                  color: '#334155',
-                  lineHeight: '1.65',
-                  marginBottom: '0.75rem',
-                  maxWidth: '500px',
-                  fontWeight: '600',
-                }}
-              >
-                Seu tratamento pode caber nos seus planos.
-              </p>
-
-              <p
-                style={{
-                  fontSize: 'clamp(0.9375rem, 1.8vw, 1.0625rem)',
-                  color: '#64748b',
+                  fontSize: 'clamp(1rem, 2vw, 1.1875rem)',
+                  color: '#94a3b8',
                   lineHeight: '1.7',
                   marginBottom: '2.25rem',
-                  maxWidth: '480px',
+                  maxWidth: '540px',
                 }}
               >
-                Informe o valor do procedimento, quanto tem de entrada e quanto consegue pagar por mês.
-                A Benavera busca alternativas compatíveis com seu orçamento.
+                Ofereça parcelamento em <strong>até 36x</strong> para seus pacientes sem comprometer o limite do cartão, receba o repasse <strong>integral em D+1</strong> sem risco de inadimplência e gerencie todo o funil em um portal moderno com CRM.
               </p>
 
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '0.875rem',
-                  marginBottom: '2.25rem',
-                }}
-              >
+              {/* Botões de Ação B2B */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
                 <Link
-                  href="/simular"
-                  id="hero-cta-patient"
+                  href="/credenciamento"
+                  id="hero-credenciar-btn"
                   className="btn-primary"
-                  style={{ fontSize: '1rem', padding: '0.9375rem 1.875rem' }}
+                  style={{
+                    background: '#4f46e5',
+                    fontSize: '1rem',
+                    padding: '0.9375rem 1.875rem',
+                    gap: '0.5rem',
+                  }}
                 >
-                  Simular meu tratamento
+                  Credenciar clínica online
                   <ArrowRight size={17} />
                 </Link>
-                <Link href="/como-funciona" id="hero-cta-secondary" className="btn-ghost">
-                  Como funciona
+
+                <Link
+                  href="/portal/login"
+                  id="hero-portal-btn"
+                  className="btn-ghost"
+                  style={{
+                    borderColor: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    fontSize: '0.9375rem',
+                    padding: '0.9375rem 1.5rem',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <Building2 size={16} />
+                  Acessar Portal da Clínica
                 </Link>
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              {/* Trust Badges */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center' }}>
                 {[
-                  'Simulação gratuita',
-                  'Você decide antes de contratar',
+                  'Sem mensalidade fixa',
+                  'Repasse garantido em D+1',
+                  'Zero risco de crédito',
                 ].map((item) => (
                   <span
                     key={item}
                     style={{
                       fontSize: '0.8125rem',
-                      color: '#64748b',
+                      color: '#cbd5e1',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.375rem',
                     }}
                   >
-                    <span
-                      style={{
-                        width: '5px',
-                        height: '5px',
-                        borderRadius: '50%',
-                        background: '#309e92',
-                        flexShrink: 0,
-                        display: 'inline-block',
-                      }}
-                    />
+                    <CheckCircle2 size={15} color="#10b981" />
                     {item}
                   </span>
                 ))}
               </div>
 
-              {/* Link B2B discreto — sem competir com H1 B2C */}
-              <Link
-                href="/clinicas"
-                id="hero-clinic-link"
-                className="link-muted"
-                style={{ fontSize: '0.8125rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}
-              >
-                <Building2 size={13} />
-                Tem uma clínica? Conheça a Benavera para clínicas
-                <ArrowRight size={13} />
-              </Link>
+              {/* Link de alternância para paciente */}
+              <div style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                <a
+                  href="#pacientes"
+                  id="hero-anchor-patient"
+                  style={{
+                    fontSize: '0.875rem',
+                    color: '#94a3b8',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.375rem',
+                    transition: 'color 0.15s',
+                  }}
+                >
+                  É paciente e quer parcelar um tratamento? <span style={{ color: '#818cf8', fontWeight: '600' }}>Simule seu parcelamento aqui ↓</span>
+                </a>
+              </div>
             </div>
 
-            {/* Right: Simulation example card */}
+            {/* Coluna da Direita: Mockup Visual do Portal Benavera */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <div
                 style={{
-                  background: 'white',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '16px',
-                  padding: '2rem',
-                  boxShadow: '0 8px 40px rgba(0,0,0,0.07)',
+                  background: 'rgba(30, 41, 59, 0.7)',
+                  backdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '20px',
+                  padding: '1.75rem',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                   width: '100%',
-                  maxWidth: '380px',
+                  maxWidth: '440px',
                 }}
               >
-                <span className="section-label" style={{ marginBottom: '1.5rem', display: 'block' }}>
-                  Exemplo de simulação
-                </span>
-
-                <div className="narrative-block">
-                  <div className="narrative-row">
-                    <span className="narrative-row-label">Tratamento</span>
-                    <span className="narrative-row-value">R$ 12.000</span>
+                {/* Topbar do Mockup */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.875rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
+                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '0.5rem', fontWeight: '600' }}>
+                      Portal Benavera • Visão Clínica
+                    </span>
                   </div>
-                  <div className="narrative-row">
-                    <span className="narrative-row-label">Entrada disponível</span>
-                    <span className="narrative-row-value">R$ 2.000</span>
-                  </div>
-                  <div className="narrative-row">
-                    <span className="narrative-row-label">Valor a financiar</span>
-                    <span className="narrative-row-value">R$ 10.000</span>
-                  </div>
-                  <div
-                    className="narrative-row"
-                    style={{ borderBottom: 'none', paddingBottom: '0.25rem' }}
-                  >
-                    <span className="narrative-row-label">Quer pagar até</span>
-                    <span className="narrative-row-value highlight">R$ 500/mês</span>
-                  </div>
+                  <span style={{ fontSize: '0.6875rem', color: '#34d399', background: 'rgba(52,211,153,0.15)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontWeight: '700' }}>
+                    D+1 Ativo
+                  </span>
                 </div>
 
-                <Link
-                  href="/simular"
-                  id="hero-card-cta"
-                  className="btn-primary"
-                  style={{ width: '100%', justifyContent: 'center', marginTop: '1.75rem' }}
-                >
-                  Ver alternativas
-                  <ArrowRight size={16} />
-                </Link>
+                {/* Card de Proposta Aprovada */}
+                <div style={{ background: 'rgba(15, 23, 42, 0.8)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '1.25rem', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.6875rem', color: '#818cf8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Última Proposta Aceita
+                      </span>
+                      <div style={{ fontSize: '1rem', fontWeight: '700', color: 'white', marginTop: '0.125rem' }}>
+                        Implante Protocolo Superior
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Paciente: Mariana Silva S.</div>
+                    </div>
+                    <span style={{ background: '#065f46', color: '#6ee7b7', fontSize: '0.6875rem', fontWeight: '700', padding: '0.25rem 0.625rem', borderRadius: '20px' }}>
+                      ✓ Aprovado
+                    </span>
+                  </div>
 
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#94a3b8',
-                    textAlign: 'center',
-                    marginTop: '1rem',
-                    lineHeight: '1.5',
-                  }}
-                >
-                  Simulação inicial. Condições reais dependem da análise.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== PARA CLINICAS — Nova secao B2B ===== */}
-      <section
-        style={{
-          padding: '5rem 0',
-          background: '#0f172a',
-          borderTop: '1px solid #1e293b',
-        }}
-      >
-        <div className="container-benavera">
-          <div className="grid-lg-2" style={{ alignItems: 'center', gap: '4rem' }}>
-            <div>
-              <span className="section-label" style={{ color: '#8195f8' }}>Para clínicas de saúde e odontologia</span>
-              <h2
-                style={{
-                  fontSize: 'clamp(1.75rem, 4vw, 2.625rem)',
-                  fontWeight: '800',
-                  lineHeight: '1.15',
-                  letterSpacing: '-0.025em',
-                  color: 'white',
-                  margin: '0 0 1.25rem',
-                }}
-              >
-                Mais tratamentos aprovados. Mais receita para sua clínica.
-              </h2>
-              <p style={{ fontSize: '1.0625rem', color: '#94a3b8', lineHeight: '1.75', margin: '0 0 2rem' }}>
-                Ofereça novas formas de pagamento, acompanhe seus pacientes e transforme mais orçamentos em tratamentos realizados com a Benavera.
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem' }}>
-                <Link
-                  href="/clinicas"
-                  id="b2b-hero-cta"
-                  className="btn-primary"
-                  style={{ gap: '0.5rem' }}
-                >
-                  <Building2 size={16} />
-                  Credenciar minha clínica
-                </Link>
-                <Link href="/solucoes-financeiras-para-clinicas" id="b2b-hero-secondary" className="btn-ghost" style={{ color: '#94a3b8', borderColor: 'rgba(255,255,255,0.15)' }}>
-                  Saber mais
-                </Link>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr',
-                gap: '1rem',
-              }}
-            >
-              {clinicBenefits.map((b) => {
-                const Icon = b.icon;
-                return (
-                  <div
-                    key={b.title}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '1rem',
-                      padding: '1.125rem',
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.07)',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '10px',
-                        background: 'rgba(99,112,241,0.2)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#8195f8',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Icon size={18} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div>
+                      <div style={{ fontSize: '0.6875rem', color: '#94a3b8' }}>Condição Escolhida:</div>
+                      <div style={{ fontSize: '0.9375rem', fontWeight: '800', color: 'white' }}>24x R$ 560,00</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.9375rem', fontWeight: '700', color: 'white', marginBottom: '0.25rem' }}>{b.title}</div>
-                      <div style={{ fontSize: '0.875rem', color: '#94a3b8', lineHeight: '1.6' }}>{b.desc}</div>
+                      <div style={{ fontSize: '0.6875rem', color: '#94a3b8' }}>Repasse Líquido D+1:</div>
+                      <div style={{ fontSize: '0.9375rem', fontWeight: '800', color: '#34d399' }}>R$ 11.400,00</div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
+                </div>
 
-      {/* ===== QUAL TRATAMENTO ===== */}
-      <section style={{ padding: '5rem 0', background: 'white' }}>
-        <div className="container-benavera">
-          <div style={{ maxWidth: '680px', marginBottom: '2.5rem' }}>
-            <span className="section-label">Tratamentos cobertos</span>
-            <h2
-              style={{
-                fontSize: 'clamp(1.5rem, 3vw, 2.125rem)',
-                fontWeight: '800',
-                color: '#0f172a',
-                letterSpacing: '-0.025em',
-                lineHeight: '1.25',
-                margin: '0 0 1rem',
-              }}
-            >
-              Qual tratamento você está buscando?
-            </h2>
-            <p style={{ fontSize: '1rem', color: '#64748b', lineHeight: '1.7', margin: 0 }}>
-              A Benavera atende diferentes tipos de procedimentos particulares. Veja se o seu está aqui.
-            </p>
-          </div>
+                {/* Micro Funil CRM */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#cbd5e1' }}>
+                    <span>Propostas no mês</span>
+                    <strong style={{ color: 'white' }}>R$ 184.000 / 22 pacientes</strong>
+                  </div>
+                  <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ width: '74%', height: '100%', background: 'linear-gradient(90deg, #4f46e5, #34d399)' }} />
+                  </div>
+                </div>
 
-          <ul className="treatment-list" aria-label="Categorias de tratamento">
-            {treatments.map((t) => (
-              <li key={t.href}>
                 <Link
-                  href={t.href}
-                  id={`treatment-${t.label.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                >
-                  {t.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          <div style={{ marginTop: '2.5rem' }}>
-            <Link
-              href="/simular"
-              id="treatments-cta"
-              className="btn-secondary"
-              style={{ display: 'inline-flex' }}
-            >
-              Meu tratamento não está listado
-              <ArrowRight size={15} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== SITUAÇÃO REAL ===== */}
-      <section
-        style={{
-          padding: '5rem 0',
-          background: '#f8fafc',
-          borderTop: '1px solid #e2e8f0',
-        }}
-      >
-        <div className="container-benavera">
-          <div className="grid-lg-2" style={{ alignItems: 'center', gap: '4rem' }}>
-            {/* Left: Narrative numbers */}
-            <div>
-              <span className="section-label">Como funciona na prática</span>
-              <h2
-                style={{
-                  fontSize: 'clamp(1.625rem, 3.5vw, 2.375rem)',
-                  fontWeight: '800',
-                  color: '#0f172a',
-                  letterSpacing: '-0.025em',
-                  lineHeight: '1.2',
-                  margin: '0 0 1.25rem',
-                }}
-              >
-                Você tem o orçamento.
-                <br />
-                Agora precisa descobrir como pagar.
-              </h2>
-              <p
-                style={{
-                  fontSize: '1rem',
-                  color: '#64748b',
-                  lineHeight: '1.75',
-                  margin: '0 0 2.5rem',
-                }}
-              >
-                A Benavera organiza essas informações e verifica se existem alternativas de
-                pagamento compatíveis com o que você pode pagar por mês.
-              </p>
-              <Link href="/simular" id="scenario-cta" className="btn-primary">
-                Simular com meu orçamento
-                <ArrowRight size={16} />
-              </Link>
-            </div>
-
-            {/* Right: Narrative data block */}
-            <div
-              style={{
-                background: 'white',
-                border: '1px solid #e2e8f0',
-                borderRadius: '16px',
-                padding: '2rem 2.25rem',
-              }}
-            >
-              <div className="narrative-block">
-                <div className="narrative-row">
-                  <span className="narrative-row-label">Tratamento odontológico</span>
-                  <span className="narrative-row-value">R$ 15.000</span>
-                </div>
-                <div className="narrative-row">
-                  <span className="narrative-row-label">Entrada disponível</span>
-                  <span className="narrative-row-value">R$ 3.000</span>
-                </div>
-                <div className="narrative-row">
-                  <span className="narrative-row-label">Quer pagar até</span>
-                  <span className="narrative-row-value highlight">R$ 600/mês</span>
-                </div>
-              </div>
-              <div
-                style={{
-                  marginTop: '1.75rem',
-                  padding: '1rem 1.25rem',
-                  background: '#f0f4ff',
-                  borderRadius: '10px',
-                  fontSize: '0.9375rem',
-                  color: '#2f3181',
-                  lineHeight: '1.6',
-                }}
-              >
-                A Benavera usa essas informações para verificar quais caminhos existem e apresentar os
-                que fizerem sentido para você.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== COMO FUNCIONA ===== */}
-      <section style={{ padding: '5rem 0', background: 'white', borderTop: '1px solid #e2e8f0' }}>
-        <div className="container-benavera">
-          <div style={{ marginBottom: '3.5rem' }}>
-            <span className="section-label">Passo a passo</span>
-            <h2
-              style={{
-                fontSize: 'clamp(1.625rem, 3.5vw, 2.25rem)',
-                fontWeight: '800',
-                color: '#0f172a',
-                letterSpacing: '-0.025em',
-                lineHeight: '1.25',
-                margin: '0',
-                maxWidth: '480px',
-              }}
-            >
-              Três passos. Sem burocracia.
-            </h2>
-          </div>
-
-          <div className="steps-inline">
-            {[
-              {
-                n: '01',
-                title: 'Informe o tratamento e o valor',
-                desc: 'Escolha o tipo de procedimento e diga quanto custa, ou faça uma estimativa.',
-              },
-              {
-                n: '02',
-                title: 'Diga quanto consegue pagar',
-                desc: 'Informe a entrada disponível e o valor máximo de parcela mensal.',
-              },
-              {
-                n: '03',
-                title: 'Veja as alternativas disponíveis',
-                desc: 'A Benavera mostra os caminhos compatíveis. Você decide se quer avançar.',
-              },
-            ].map((item) => (
-              <div key={item.n} className="step-inline-item">
-                <span className="step-inline-number">{item.n}</span>
-                <h3 className="step-inline-title">{item.title}</h3>
-                <p className="step-inline-desc">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ marginTop: '3.5rem' }}>
-            <Link href="/simular" id="steps-cta" className="btn-primary">
-              Começar agora
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== POR QUE A BENAVERA ===== */}
-      <section
-        style={{
-          padding: '5.5rem 0',
-          background: '#0f172a',
-          color: 'white',
-          borderTop: '1px solid #1e293b',
-        }}
-      >
-        <div className="container-benavera">
-          <div style={{ maxWidth: '680px' }}>
-            <span className="section-label" style={{ color: '#8195f8' }}>
-              Por que a Benavera existe
-            </span>
-
-            <h2
-              style={{
-                fontSize: 'clamp(1.75rem, 4vw, 2.75rem)',
-                fontWeight: '800',
-                lineHeight: '1.2',
-                letterSpacing: '-0.025em',
-                margin: '0 0 2rem',
-                color: 'white',
-              }}
-            >
-              O tratamento certo não deveria parar na hora de pagar.
-            </h2>
-
-            <p
-              style={{
-                fontSize: 'clamp(1rem, 2vw, 1.125rem)',
-                color: '#94a3b8',
-                lineHeight: '1.8',
-                margin: '0 0 1.5rem',
-              }}
-            >
-              Muitas pessoas chegam à etapa do orçamento, querem fazer o tratamento, mas percebem
-              que o parcelamento disponível na clínica não cabe no seu bolso. A venda à vista está
-              fora de cogitação. O plano de saúde não cobre.
-            </p>
-
-            <p
-              style={{
-                fontSize: 'clamp(1rem, 2vw, 1.125rem)',
-                color: '#94a3b8',
-                lineHeight: '1.8',
-                margin: '0 0 2.5rem',
-              }}
-            >
-              A Benavera foi criada para esse momento. Não prometemos aprovação, não garantimos
-              taxas. Mas organizamos a sua situação e verificamos se existem alternativas que façam
-              sentido para o seu orçamento.
-            </p>
-
-            <div
-              style={{
-                padding: '1.25rem 1.5rem',
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '12px',
-                fontSize: '0.9375rem',
-                color: '#cbd5e1',
-                lineHeight: '1.65',
-              }}
-            >
-              A simulação não tem custo e não gera compromisso. Você vê as condições antes de
-              qualquer decisão.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== CONTEÚDOS ===== */}
-      <section
-        style={{ padding: '5rem 0', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}
-      >
-        <div className="container-benavera">
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '1rem',
-              justifyContent: 'space-between',
-              alignItems: 'flex-end',
-              marginBottom: '2.5rem',
-            }}
-          >
-            <div>
-              <span className="section-label">Conteúdos</span>
-              <h2
-                style={{
-                  fontSize: 'clamp(1.5rem, 3vw, 2rem)',
-                  fontWeight: '800',
-                  color: '#0f172a',
-                  letterSpacing: '-0.025em',
-                  margin: 0,
-                }}
-              >
-                Entenda antes de decidir.
-              </h2>
-            </div>
-            <Link
-              href="/conteudos"
-              style={{
-                fontSize: '0.9375rem',
-                fontWeight: '600',
-                color: '#4040ca',
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.375rem',
-                flexShrink: 0,
-              }}
-            >
-              Ver todos <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '1.5rem',
-            }}
-          >
-            {featuredArticles.map((article) => (
-              <ArticleCard key={article.slug} {...article} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== FAQ ===== */}
-      <section style={{ padding: '5rem 0', background: 'white', borderTop: '1px solid #e2e8f0' }}>
-        <div className="container-benavera">
-          <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-            <div style={{ marginBottom: '3rem' }}>
-              <span className="section-label">Perguntas frequentes</span>
-              <h2
-                style={{
-                  fontSize: 'clamp(1.5rem, 3vw, 2rem)',
-                  fontWeight: '800',
-                  color: '#0f172a',
-                  letterSpacing: '-0.025em',
-                  margin: 0,
-                }}
-              >
-                Dúvidas comuns
-              </h2>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-              {faqItems.map((item) => (
-                <details
-                  key={item.question}
+                  href="/credenciamento"
                   style={{
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                    background: 'white',
-                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.375rem',
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    color: 'white',
+                    padding: '0.75rem',
+                    borderRadius: '10px',
+                    fontSize: '0.8125rem',
+                    fontWeight: '700',
+                    textDecoration: 'none',
+                    transition: 'all 0.15s',
                   }}
                 >
-                  <summary
-                    style={{
-                      padding: '1.125rem 1.375rem',
-                      fontWeight: '600',
-                      fontSize: '0.9375rem',
-                      color: '#0f172a',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      listStyle: 'none',
-                      userSelect: 'none',
-                      gap: '1rem',
-                    }}
-                  >
-                    {item.question}
-                    <ChevronDown size={17} style={{ flexShrink: 0, color: '#94a3b8' }} />
-                  </summary>
-                  <div
-                    style={{
-                      padding: '0 1.375rem 1.125rem',
-                      fontSize: '0.9375rem',
-                      color: '#475569',
-                      lineHeight: '1.75',
-                      borderTop: '1px solid #f1f5f9',
-                      paddingTop: '1rem',
-                    }}
-                  >
-                    {item.answer}
-                  </div>
-                </details>
-              ))}
+                  Simular ganho de faturamento da minha clínica →
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== CTA FINAL ===== */}
-      <section
-        style={{
-          padding: '5rem 0',
-          background: 'white',
-          borderTop: '1px solid #e2e8f0',
-        }}
-      >
+      {/* =========================================================================
+          BARRA DE IMPACTO E MÉTRICAS B2B
+      ========================================================================= */}
+      <section style={{ background: '#0b1120', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '2.5rem 0' }}>
         <div className="container-benavera">
-          <div className="grid-lg-2" style={{ gap: '3rem', alignItems: 'flex-start' }}>
-            {/* Paciente */}
-            <div>
-              <h2
-                style={{
-                  fontSize: 'clamp(1.625rem, 3.5vw, 2.25rem)',
-                  fontWeight: '800',
-                  lineHeight: '1.2',
-                  letterSpacing: '-0.025em',
-                  color: '#0f172a',
-                  margin: '0 0 1rem',
-                }}
-              >
-                Já sabe quanto custa seu tratamento?
-              </h2>
-              <p
-                style={{
-                  fontSize: '1.0625rem',
-                  color: '#64748b',
-                  lineHeight: '1.7',
-                  margin: '0 0 2rem',
-                }}
-              >
-                Informe o valor e descubra quanto ficaria por mês.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
-                <Link
-                  href="/simular"
-                  id="footer-cta-patient"
-                  className="btn-primary"
-                  style={{ fontSize: '1rem', padding: '0.9375rem 1.875rem' }}
-                >
-                  Simular agora
-                  <ArrowRight size={17} />
-                </Link>
-                <FinancialDisclaimer compact />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
+            {clinicStats.map((st) => (
+              <div key={st.label} style={{ textAlign: 'center', padding: '0.5rem' }}>
+                <div style={{ fontSize: '2.25rem', fontWeight: '900', color: '#818cf8', letterSpacing: '-0.03em', marginBottom: '0.25rem' }}>
+                  {st.value}
+                </div>
+                <div style={{ fontSize: '0.875rem', color: '#94a3b8', lineHeight: '1.5' }}>
+                  {st.label}
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          COMO FUNCIONA PARA A CLÍNICA
+      ========================================================================= */}
+      <section style={{ padding: '5.5rem 0', background: 'white' }}>
+        <div className="container-benavera">
+          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 3.5rem' }}>
+            <span className="section-label">Jornada Clinic-First</span>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.025em', margin: '0.5rem 0 1rem' }}>
+              Como a Benavera funciona na rotina da sua clínica
+            </h2>
+            <p style={{ fontSize: '1.0625rem', color: '#64748b', lineHeight: '1.7', margin: 0 }}>
+              Sem maquininhas extras, sem fricção e sem burocracia. Uma experiência 100% digital integrada ao seu atendimento.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+            {howItWorksClinic.map((item) => (
+              <div
+                key={item.step}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '2rem 1.5rem',
+                  position: 'relative',
+                }}
+              >
+                <div style={{ fontSize: '1.75rem', fontWeight: '900', color: '#4f46e5', marginBottom: '1rem', opacity: 0.85 }}>
+                  {item.step}
+                </div>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.625rem', lineHeight: '1.35' }}>
+                  {item.title}
+                </h3>
+                <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.65', margin: 0 }}>
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <Link href="/credenciamento" className="btn-primary" style={{ padding: '0.875rem 2rem', fontSize: '1rem' }}>
+              Credenciar minha clínica agora
+              <ArrowRight size={17} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          COMPARATIVO: SUA CLÍNICA SEM VS COM BENAVERA
+      ========================================================================= */}
+      <section style={{ padding: '5rem 0', background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="container-benavera">
+          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 3rem' }}>
+            <span className="section-label">Vantagem Competitiva</span>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.375rem)', fontWeight: '800', color: '#0f172a', margin: '0.5rem 0 0.75rem' }}>
+              O impacto direto no fechamento de orçamentos
+            </h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', maxWidth: '900px', margin: '0 auto' }}>
+            {/* Sem Benavera */}
+            <div style={{ background: 'white', border: '1px solid #fecaca', borderRadius: '16px', padding: '2rem', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+              <div style={{ fontSize: '1.125rem', fontWeight: '800', color: '#b91c1c', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>✕</span> Sem a Benavera
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.875rem', color: '#475569' }}>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold' }}>•</span>
+                  Paciente desiste por falta de limite no cartão de crédito.
+                </li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold' }}>•</span>
+                  Clínica é forçada a dar desconto excessivo à vista para fechar.
+                </li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold' }}>•</span>
+                  Carnê próprio gera risco alto de inadimplência e cobrança desgastante.
+                </li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold' }}>•</span>
+                  Orçamentos ficam esquecidos no WhatsApp sem acompanhamento.
+                </li>
+              </ul>
             </div>
 
-            {/* Clínica */}
-            <div
+            {/* Com Benavera */}
+            <div style={{ background: 'white', border: '2px solid #4f46e5', borderRadius: '16px', padding: '2rem', boxShadow: '0 10px 25px -5px rgba(79,70,229,0.1)' }}>
+              <div style={{ fontSize: '1.125rem', fontWeight: '800', color: '#4f46e5', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>✓</span> Com a Benavera
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.875rem', color: '#1e293b' }}>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span>Parcelamento em até 36x que viabiliza tratamentos de alto valor.</span>
+                </li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span>Repasse integral D+1 na conta da clínica, mantendo o fluxo de caixa saudável.</span>
+                </li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span>Zero risco de inadimplência para a clínica.</span>
+                </li>
+                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span>Portal com CRM Kanban para nunca mais perder um orçamento enviado.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SEÇÃO B2C: PARA PACIENTES (ÂNCORA #PACIENTES)
+      ========================================================================= */}
+      <section id="pacientes" style={{ padding: '5.5rem 0', background: 'white' }}>
+        <div className="container-benavera">
+          <div style={{ maxWidth: '720px', margin: '0 auto 3.5rem', textAlign: 'center' }}>
+            <span className="section-label" style={{ color: '#059669', background: '#ecfdf5' }}>
+              Para Pacientes
+            </span>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.375rem)', fontWeight: '800', color: '#0f172a', margin: '0.5rem 0 1rem' }}>
+              O tratamento que você precisa cabe no seu orçamento
+            </h2>
+            <p style={{ fontSize: '1.0625rem', color: '#64748b', lineHeight: '1.7', margin: 0 }}>
+              Não adie sua saúde e seu bem-estar por questões de pagamento. Conheça as opções de parcelamento facilitado em clínicas parceiras.
+            </p>
+          </div>
+
+          {/* Grid de Tratamentos com links SEO preservados */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
+            {treatments.map((t) => (
+              <Link
+                key={t.href}
+                href={t.href}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  padding: '1.25rem 1.5rem',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '14px',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <span style={{ fontSize: '1.5rem' }}>{t.icon}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.9375rem', fontWeight: '700', color: '#0f172a' }}>{t.label}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Ver condições e simulação →</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Card de Simulação B2C */}
+          <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', borderRadius: '20px', padding: '2.5rem', color: 'white', textAlign: 'center', maxWidth: '780px', margin: '0 auto' }}>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '0.5rem' }}>
+              Quer saber quanto ficaria a parcela do seu tratamento?
+            </h3>
+            <p style={{ fontSize: '0.9375rem', color: '#cbd5e1', maxWidth: '520px', margin: '0 auto 1.75rem', lineHeight: '1.6' }}>
+              Simule sem compromisso e sem custo. Nossos consultores ajudam a encontrar a melhor condição para você realizar o procedimento.
+            </p>
+            <Link
+              href="/simular"
+              className="btn-action"
               style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '16px',
-                padding: '2rem',
+                background: '#10b981',
+                color: 'white',
+                padding: '0.875rem 2rem',
+                fontSize: '1rem',
+                display: 'inline-flex',
+                fontWeight: '700',
               }}
             >
-              <span className="section-label" style={{ marginBottom: '0.875rem' }}>Para clínicas</span>
-              <h3
-                style={{
-                  fontSize: '1.25rem',
-                  fontWeight: '800',
-                  color: '#0f172a',
-                  margin: '0 0 0.75rem',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                Transforme orçamentos em tratamentos realizados.
-              </h3>
-              <p
-                style={{
-                  fontSize: '0.9375rem',
-                  color: '#64748b',
-                  lineHeight: '1.65',
-                  margin: '0 0 1.5rem',
-                }}
-              >
-                Proposta digital, crédito para pacientes e acompanhamento do início ao repasse.
-              </p>
-              <Link
-                href="/clinicas"
-                id="footer-cta-clinic"
-                className="btn-secondary"
-                style={{ display: 'inline-flex', gap: '0.5rem' }}
-              >
-                <Building2 size={15} />
-                Conhecer a Benavera para clínicas
+              Simular Meu Tratamento Agora
+              <ArrowRight size={17} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          ARTIGOS DE CONTEÚDO E AUTORIDADE SEO
+      ========================================================================= */}
+      {featuredArticles.length > 0 && (
+        <section style={{ padding: '5rem 0', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+          <div className="container-benavera">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <span className="section-label">Conteúdo Educativo & Guias</span>
+                <h2 style={{ fontSize: '1.875rem', fontWeight: '800', color: '#0f172a', margin: '0.375rem 0 0' }}>
+                  Artigos sobre custos e parcelamento de saúde
+                </h2>
+              </div>
+              <Link href="/conteudos" className="btn-action btn-action-outline" style={{ gap: '0.375rem' }}>
+                Ver todos os 90+ artigos
                 <ArrowRight size={15} />
               </Link>
             </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+              {featuredArticles.map((article) => (
+                <ArticleCard key={article.slug} {...article} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* =========================================================================
+          FAQ B2B2C COMPLETO
+      ========================================================================= */}
+      <section style={{ padding: '5.5rem 0', background: 'white', borderTop: '1px solid #e2e8f0' }}>
+        <div className="container-benavera">
+          <div style={{ maxWidth: '680px', margin: '0 auto 3.5rem', textAlign: 'center' }}>
+            <span className="section-label">Tire suas dúvidas</span>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.375rem)', fontWeight: '800', color: '#0f172a', margin: '0.5rem 0 0.5rem' }}>
+              Perguntas Frequentes
+            </h2>
+            <p style={{ fontSize: '1rem', color: '#64748b' }}>
+              Respostas claras para clínicas parceiras e pacientes.
+            </p>
+          </div>
+
+          <div style={{ maxWidth: '780px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {faqItems.map((faq, idx) => (
+              <details
+                key={idx}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '1.25rem 1.5rem',
+                }}
+              >
+                <summary style={{ fontSize: '1rem', fontWeight: '700', color: '#0f172a', cursor: 'pointer', outline: 'none' }}>
+                  {faq.question}
+                </summary>
+                <p style={{ fontSize: '0.9375rem', color: '#475569', lineHeight: '1.7', margin: '0.875rem 0 0' }}>
+                  {faq.answer}
+                </p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
+
+      {/* Disclaimer de Transparência Financeira */}
+      <FinancialDisclaimer />
     </>
   );
 }
