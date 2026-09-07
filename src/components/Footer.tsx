@@ -184,6 +184,8 @@ export function Footer() {
                 {[
                   { href: '/clinicas', label: 'Benavera para Clínicas' },
                   { href: '/solucoes-financeiras-para-clinicas', label: 'Soluções para Orçamentos' },
+                  { href: '/credenciamento', label: 'Credenciar minha clínica' },
+                  { href: '/portal', label: 'Portal da clínica' },
                   { href: '/clinicas#formulario', label: 'Quero conhecer' },
                 ].map((link) => (
                   <li key={link.href}>

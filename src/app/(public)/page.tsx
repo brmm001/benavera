@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, Building2, Users, CreditCard, TrendingUp, User } from 'lucide-react';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 import { ArticleCard } from '@/components/ArticleCard';
 import { articles } from '@/content/articles';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Benavera | Pagamento para tratamentos particulares',
+    absolute: 'Benavera | Infraestrutura financeira para clínicas e pacientes',
   },
   description:
-    'A Benavera conecta você a opções viáveis de parcelamento para tratamentos odontológicos, cirurgias e estética particular. Simule sem compromisso.',
+    'A Benavera conecta clínicas a soluções de financiamento para pacientes, aumentando conversão de orçamentos. Para pacientes: simulação gratuita de parcelamento de tratamentos particulares.',
   alternates: { canonical: 'https://www.benavera.com.br' },
 };
 
@@ -18,7 +18,12 @@ const faqItems = [
   {
     question: 'O que é a Benavera?',
     answer:
-      'A Benavera é uma plataforma que conecta pacientes a alternativas viáveis de pagamento para tratamentos particulares. Você informa o valor, a entrada disponível e quanto consegue pagar por mês — e a Benavera busca caminhos compatíveis com seu orçamento.',
+      'A Benavera é uma plataforma B2B2C que conecta clínicas a soluções financeiras para pacientes. Para clínicas, oferece proposta digital, CRM e gestão de crédito. Para pacientes, conecta a opções viáveis de parcelamento para tratamentos particulares.',
+  },
+  {
+    question: 'A Benavera é para clínicas ou para pacientes?',
+    answer:
+      'Para ambos. Para clínicas: aumenta a taxa de conversão de orçamentos, oferece proposta digital e acompanha o paciente até o fechamento. Para pacientes: conecta a alternativas de parcelamento compatíveis com seu orçamento.',
   },
   {
     question: 'A simulação garante que vou conseguir crédito?',
@@ -38,6 +43,29 @@ const faqItems = [
     question: 'Posso desistir depois de simular?',
     answer:
       'Sim. Fazer a simulação não gera nenhuma obrigação de contratação. Você avalia as condições com total liberdade antes de qualquer decisão.',
+  },
+  {
+    question: 'Quanto custa para a clínica usar a Benavera?',
+    answer:
+      'Estamos em fase de expansão com clínicas parceiras. Entre em contato pelo formulário de credenciamento para conhecer as condições disponíveis nesta fase.',
+  },
+];
+
+const clinicBenefits = [
+  {
+    icon: TrendingUp,
+    title: 'Mais orçamentos viram tratamentos',
+    desc: 'Ofereça condições de parcelamento que o paciente consegue pagar. Reduza a perda por restrições financeiras.',
+  },
+  {
+    icon: CreditCard,
+    title: 'Proposta digital em minutos',
+    desc: 'Crie e envie propostas por WhatsApp ou link. O paciente recebe, analisa e avança sem sair de casa.',
+  },
+  {
+    icon: Users,
+    title: 'CRM e acompanhamento',
+    desc: 'Acompanhe cada paciente desde o orçamento até o repasse. Sem planilha, sem papel.',
   },
 ];
 
@@ -63,7 +91,7 @@ const treatments = [
   { label: 'Outros tratamentos', href: '/simular' },
 ];
 
-export default function HomePage() {
+export default function HomePage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const featuredArticles = articles.slice(0, 3);
 
   return (
@@ -73,7 +101,7 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      {/* ===== HERO ===== */}
+      {/* ===== HERO B2C (padrao SEO, H1 canonico) ===== */}
       <section
         className="hero-section"
         style={{
@@ -163,7 +191,7 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '1.5rem' }}>
                 {[
                   'Simulação gratuita',
                   'Você decide antes de contratar',
@@ -192,6 +220,18 @@ export default function HomePage() {
                   </span>
                 ))}
               </div>
+
+              {/* Link B2B discreto — sem competir com H1 B2C */}
+              <Link
+                href="/clinicas"
+                id="hero-clinic-link"
+                className="link-muted"
+                style={{ fontSize: '0.8125rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}
+              >
+                <Building2 size={13} />
+                Tem uma clínica? Conheça a Benavera para clínicas
+                <ArrowRight size={13} />
+              </Link>
             </div>
 
             {/* Right: Simulation example card */}
@@ -255,6 +295,98 @@ export default function HomePage() {
                   Simulação inicial. Condições reais dependem da análise.
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== PARA CLINICAS — Nova secao B2B ===== */}
+      <section
+        style={{
+          padding: '5rem 0',
+          background: '#0f172a',
+          borderTop: '1px solid #1e293b',
+        }}
+      >
+        <div className="container-benavera">
+          <div className="grid-lg-2" style={{ alignItems: 'center', gap: '4rem' }}>
+            <div>
+              <span className="section-label" style={{ color: '#8195f8' }}>Para clínicas de saúde e odontologia</span>
+              <h2
+                style={{
+                  fontSize: 'clamp(1.75rem, 4vw, 2.625rem)',
+                  fontWeight: '800',
+                  lineHeight: '1.15',
+                  letterSpacing: '-0.025em',
+                  color: 'white',
+                  margin: '0 0 1.25rem',
+                }}
+              >
+                Mais tratamentos aprovados. Mais receita para sua clínica.
+              </h2>
+              <p style={{ fontSize: '1.0625rem', color: '#94a3b8', lineHeight: '1.75', margin: '0 0 2rem' }}>
+                Ofereça novas formas de pagamento, acompanhe seus pacientes e transforme mais orçamentos em tratamentos realizados com a Benavera.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem' }}>
+                <Link
+                  href="/clinicas"
+                  id="b2b-hero-cta"
+                  className="btn-primary"
+                  style={{ gap: '0.5rem' }}
+                >
+                  <Building2 size={16} />
+                  Credenciar minha clínica
+                </Link>
+                <Link href="/solucoes-financeiras-para-clinicas" id="b2b-hero-secondary" className="btn-ghost" style={{ color: '#94a3b8', borderColor: 'rgba(255,255,255,0.15)' }}>
+                  Saber mais
+                </Link>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr',
+                gap: '1rem',
+              }}
+            >
+              {clinicBenefits.map((b) => {
+                const Icon = b.icon;
+                return (
+                  <div
+                    key={b.title}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '1rem',
+                      padding: '1.125rem',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      borderRadius: '12px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        background: 'rgba(99,112,241,0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#8195f8',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Icon size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.9375rem', fontWeight: '700', color: 'white', marginBottom: '0.25rem' }}>{b.title}</div>
+                      <div style={{ fontSize: '0.875rem', color: '#94a3b8', lineHeight: '1.6' }}>{b.desc}</div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -658,63 +790,87 @@ export default function HomePage() {
         }}
       >
         <div className="container-benavera">
-          <div style={{ maxWidth: '520px' }}>
-            <h2
-              style={{
-                fontSize: 'clamp(1.75rem, 4vw, 2.625rem)',
-                fontWeight: '800',
-                lineHeight: '1.2',
-                letterSpacing: '-0.025em',
-                color: '#0f172a',
-                margin: '0 0 1rem',
-              }}
-            >
-              Já sabe quanto custa seu tratamento?
-            </h2>
-            <p
-              style={{
-                fontSize: '1.0625rem',
-                color: '#64748b',
-                lineHeight: '1.7',
-                margin: '0 0 2.25rem',
-              }}
-            >
-              Informe o valor e descubra quanto ficaria por mês.
-            </p>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                gap: '1.25rem',
-              }}
-            >
-              <Link
-                href="/simular"
-                id="footer-cta-patient"
-                className="btn-primary"
-                style={{ fontSize: '1rem', padding: '0.9375rem 1.875rem' }}
+          <div className="grid-lg-2" style={{ gap: '3rem', alignItems: 'flex-start' }}>
+            {/* Paciente */}
+            <div>
+              <h2
+                style={{
+                  fontSize: 'clamp(1.625rem, 3.5vw, 2.25rem)',
+                  fontWeight: '800',
+                  lineHeight: '1.2',
+                  letterSpacing: '-0.025em',
+                  color: '#0f172a',
+                  margin: '0 0 1rem',
+                }}
               >
-                Simular agora
-                <ArrowRight size={17} />
-              </Link>
-              <div style={{ marginTop: '0.5rem' }}>
+                Já sabe quanto custa seu tratamento?
+              </h2>
+              <p
+                style={{
+                  fontSize: '1.0625rem',
+                  color: '#64748b',
+                  lineHeight: '1.7',
+                  margin: '0 0 2rem',
+                }}
+              >
+                Informe o valor e descubra quanto ficaria por mês.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
+                <Link
+                  href="/simular"
+                  id="footer-cta-patient"
+                  className="btn-primary"
+                  style={{ fontSize: '1rem', padding: '0.9375rem 1.875rem' }}
+                >
+                  Simular agora
+                  <ArrowRight size={17} />
+                </Link>
                 <FinancialDisclaimer compact />
               </div>
             </div>
-          </div>
 
-          <div
-            style={{
-              marginTop: '3.5rem',
-              paddingTop: '2rem',
-              borderTop: '1px solid #f1f5f9',
-            }}
-          >
-            <Link href="/clinicas" id="clinicas-link" className="link-muted">
-              Tem uma clínica? Conheça a Benavera para clínicas
-              <ArrowRight size={14} />
-            </Link>
+            {/* Clínica */}
+            <div
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '2rem',
+              }}
+            >
+              <span className="section-label" style={{ marginBottom: '0.875rem' }}>Para clínicas</span>
+              <h3
+                style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '800',
+                  color: '#0f172a',
+                  margin: '0 0 0.75rem',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Transforme orçamentos em tratamentos realizados.
+              </h3>
+              <p
+                style={{
+                  fontSize: '0.9375rem',
+                  color: '#64748b',
+                  lineHeight: '1.65',
+                  margin: '0 0 1.5rem',
+                }}
+              >
+                Proposta digital, crédito para pacientes e acompanhamento do início ao repasse.
+              </p>
+              <Link
+                href="/clinicas"
+                id="footer-cta-clinic"
+                className="btn-secondary"
+                style={{ display: 'inline-flex', gap: '0.5rem' }}
+              >
+                <Building2 size={15} />
+                Conhecer a Benavera para clínicas
+                <ArrowRight size={15} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>

@@ -96,18 +96,26 @@ export default function ClinicasPage() {
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem', marginBottom: '3rem' }}>
               <Link
-                href="#contato"
-                id="hero-clinic-cta"
+                href="/credenciamento"
+                id="hero-clinic-credenciamento-cta"
                 className="btn-primary"
                 style={{
-                  background: 'white',
-                  color: '#0f172a',
+                  background: '#6370f1',
+                  color: 'white',
                   fontSize: '1rem',
                   padding: '0.9375rem 1.875rem',
                 }}
               >
-                Quero oferecer a Benavera
+                Credenciar clínica online
                 <ArrowRight size={17} />
+              </Link>
+              <Link
+                href="#contato"
+                id="hero-clinic-cta"
+                className="btn-ghost"
+                style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'white' }}
+              >
+                Falar com consultor
               </Link>
               <Link
                 href="#como-funciona"

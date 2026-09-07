@@ -1,27 +1,23 @@
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const isPreview = process.env.VERCEL_ENV === 'preview';
-
-  if (isPreview) {
-    return {
-      rules: [
-        {
-          userAgent: '*',
-          disallow: '/',
-        },
-      ],
-    };
-  }
+  const baseUrl = 'https://benavera.com.br';
 
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/dashboard/'],
+        disallow: [
+          '/admin/',
+          '/portal/',
+          '/p/',
+          '/obrigado',
+          '/obrigado-clinica',
+          '/api/',
+        ],
       },
     ],
-    sitemap: 'https://www.benavera.com.br/sitemap.xml',
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
