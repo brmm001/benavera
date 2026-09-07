@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Building2, User } from 'lucide-react';
 
 const navLinks = [
   { href: '/como-funciona', label: 'Como funciona' },
@@ -39,11 +39,11 @@ export function Header() {
         right: 0,
         zIndex: 100,
         transition: 'all 0.25s ease',
-        backgroundColor: scrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.95)',
+        backgroundColor: scrolled ? 'rgba(255,255,255,0.98)' : 'rgba(255,255,255,0.96)',
         borderBottom: scrolled ? '1px solid #e2e8f0' : '1px solid transparent',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        boxShadow: scrolled ? '0 1px 20px rgba(0,0,0,0.06)' : 'none',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: scrolled ? '0 1px 24px rgba(0,0,0,0.07)' : 'none',
       }}
     >
       <div className="container-benavera">
@@ -67,11 +67,11 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Nav desktop — hidden on mobile via CSS */}
+          {/* Nav desktop */}
           <nav
             aria-label="Navegação principal"
             className="desktop-only"
-            style={{ alignItems: 'center', gap: '0.25rem', flex: 1, justifyContent: 'center' }}
+            style={{ alignItems: 'center', gap: '0.125rem', flex: 1, justifyContent: 'center' }}
           >
             {navLinks.map((link) => (
               <Link
@@ -104,15 +104,47 @@ export function Header() {
           {/* CTAs desktop */}
           <div
             className="desktop-only"
-            style={{ alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}
+            style={{ alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}
           >
+            {/* Paciente link — secundário, discreto */}
             <Link
               href="/simular"
-              id="header-simular-cta"
-              className="btn-primary"
-              style={{ padding: '0.5625rem 1.375rem', fontSize: '0.875rem' }}
+              id="header-paciente-cta"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                padding: '0.5rem 0.875rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#64748b',
+                textDecoration: 'none',
+                borderRadius: '8px',
+                transition: 'color 0.15s ease, background 0.15s ease',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.color = '#334155';
+                (e.currentTarget as HTMLElement).style.background = '#f8fafc';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.color = '#64748b';
+                (e.currentTarget as HTMLElement).style.background = 'transparent';
+              }}
             >
-              Simular
+              <User size={14} />
+              Sou paciente
+            </Link>
+
+            {/* CTA B2B principal */}
+            <Link
+              href="/clinicas"
+              id="header-clinic-cta"
+              className="btn-primary"
+              style={{ padding: '0.5625rem 1.25rem', fontSize: '0.875rem', gap: '0.375rem' }}
+            >
+              <Building2 size={15} />
+              Credenciar clínica
             </Link>
           </div>
 
@@ -195,15 +227,26 @@ export function Header() {
             </Link>
           ))}
 
-          <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
+          <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
             <Link
-              href="/simular"
-              id="mobile-simular-cta"
+              href="/clinicas"
+              id="mobile-clinic-cta"
               className="btn-primary"
               onClick={() => setMenuOpen(false)}
-              style={{ width: '100%', justifyContent: 'center' }}
+              style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }}
             >
-              Simular meu tratamento
+              <Building2 size={16} />
+              Credenciar minha clínica
+            </Link>
+            <Link
+              href="/simular"
+              id="mobile-paciente-cta"
+              className="btn-ghost"
+              onClick={() => setMenuOpen(false)}
+              style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }}
+            >
+              <User size={15} />
+              Sou paciente — simular tratamento
             </Link>
           </div>
         </div>
