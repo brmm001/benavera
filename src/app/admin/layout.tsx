@@ -1,20 +1,19 @@
-import type { Metadata } from 'next';
+// app/admin/layout.tsx
+import { redirect } from 'next/navigation';
+import { getSession } from '@/lib/auth';
+import { AdminSidebar } from '@/components/AdminSidebar';
 
-export const metadata: Metadata = {
-  title: 'Painel Administrativo | Benavera',
-  description: 'Gestão segura de leads e métricas operacionais.',
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: { index: false, follow: false },
-  },
-};
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await getSession();
+  if (!session) redirect('/login');
+  if (session.role !== 'BENAVERA_ADMIN' && session.role !== 'BENAVERA_ANALYST') {
+    redirect('/dashboard');
+  }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div data-clarity-mask="true" className="admin-root">
-      {children}
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+      <AdminSidebar userName={session.name} role={session.role} />
+      <main style={{ flex: 1, overflow: 'auto' }}>{children}</main>
     </div>
   );
 }
