@@ -1,5 +1,5 @@
 // src/middleware.ts
-// Middleware de autenticação e roteamento unificado Benavera
+// Middleware de autenticação e proteção de rotas privadas Benavera
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -10,51 +10,65 @@ const JWT_SECRET = new TextEncoder().encode(
 );
 const COOKIE_NAME = 'benavera_session';
 
-// Rotas públicas que não precisam de autenticação
-const PUBLIC_PATHS = [
-  '/login',
-  '/api/auth/login',
-  '/api/auth/logout',
-  '/proposta',
-  '/api/proposta',
-  '/api/leads',
-  '/api/health',
-  '/conteudos',
-  '/sobre',
-  '/calculadoras',
-  '/como-funciona',
-  '/clinicas',
-  '/simular',
-  '/privacidade',
-  '/termos',
-  '/obrigado',
-  '/obrigado-clinica',
-  '/parcelamento-',
-  '/financiamento-',
-  '/solucoes-financeiras',
-  '/_next',
-  '/favicon',
-  '/icon',
-  '/apple-icon',
-  '/robots',
-  '/sitemap',
-  '/manifest',
-  '/llms',
+// Apenas estas rotas e prefixos exigem login.
+// TODAS as outras rotas (incluindo /, /clinicas, /simular, /como-funciona, /calculadoras, /sobre, /conteudos, /proposta/*, etc.) são 100% PÚBLICAS.
+const PROTECTED_PREFIXES = [
+  '/dashboard',
+  '/novo-financiamento',
+  '/financiamentos',
+  '/pacientes',
+  '/repasses',
+  '/equipe',
+  '/configuracoes',
+  '/admin',
+  '/api/applications',
+  '/api/dashboard',
+  '/api/patients',
+  '/api/payouts',
+  '/api/partners',
+  '/api/admin',
 ];
 
-function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some(p => pathname.startsWith(p));
+// Exceções públicas dentro dos prefixos protegidos (se houver)
+const PUBLIC_EXCEPTIONS = [
+  '/admin/login',
+  '/api/admin/debug',
+];
+
+function isProtectedRoute(pathname: string): boolean {
+  // Arquivos estáticos e rotas do Next.js nunca são protegidos
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/icon') ||
+    pathname.startsWith('/apple-icon') ||
+    pathname.startsWith('/robots') ||
+    pathname.startsWith('/sitemap') ||
+    pathname.startsWith('/manifest') ||
+    pathname.startsWith('/llms') ||
+    pathname.includes('.')
+  ) {
+    return false;
+  }
+
+  // Verifica exceções públicas
+  if (PUBLIC_EXCEPTIONS.some(exc => pathname.startsWith(exc))) {
+    return false;
+  }
+
+  // Verifica se a rota está na lista restrita
+  return PROTECTED_PREFIXES.some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'));
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Permitir rotas públicas e arquivos estáticos
-  if (isPublicPath(pathname) || pathname.includes('.')) {
+  // Se NÃO for uma rota protegida, permite acesso imediato e livre
+  if (!isProtectedRoute(pathname)) {
     return NextResponse.next();
   }
 
-  // Verificar token de sessão
+  // Obter token de sessão para rotas protegidas
   const token = request.cookies.get(COOKIE_NAME)?.value;
 
   if (!token) {
@@ -62,7 +76,7 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
     }
-    // Redirecionar páginas para login
+    // Redirecionar usuário para login
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
@@ -72,7 +86,7 @@ export async function middleware(request: NextRequest) {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const role = payload.role as string;
 
-    // Controle de acesso por rota:
+    // Controle de acesso por perfil:
     // Apenas BENAVERA_ADMIN e BENAVERA_ANALYST podem acessar /admin
     if (pathname.startsWith('/admin')) {
       if (role !== 'BENAVERA_ADMIN' && role !== 'BENAVERA_ANALYST') {
@@ -81,7 +95,15 @@ export async function middleware(request: NextRequest) {
     }
 
     // Usuários Benavera redirecionam de /dashboard para /admin
-    if (pathname.startsWith('/dashboard') || pathname.startsWith('/financiamentos') || pathname.startsWith('/pacientes')) {
+    if (
+      pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/novo-financiamento') ||
+      pathname.startsWith('/financiamentos') ||
+      pathname.startsWith('/pacientes') ||
+      pathname.startsWith('/repasses') ||
+      pathname.startsWith('/equipe') ||
+      pathname.startsWith('/configuracoes')
+    ) {
       if (role === 'BENAVERA_ADMIN' || role === 'BENAVERA_ANALYST') {
         return NextResponse.redirect(new URL('/admin', request.url));
       }
@@ -109,6 +131,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    /*
+     * Intercepta todas as rotas para validação, exceto arquivos estáticos
+     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.png|.*\\.svg|.*\\.jpg|.*\\.ico).*)',
   ],
 };
