@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -140,11 +140,21 @@ export function Header() {
             <Link
               href="/clinicas"
               id="header-clinic-cta"
-              className="btn-primary"
-              style={{ padding: '0.5625rem 1.25rem', fontSize: '0.875rem', gap: '0.375rem' }}
+              className="btn-secondary"
+              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', gap: '0.375rem' }}
             >
               <Building2 size={15} />
               Credenciar clínica
+            </Link>
+
+            {/* Acessar Portal / Login */}
+            <Link
+              href="/login"
+              id="header-login-cta"
+              className="btn-primary"
+              style={{ padding: '0.5rem 1.125rem', fontSize: '0.875rem', gap: '0.375rem' }}
+            >
+              Entrar
             </Link>
           </div>
 
@@ -229,9 +239,18 @@ export function Header() {
 
           <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
             <Link
+              href="/login"
+              id="mobile-login-cta"
+              className="btn-primary"
+              onClick={() => setMenuOpen(false)}
+              style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }}
+            >
+              Acessar Portal (Login)
+            </Link>
+            <Link
               href="/clinicas"
               id="mobile-clinic-cta"
-              className="btn-primary"
+              className="btn-secondary"
               onClick={() => setMenuOpen(false)}
               style={{ width: '100%', justifyContent: 'center', gap: '0.5rem' }}
             >
