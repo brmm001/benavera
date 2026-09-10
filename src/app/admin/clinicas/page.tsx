@@ -162,10 +162,10 @@ export default function AdminClinicasPage() {
                     {c.cnpj}
                   </td>
                   <td style={{ padding: '16px 20px', color: '#475569' }}>
-                    {c.endereco_cidade ? `${c.endereco_cidade}/${c.endereco_uf}` : '—'}
+                    {c.cidade ? `${c.cidade}/${c.estado || 'SP'}` : (c.endereco_cidade ? `${c.endereco_cidade}/${c.endereco_uf || 'SP'}` : '—')}
                   </td>
                   <td style={{ padding: '16px 20px', color: '#475569', fontSize: '13px' }}>
-                    <div>{c.telefone || '—'}</div>
+                    <div>{c.telefone || c.whatsapp || '—'}</div>
                     <div style={{ color: '#94a3b8', fontSize: '12px' }}>{c.email || ''}</div>
                   </td>
                   <td style={{ padding: '16px 20px', textAlign: 'center', fontWeight: '700', color: '#0f172a' }}>
@@ -181,11 +181,11 @@ export default function AdminClinicasPage() {
                         borderRadius: '20px',
                         fontSize: '12px',
                         fontWeight: '700',
-                        backgroundColor: c.status === 'ATIVA' ? '#ecfdf5' : '#fef2f2',
-                        color: c.status === 'ATIVA' ? '#059669' : '#dc2626',
+                        backgroundColor: c.ativo !== false ? '#ecfdf5' : '#fef2f2',
+                        color: c.ativo !== false ? '#059669' : '#dc2626',
                       }}
                     >
-                      {c.status}
+                      {c.ativo !== false ? 'ATIVA' : 'INATIVA'}
                     </span>
                   </td>
                 </tr>

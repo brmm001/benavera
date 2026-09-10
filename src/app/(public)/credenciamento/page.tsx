@@ -73,8 +73,8 @@ export default function CredenciamentoPage() {
         throw new Error(data.error || 'Erro ao realizar credenciamento.');
       }
 
-      // Redireciona para login do portal ou dashboard com sucesso
-      router.push('/portal/login?registered=1');
+      // Redireciona para login do portal com sucesso
+      router.push('/login?registered=1');
     } catch (err: any) {
       setError(err.message || 'Erro inesperado.');
     } finally {
