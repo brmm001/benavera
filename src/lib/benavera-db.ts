@@ -1,14 +1,25 @@
-// lib/benavera-db.ts
-// Cliente Neon para o sistema de financiamento Benavera
+import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
 
-import { neon } from '@neondatabase/serverless';
+let _sqlInstance: NeonQueryFunction<false, false> | null = null;
 
-const rawUrl = process.env.DATABASE_URL || '';
-const DATABASE_URL = rawUrl.replace(/^["']|["']$/g, '').trim();
+function getSql(): NeonQueryFunction<false, false> {
+  const rawUrl = process.env.DATABASE_URL || '';
+  const url = rawUrl.replace(/^["']|["']$/g, '').trim();
+  if (!url) {
+    throw new Error(
+      'DATABASE_URL não está configurada. Configure a variável de ambiente DATABASE_URL no painel da sua hospedagem (ex: Vercel Settings -> Environment Variables).'
+    );
+  }
+  if (!_sqlInstance) {
+    _sqlInstance = neon<false, false>(url);
+  }
+  return _sqlInstance;
+}
 
-export const sql = neon(
-  DATABASE_URL || 'postgresql://placeholder:placeholder@ep-placeholder.us-east-1.aws.neon.tech/neondb?sslmode=require'
-);
+export const sql: NeonQueryFunction<false, false> = ((...args: [any, ...any[]]) => {
+  const client = getSql();
+  return (client as any)(...args);
+}) as NeonQueryFunction<false, false>;
 
 // Tipos base
 export type UserRole =
