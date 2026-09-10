@@ -3,13 +3,12 @@
 
 import { neon } from '@neondatabase/serverless';
 
-const DATABASE_URL = process.env.DATABASE_URL!;
+const rawUrl = process.env.DATABASE_URL || '';
+const DATABASE_URL = rawUrl.replace(/^["']|["']$/g, '').trim();
 
-if (!DATABASE_URL) {
-  throw new Error('[Benavera] DATABASE_URL não definida');
-}
-
-export const sql = neon(DATABASE_URL);
+export const sql = neon(
+  DATABASE_URL || 'postgresql://placeholder:placeholder@ep-placeholder.us-east-1.aws.neon.tech/neondb?sslmode=require'
+);
 
 // Tipos base
 export type UserRole =
