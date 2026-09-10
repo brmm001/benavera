@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
     }
 
     const rows = await sql`
-      INSERT INTO clinics (nome_fantasia, razao_social, cnpj, telefone, email, endereco_cidade, endereco_uf, status)
-      VALUES (${nome_fantasia}, ${razao_social || nome_fantasia}, ${cnpj}, ${telefone || null}, ${email || null}, ${endereco_cidade || null}, ${endereco_uf || null}, 'ATIVA')
+      INSERT INTO clinics (nome_fantasia, razao_social, cnpj, telefone, email, cidade, estado, ativo)
+      VALUES (${nome_fantasia}, ${razao_social || nome_fantasia}, ${cnpj}, ${telefone || null}, ${email || null}, ${endereco_cidade || null}, ${endereco_uf || null}, TRUE)
       RETURNING id
     `;
 
