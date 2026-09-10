@@ -7,13 +7,17 @@ interface Clinic {
   nome_fantasia: string;
   razao_social: string;
   cnpj: string;
-  telefone: string | null;
-  email: string | null;
-  endereco_cidade: string | null;
-  endereco_uf: string | null;
-  status: string;
-  total_applications: string | number;
-  total_financiado: string | number;
+  telefone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  endereco_cidade?: string | null;
+  endereco_uf?: string | null;
+  ativo?: boolean;
+  status?: string;
+  total_applications?: string | number;
+  total_financiado?: string | number;
   created_at: string;
 }
 
