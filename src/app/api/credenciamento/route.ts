@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         nome_fantasia, razao_social, cnpj, telefone, whatsapp, email,
         responsavel, cidade, estado, especialidade, ativo
       ) VALUES (
-        ${nomeClinica}, ${nomeClinica}, ${cnpj || null}, ${whatsapp}, ${whatsapp}, ${cleanEmail},
+        ${nomeClinica}, ${nomeClinica}, ${cnpj || '00.000.000/0001-00'}, ${whatsapp}, ${whatsapp}, ${cleanEmail},
         ${nomeResponsavel || null}, ${cidade || 'São Paulo'}, ${estado || 'SP'},
         ${especialidade || 'Geral'}, TRUE
       )
@@ -88,6 +88,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, clinicId: String(clinicId), userId: String(userId) });
   } catch (err: any) {
     console.error('Erro no credenciamento:', err);
-    return NextResponse.json({ error: err.message || 'Erro ao processar credenciamento' }, { status: 500 });
+    const message = err?.message || 'Erro ao processar credenciamento';
+    // Traduz erros de constraint para mensagens amigáveis
+    if (message.includes('duplicate key') || message.includes('already exists') || message.includes('unique')) {
+      return NextResponse.json({ error: 'Já existe um cadastro com este e-mail ou CNPJ.' }, { status: 409 });
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
