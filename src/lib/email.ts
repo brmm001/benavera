@@ -1,6 +1,15 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy instantiation — evita crash no build sem RESEND_API_KEY
+function getResend(): Resend {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    throw new Error(
+      'RESEND_API_KEY não configurada. Adicione nas variáveis de ambiente do Render/Vercel.'
+    );
+  }
+  return new Resend(key);
+}
 
 const FROM_EMAIL = process.env.EMAIL_FROM || 'Benavera <noreply@benavera.com.br>';
 
@@ -76,7 +85,7 @@ export async function sendClinicWelcomeEmail(opts: {
     </div>
   `;
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject: `Bem-vindo à Benavera, ${clinicName}! 🎉`,
@@ -130,7 +139,7 @@ export async function sendApplicationStatusEmail(opts: {
     </div>
   `;
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject: `${info.emoji} ${info.title} — Protocolo ${protocol}`,
@@ -176,7 +185,7 @@ export async function sendClinicFollowupEmail(opts: {
     </div>
   `;
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject: `${clinicName} — Financiamento sem burocracia para seus pacientes`,
@@ -217,7 +226,7 @@ export async function sendAnalystAlertEmail(opts: {
     </div>
   `;
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject: `${cfg.emoji} ${cfg.title} — ${entityName}`,
