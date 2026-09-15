@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/benavera-db';
 import bcrypt from 'bcryptjs';
+import { sendClinicWelcomeEmail } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -73,17 +74,24 @@ export async function POST(req: NextRequest) {
         INSERT INTO clinic_leads (
           id, nome_responsavel, nome_clinica, cargo, whatsapp, email,
           cidade, estado, especialidade_principal, orcamentos_mensais, ticket_medio,
-          pagina_origem, status_comercial
+          pagina_origem, status_comercial, pipeline_stage
         ) VALUES (
           ${leadId}, ${nomeResponsavel || nomeClinica}, ${nomeClinica}, ${cargo || 'Sócio'},
           ${whatsapp}, ${cleanEmail}, ${cidade || 'SP'}, ${estado || 'SP'},
           ${especialidade || 'Geral'}, ${volumeMensal || null}, ${ticketMedio || null},
-          '/credenciamento', 'credenciado'
+          '/credenciamento', 'credenciado', 'credenciado'
         )
       `;
     } catch (leadErr) {
       console.warn('Erro ao salvar clinic_lead histórico:', leadErr);
     }
+
+    // 6. Email de boas-vindas (não bloqueia o fluxo)
+    sendClinicWelcomeEmail({
+      to: cleanEmail,
+      clinicName: nomeClinica,
+      responsavel: nomeResponsavel || nomeClinica,
+    }).catch(err => console.warn('[Email Boas-vindas]', err));
 
     return NextResponse.json({ success: true, clinicId: String(clinicId), userId: String(userId) });
   } catch (err: any) {

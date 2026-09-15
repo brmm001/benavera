@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/admin/solicitacoes', label: 'Solicitações', icon: '📄' },
   { href: '/admin/clinicas', label: 'Clínicas', icon: '🏥' },
   { href: '/admin/crm', label: 'CRM Pipeline', icon: '🎯' },
+  { href: '/admin/crm/tarefas', label: 'Tarefas & SLA', icon: '✅' },
   { href: '/admin/parceiros', label: 'Parceiros', icon: '🏦' },
   { href: '/admin/repasses', label: 'Repasses', icon: '◈' },
   { href: '/admin/recuperacao', label: 'Recuperação', icon: '↩' },
