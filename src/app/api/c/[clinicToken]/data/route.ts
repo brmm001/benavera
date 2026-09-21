@@ -65,9 +65,12 @@ export async function GET(
       return NextResponse.json({ error: 'Credenciamento não encontrado.' }, { status: 404 });
     }
 
-    // Buscar documentos (sem storage_key ou sha256)
+    // Buscar documentos (mascarando storage_key interno e sha256)
     const rawDocs = await getOnboardingDocuments(session.onboardingId);
-    const documents = rawDocs.map(({ storage_key: _, sha256: __, ...safe }) => safe);
+    const documents = rawDocs.map(({ storage_key, sha256: _, ...safe }) => ({
+      ...safe,
+      storage_key: storage_key ? 'uploaded' : null,
+    }));
 
     return NextResponse.json({ data, documents });
   } catch (err) {

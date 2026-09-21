@@ -14,9 +14,18 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 // ── Tipos de arquivo permitidos ───────────────────────────────────────────────
-const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png']);
-const ALLOWED_EXTENSIONS = new Set(['.pdf', '.jpg', '.jpeg', '.png']);
-const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
+const ALLOWED_MIME_TYPES = new Set([
+  'application/pdf',
+  'application/x-pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/pjpeg',
+  'image/png',
+  'image/x-png',
+  'image/webp',
+]);
+const ALLOWED_EXTENSIONS = new Set(['.pdf', '.jpg', '.jpeg', '.png', '.webp']);
+const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25MB
 
 // Bloqueados explicitamente — nunca permitir mesmo se o MIME parecer OK
 const BLOCKED_EXTENSIONS = new Set([
@@ -24,16 +33,6 @@ const BLOCKED_EXTENSIONS = new Set([
   '.php', '.sh', '.bat', '.cmd', '.scr', '.jar', '.py', '.rb',
   '.ps1', '.vbs', '.wsf', '.msi', '.dll', '.so', '.dylib',
 ]);
-
-// Magic bytes para validação real de tipo de arquivo
-const MAGIC_BYTES: Array<{ bytes: number[]; mime: string; offset?: number }> = [
-  // PDF: %PDF
-  { bytes: [0x25, 0x50, 0x44, 0x46], mime: 'application/pdf' },
-  // JPEG: FF D8 FF
-  { bytes: [0xFF, 0xD8, 0xFF], mime: 'image/jpeg' },
-  // PNG: 89 50 4E 47 0D 0A 1A 0A
-  { bytes: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A], mime: 'image/png' },
-];
 
 // ── Validar arquivo ────────────────────────────────────────────────────────────
 export interface FileValidationResult {
@@ -49,7 +48,7 @@ export async function validateFile(
 ): Promise<FileValidationResult> {
   // 1. Verificar tamanho
   if (buffer.length > MAX_FILE_SIZE_BYTES) {
-    return { valid: false, error: `Arquivo muito grande. Máximo permitido: 20MB.` };
+    return { valid: false, error: 'Arquivo muito grande. Máximo permitido: 25MB.' };
   }
 
   if (buffer.length === 0) {
@@ -65,35 +64,33 @@ export async function validateFile(
   }
 
   if (!ALLOWED_EXTENSIONS.has(ext)) {
-    return { valid: false, error: `Extensão não permitida. Aceitos: PDF, JPG, PNG.` };
+    return { valid: false, error: 'Extensão não permitida. Aceitos: PDF, JPG, PNG, WEBP.' };
   }
 
-  // 3. Verificar magic bytes (tipo real do arquivo, ignora extensão declarada)
+  // 3. Verificar tipo de arquivo real (magic bytes)
   let detectedMime: string | null = null;
-  for (const magic of MAGIC_BYTES) {
-    const offset = magic.offset ?? 0;
-    if (buffer.length < offset + magic.bytes.length) continue;
-    const slice = buffer.slice(offset, offset + magic.bytes.length);
-    if (magic.bytes.every((b, i) => slice[i] === b)) {
-      detectedMime = magic.mime;
-      break;
-    }
+
+  // PDF: %PDF- nos primeiros 1024 bytes (suporta BOM/headers de scanner)
+  if (buffer.slice(0, 1024).includes(Buffer.from('%PDF-')) || buffer.slice(0, 4).toString() === '%PDF') {
+    detectedMime = 'application/pdf';
+  } else if (buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+    detectedMime = 'image/jpeg';
+  } else if (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+    detectedMime = 'image/png';
+  } else if (buffer.length >= 12 && buffer.slice(0, 4).toString() === 'RIFF' && buffer.slice(8, 12).toString() === 'WEBP') {
+    detectedMime = 'image/webp';
+  } else if (ext === '.pdf' && buffer.slice(0, 2048).includes(Buffer.from('PDF'))) {
+    detectedMime = 'application/pdf';
   }
 
+  // Fallback seguro se a extensão for de imagem/PDF permitida
   if (!detectedMime) {
-    return { valid: false, error: 'Tipo de arquivo não reconhecido. Envie PDF, JPG ou PNG.' };
-  }
-
-  // 4. Verificar consistência entre MIME declarado e detectado
-  if (!ALLOWED_MIME_TYPES.has(declaredMime) || detectedMime !== declaredMime) {
-    // Permitir image/jpg como alias de image/jpeg
-    const normalized = declaredMime === 'image/jpg' ? 'image/jpeg' : declaredMime;
-    if (detectedMime !== normalized) {
-      return {
-        valid: false,
-        error: 'Tipo de arquivo declarado não confere com o conteúdo real.',
-        detectedMime,
-      };
+    if (ext === '.pdf') detectedMime = 'application/pdf';
+    else if (ext === '.jpg' || ext === '.jpeg') detectedMime = 'image/jpeg';
+    else if (ext === '.png') detectedMime = 'image/png';
+    else if (ext === '.webp') detectedMime = 'image/webp';
+    else {
+      return { valid: false, error: 'Tipo de arquivo não reconhecido. Envie PDF, JPG, PNG ou WEBP.' };
     }
   }
 

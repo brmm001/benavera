@@ -35,7 +35,7 @@ const DECLARATIONS = [
 ];
 
 type FormData = Record<string, string | boolean | null>;
-type Documents = Array<OnboardingDocument & { uploadProgress?: number; uploading?: boolean }>;
+type Documents = Array<OnboardingDocument & { uploadProgress?: number; uploading?: boolean; uploadError?: string }>;
 
 interface FormContextType {
   formData: FormData;
@@ -163,7 +163,8 @@ export default function WizardPage() {
 
   // ── Upload de documento ──────────────────────────────────────────────────
   const handleUpload = async (documentId: string, file: File) => {
-    setDocuments(prev => prev.map(d => d.id === documentId ? { ...d, uploading: true, uploadProgress: 0 } : d));
+    setError('');
+    setDocuments(prev => prev.map(d => d.id === documentId ? { ...d, uploading: true, uploadProgress: 0, uploadError: undefined } : d));
     const formDataUpload = new FormData();
     formDataUpload.append('file', file);
     formDataUpload.append('documentId', documentId);
@@ -172,18 +173,23 @@ export default function WizardPage() {
       const data = await res.json();
       if (res.ok) {
         setDocuments(prev => prev.map(d => d.id === documentId ? {
-          ...d, uploading: false, uploadProgress: 100,
+          ...d,
+          uploading: false,
+          uploadProgress: 100,
           original_filename: file.name,
           size_bytes: file.size,
           storage_key: 'uploaded',
+          uploadError: undefined,
         } : d));
       } else {
-        setError(data.error || 'Erro ao enviar arquivo.');
-        setDocuments(prev => prev.map(d => d.id === documentId ? { ...d, uploading: false } : d));
+        const errorMsg = data.error || 'Erro ao enviar arquivo.';
+        setError(errorMsg);
+        setDocuments(prev => prev.map(d => d.id === documentId ? { ...d, uploading: false, uploadError: errorMsg } : d));
       }
     } catch {
-      setError('Erro de rede ao enviar arquivo.');
-      setDocuments(prev => prev.map(d => d.id === documentId ? { ...d, uploading: false } : d));
+      const errorMsg = 'Erro de rede ao enviar arquivo.';
+      setError(errorMsg);
+      setDocuments(prev => prev.map(d => d.id === documentId ? { ...d, uploading: false, uploadError: errorMsg } : d));
     }
   };
 
@@ -476,14 +482,50 @@ export default function WizardPage() {
                             📝 {doc.correction_message}
                           </p>
                         )}
+                        {doc.uploadError && (
+                          <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#f87171', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', padding: '8px 12px', borderRadius: '8px' }}>
+                            ⚠️ {doc.uploadError}
+                          </p>
+                        )}
                       </div>
-                      <label style={{ cursor: 'pointer', flexShrink: 0 }}>
-                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }}
-                          onChange={e => { if (e.target.files?.[0]) handleUpload(doc.id, e.target.files[0]); }} />
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: hasFile ? 'rgba(99,112,241,0.2)' : 'rgba(99,112,241,0.1)', color: hasFile ? '#a5b4fc' : 'rgba(255,255,255,0.5)', border: `1px solid ${hasFile ? 'rgba(99,112,241,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+                        <input
+                          id={`file-input-${doc.id}`}
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png,.webp"
+                          style={{ display: 'none' }}
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleUpload(doc.id, file);
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById(`file-input-${doc.id}`)?.click()}
+                          disabled={doc.uploading}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '10px 18px',
+                            background: hasFile ? 'rgba(99,112,241,0.2)' : 'rgba(99,112,241,0.12)',
+                            color: hasFile ? '#a5b4fc' : '#ffffff',
+                            border: `1px solid ${hasFile ? 'rgba(99,112,241,0.4)' : 'rgba(99,112,241,0.25)'}`,
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            cursor: doc.uploading ? 'not-allowed' : 'pointer',
+                            whiteSpace: 'nowrap',
+                            fontFamily: 'inherit',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
                           {doc.uploading ? '⏳ Enviando…' : hasFile ? '🔄 Substituir' : '📎 Enviar arquivo'}
-                        </span>
-                      </label>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

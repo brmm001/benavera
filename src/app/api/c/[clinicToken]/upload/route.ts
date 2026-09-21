@@ -46,10 +46,12 @@ export async function POST(
   const ip = getClientIP(request);
   const userAgent = request.headers.get('user-agent') || '';
 
-  // Rate limit: máximo 20 uploads por hora por IP
-  const rl = checkRateLimit(`upload_${ip}`, 20, 60 * 60 * 1000);
-  if (!rl.allowed) {
-    return NextResponse.json({ error: 'Limite de uploads atingido. Tente mais tarde.' }, { status: 429 });
+  // Rate limit: 200 uploads por hora (desabilitado em dev)
+  if (process.env.NODE_ENV !== 'development') {
+    const rl = checkRateLimit(`upload_${ip}`, 200, 60 * 60 * 1000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: 'Limite de uploads atingido. Tente mais tarde.' }, { status: 429 });
+    }
   }
 
   const { clinicToken: token } = await params;
@@ -136,8 +138,8 @@ export async function POST(
       size: buffer.length,
       filename: file.name,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Clinic Upload POST]', err);
-    return NextResponse.json({ error: 'Erro ao processar upload. Tente novamente.' }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Erro ao processar upload. Tente novamente.' }, { status: 500 });
   }
 }

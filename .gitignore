@@ -48,3 +48,6 @@ update-credentials.mjs
 query-tables.mjs
 *.credentials.mjs
 *.secrets.mjs
+
+uploads/
+/uploads
