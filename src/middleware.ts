@@ -23,18 +23,15 @@ const PROTECTED_PREFIXES = [
   '/repasses',
   '/equipe',
   '/configuracoes',
-  '/admin',
   '/api/applications',
   '/api/dashboard',
   '/api/patients',
   '/api/payouts',
   '/api/partners',
-  '/api/admin',
 ];
 
 // Exceções públicas dentro dos prefixos protegidos
 const PUBLIC_EXCEPTIONS = [
-  '/admin/login',
   '/api/admin/debug',
 ];
 
@@ -61,27 +58,19 @@ function isProtectedRoute(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Redireciona a tela de login do admin diretamente para o painel (sem proteção de senha)
+  if (pathname === '/admin/login') {
+    return NextResponse.redirect(new URL('/admin/leads', request.url));
+  }
+
+  // ── Rotas do admin (/admin/* e /api/admin/*) ──────────────────────────────
+  // Acesso direto liberado sem senha
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+    return NextResponse.next();
+  }
+
   // Se NÃO for uma rota protegida, permite acesso livre
   if (!isProtectedRoute(pathname)) {
-    return NextResponse.next();
-  }
-
-  // ── Rotas de página do admin (/admin/*) ───────────────────────────────────
-  // Usam o sistema de senha única existente (cookie bv_admin)
-  if (pathname.startsWith('/admin') && !pathname.startsWith('/api/')) {
-    const bvToken = request.cookies.get(BV_ADMIN_COOKIE)?.value;
-    const expectedToken = process.env.ADMIN_SECRET ?? 'bv-secure-token-9x2k7p4m8q1r';
-    if (!bvToken || bvToken !== expectedToken) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
-    }
-    return NextResponse.next();
-  }
-
-  // ── APIs do admin (/api/admin/*) ──────────────────────────────────────────
-  // A validação real é feita via getAdminSession() em cada handler,
-  // que aceita tanto bv_admin quanto benavera_session.
-  // O middleware deixa passar — a auth é feita no handler.
-  if (pathname.startsWith('/api/admin')) {
     return NextResponse.next();
   }
 

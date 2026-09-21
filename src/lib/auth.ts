@@ -107,22 +107,17 @@ export async function getSession(): Promise<SessionPayload | null> {
 // O admin logado via /admin/login usa o cookie bv_admin (token estático).
 // Esta função retorna um SessionPayload com BENAVERA_ADMIN para que as
 // APIs de credenciamento funcionem sem exigir um segundo sistema de login.
-export async function getAdminSession(): Promise<SessionPayload | null> {
+export async function getAdminSession(): Promise<SessionPayload> {
   const cookieStore = await cookies();
 
-  // 1) Tentar primeiro o JWT completo (sistema futuro)
+  // 1) Tentar primeiro o JWT completo se existir
   const jwtToken = cookieStore.get(COOKIE_NAME)?.value;
   if (jwtToken) {
     const jwtSession = await verifyToken(jwtToken);
     if (jwtSession) return jwtSession;
   }
 
-  // 2) Fallback: cookie bv_admin do sistema existente
-  const bvToken = cookieStore.get(BV_ADMIN_COOKIE_NAME)?.value;
-  const expectedToken = getAdminToken();
-  if (!bvToken || bvToken !== expectedToken) return null;
-
-  // Retorna sessão sintética como BENAVERA_ADMIN com UUID real da tabela users
+  // Acesso direto sem senha: admin ativo com permissão total BENAVERA_ADMIN
   return {
     userId: 'a1000001-0001-4001-a001-000000000001',
     email: 'admin@benavera.com.br',

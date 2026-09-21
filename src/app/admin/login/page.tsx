@@ -52,15 +52,10 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
 
-  // Quando o servidor retorna { success: true }, fazemos uma
-  // navegação COMPLETA com window.location — isso garante que o
-  // cookie já está salvo antes do próximo request ao servidor.
+  // Acesso direto liberado: redireciona imediatamente para o painel
   useEffect(() => {
-    if (state && 'success' in state && state.success) {
-      setRedirecting(true);
-      window.location.assign('/admin/leads');
-    }
-  }, [state]);
+    window.location.assign('/admin/leads');
+  }, []);
 
   return (
     <div
