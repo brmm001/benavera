@@ -8,10 +8,13 @@ import { jwtVerify } from 'jose';
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'benavera-secret-dev-2026-change-in-production'
 );
-const COOKIE_NAME = 'benavera_session';
+
+// Cookie do sistema JWT completo (clínicas e futuros usuários)
+const JWT_COOKIE = 'benavera_session';
+// Cookie do sistema de admin de senha única (sistema existente)
+const BV_ADMIN_COOKIE = 'bv_admin';
 
 // Apenas estas rotas e prefixos exigem login.
-// TODAS as outras rotas (incluindo /, /clinicas, /simular, /como-funciona, /calculadoras, /sobre, /conteudos, /proposta/*, etc.) são 100% PÚBLICAS.
 const PROTECTED_PREFIXES = [
   '/dashboard',
   '/novo-financiamento',
@@ -29,14 +32,13 @@ const PROTECTED_PREFIXES = [
   '/api/admin',
 ];
 
-// Exceções públicas dentro dos prefixos protegidos (se houver)
+// Exceções públicas dentro dos prefixos protegidos
 const PUBLIC_EXCEPTIONS = [
   '/admin/login',
   '/api/admin/debug',
 ];
 
 function isProtectedRoute(pathname: string): boolean {
-  // Arquivos estáticos e rotas do Next.js nunca são protegidos
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
@@ -50,33 +52,47 @@ function isProtectedRoute(pathname: string): boolean {
   ) {
     return false;
   }
-
-  // Verifica exceções públicas
   if (PUBLIC_EXCEPTIONS.some(exc => pathname.startsWith(exc))) {
     return false;
   }
-
-  // Verifica se a rota está na lista restrita
   return PROTECTED_PREFIXES.some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'));
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Se NÃO for uma rota protegida, permite acesso imediato e livre
+  // Se NÃO for uma rota protegida, permite acesso livre
   if (!isProtectedRoute(pathname)) {
     return NextResponse.next();
   }
 
-  // Obter token de sessão para rotas protegidas
-  const token = request.cookies.get(COOKIE_NAME)?.value;
+  // ── Rotas de página do admin (/admin/*) ───────────────────────────────────
+  // Usam o sistema de senha única existente (cookie bv_admin)
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/api/')) {
+    const bvToken = request.cookies.get(BV_ADMIN_COOKIE)?.value;
+    const expectedToken = process.env.ADMIN_SECRET ?? 'bv-secure-token-9x2k7p4m8q1r';
+    if (!bvToken || bvToken !== expectedToken) {
+      return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // ── APIs do admin (/api/admin/*) ──────────────────────────────────────────
+  // A validação real é feita via getAdminSession() em cada handler,
+  // que aceita tanto bv_admin quanto benavera_session.
+  // O middleware deixa passar — a auth é feita no handler.
+  if (pathname.startsWith('/api/admin')) {
+    return NextResponse.next();
+  }
+
+  // ── Outras rotas protegidas (clínicas, dashboard) ─────────────────────────
+  // Usam o sistema JWT (benavera_session)
+  const token = request.cookies.get(JWT_COOKIE)?.value;
 
   if (!token) {
-    // Se for chamada de API protegida, retornar 401 JSON
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
     }
-    // Redirecionar usuário para login
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
@@ -86,19 +102,12 @@ export async function middleware(request: NextRequest) {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const role = payload.role as string;
 
-    // Controle de acesso por perfil:
-    // Benavera staff pode acessar /admin
     const benaveraRoles = new Set([
       'BENAVERA_ADMIN', 'BENAVERA_ANALYST', 'BENAVERA_COMPLIANCE',
       'BENAVERA_COMERCIAL', 'BENAVERA_FINANCEIRO', 'BENAVERA_SUPORTE',
     ]);
-    if (pathname.startsWith('/admin')) {
-      if (!benaveraRoles.has(role)) {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
-      }
-    }
 
-    // Usuários Benavera redirecionam de /dashboard para /admin
+    // Usuários Benavera com JWT redirecionam de /dashboard para /admin
     if (
       pathname.startsWith('/dashboard') ||
       pathname.startsWith('/novo-financiamento') ||
@@ -122,22 +131,18 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next({ request: { headers: requestHeaders } });
   } catch {
-    // Token inválido ou expirado
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Sessão expirada.' }, { status: 401 });
     }
     const loginUrl = new URL('/login', request.url);
     const response = NextResponse.redirect(loginUrl);
-    response.cookies.delete(COOKIE_NAME);
+    response.cookies.delete(JWT_COOKIE);
     return response;
   }
 }
 
 export const config = {
   matcher: [
-    /*
-     * Intercepta todas as rotas para validação, exceto arquivos estáticos
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.png|.*\\.svg|.*\\.jpg|.*\\.ico).*)',
   ],
 };

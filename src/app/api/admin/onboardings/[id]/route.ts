@@ -2,7 +2,7 @@
 // GET: busca por ID | PATCH: atualiza dados do pré-cadastro
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, hasPermission } from '@/lib/auth';
+import { getAdminSession, hasPermission } from '@/lib/auth';
 import { getClientIP } from '@/lib/security';
 import { getOnboardingById, updateOnboardingData } from '@/lib/onboarding-db';
 import { getAuditLogs } from '@/lib/onboarding-audit';
@@ -12,7 +12,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'VIEW_ONBOARDING_DETAIL')) {
     return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
@@ -43,7 +43,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'VIEW_ONBOARDING_DETAIL')) {
     return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });

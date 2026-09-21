@@ -2,7 +2,7 @@
 // POST: gerar link de credenciamento | DELETE: revogar link
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, hasPermission } from '@/lib/auth';
+import { getAdminSession, hasPermission } from '@/lib/auth';
 import { getOnboardingById } from '@/lib/onboarding-db';
 import {
   createInvite,
@@ -19,7 +19,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'MANAGE_ONBOARDING_INVITES')) {
     return NextResponse.json({ error: 'Sem permissão para gerar convites.' }, { status: 403 });
@@ -112,7 +112,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'MANAGE_ONBOARDING_INVITES')) {
     return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
@@ -133,7 +133,7 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'MANAGE_ONBOARDING_INVITES')) {
     return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });

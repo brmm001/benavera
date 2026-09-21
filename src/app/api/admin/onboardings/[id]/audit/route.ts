@@ -2,14 +2,14 @@
 // GET: histórico de auditoria do credenciamento
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, hasPermission } from '@/lib/auth';
+import { getAdminSession, hasPermission } from '@/lib/auth';
 import { getAuditLogs } from '@/lib/onboarding-audit';
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'VIEW_ONBOARDING_AUDIT')) {
     return NextResponse.json({ error: 'Sem permissão para visualizar auditoria.' }, { status: 403 });

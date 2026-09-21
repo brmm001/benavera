@@ -3,7 +3,7 @@
 // GET: gerar URL assinada para documento específico (download)
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, hasPermission } from '@/lib/auth';
+import { getAdminSession, hasPermission } from '@/lib/auth';
 import { reviewDocument } from '@/lib/onboarding-db';
 import { getStorageAdapter } from '@/lib/storage-adapter';
 import { logAuditEvent } from '@/lib/onboarding-audit';
@@ -22,7 +22,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; docId: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'VALIDATE_ONBOARDING_DOCUMENTS')) {
     return NextResponse.json({ error: 'Sem permissão para revisar documentos.' }, { status: 403 });
@@ -68,7 +68,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; docId: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'VIEW_ONBOARDING_DOCUMENTS')) {
     return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });

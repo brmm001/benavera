@@ -42,3 +42,9 @@ yarn-error.log*
 next-env.d.ts
 .neon
 /data/
+
+# Scripts com credenciais — nunca commitar
+update-credentials.mjs
+query-tables.mjs
+*.credentials.mjs
+*.secrets.mjs

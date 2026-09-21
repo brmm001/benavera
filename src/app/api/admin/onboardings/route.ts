@@ -2,7 +2,7 @@
 // GET: lista credenciamentos | POST: cria pré-cadastro
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, hasPermission } from '@/lib/auth';
+import { getAdminSession, hasPermission } from '@/lib/auth';
 import { getClientIP } from '@/lib/security';
 import { createOnboarding, getOnboardings } from '@/lib/onboarding-db';
 import type { OnboardingStatus } from '@/lib/benavera-db';
@@ -25,7 +25,7 @@ const createOnboardingSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'VIEW_ONBOARDING_LIST')) {
     return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'CREATE_ONBOARDING')) {
     return NextResponse.json({ error: 'Sem permissão para criar pré-cadastro.' }, { status: 403 });

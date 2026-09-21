@@ -2,7 +2,7 @@
 // POST: transição de status do credenciamento
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, hasPermission } from '@/lib/auth';
+import { getAdminSession, hasPermission } from '@/lib/auth';
 import { getClientIP } from '@/lib/security';
 import { getOnboardingById, updateOnboardingStatus, canApproveOnboarding } from '@/lib/onboarding-db';
 import { sendOnboardingApprovedEmail, sendCorrectionRequestEmail } from '@/lib/email';
@@ -29,7 +29,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
 
   const { id } = await params;

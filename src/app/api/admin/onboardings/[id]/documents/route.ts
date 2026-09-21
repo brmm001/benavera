@@ -2,7 +2,7 @@
 // GET: lista documentos do credenciamento (com URL assinada)
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, hasPermission } from '@/lib/auth';
+import { getAdminSession, hasPermission } from '@/lib/auth';
 import { getOnboardingDocuments } from '@/lib/onboarding-db';
 import { getStorageAdapter } from '@/lib/storage-adapter';
 import { logAuditEvent } from '@/lib/onboarding-audit';
@@ -12,7 +12,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
   if (!hasPermission(session.role, 'VIEW_ONBOARDING_DOCUMENTS')) {
     return NextResponse.json({ error: 'Sem permissão para visualizar documentos.' }, { status: 403 });
