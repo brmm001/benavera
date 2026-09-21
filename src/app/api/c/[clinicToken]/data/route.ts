@@ -13,40 +13,50 @@ const CLINIC_SESSION_SECRET = new TextEncoder().encode(
 );
 const CLINIC_SESSION_COOKIE = 'benavera_clinic_session';
 
-async function getClinicSession(request: NextRequest): Promise<{
+async function getClinicSession(
+  request: NextRequest,
+  clinicToken?: string
+): Promise<{
   onboardingId: string;
   inviteId: string;
 } | null> {
   const token = request.cookies.get(CLINIC_SESSION_COOKIE)?.value;
-  if (!token) return null;
-
-  try {
-    const { payload } = await jwtVerify(token, CLINIC_SESSION_SECRET);
-    if (payload.type !== 'clinic_session') return null;
-    return {
-      onboardingId: String(payload.onboardingId),
-      inviteId: String(payload.inviteId),
-    };
-  } catch {
-    return null;
+  if (token) {
+    try {
+      const { payload } = await jwtVerify(token, CLINIC_SESSION_SECRET);
+      if (payload.type === 'clinic_session') {
+        return {
+          onboardingId: String(payload.onboardingId),
+          inviteId: String(payload.inviteId),
+        };
+      }
+    } catch {
+      // fallback
+    }
   }
+
+  // Fallback direto pelo token da URL (sem necessidade de OTP)
+  if (clinicToken) {
+    const validation = await validateInviteToken(clinicToken);
+    if (validation.valid && validation.invite) {
+      return {
+        onboardingId: validation.invite.onboardingId,
+        inviteId: validation.invite.id,
+      };
+    }
+  }
+
+  return null;
 }
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ clinicToken: string }> }
 ) {
-  const session = await getClinicSession(request);
+  const { clinicToken: token } = await params;
+  const session = await getClinicSession(request, token);
   if (!session) {
     return NextResponse.json({ error: 'Sessão inválida. Acesse o link novamente.' }, { status: 401 });
-  }
-
-  const { clinicToken: token } = await params;
-
-  // Re-validar o convite ainda está ativo
-  const inviteValidation = await validateInviteToken(token);
-  if (!inviteValidation.valid || inviteValidation.invite?.id !== session.inviteId) {
-    return NextResponse.json({ error: 'Sessão expirada.' }, { status: 401 });
   }
 
   try {
@@ -70,15 +80,10 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ clinicToken: string }> }
 ) {
-  const session = await getClinicSession(request);
+  const { clinicToken: token } = await params;
+  const session = await getClinicSession(request, token);
   if (!session) {
     return NextResponse.json({ error: 'Sessão inválida. Acesse o link novamente.' }, { status: 401 });
-  }
-
-  const { clinicToken: token } = await params;
-  const inviteValidation = await validateInviteToken(token);
-  if (!inviteValidation.valid || inviteValidation.invite?.id !== session.inviteId) {
-    return NextResponse.json({ error: 'Sessão expirada.' }, { status: 401 });
   }
 
   try {

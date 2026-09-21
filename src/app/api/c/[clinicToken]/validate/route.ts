@@ -1,14 +1,18 @@
 // app/api/c/[token]/validate/route.ts
-// POST: valida o token e envia OTP para o e-mail da clínica
-// Rate limiting rigoroso — proteção contra brute force
+// POST: valida o token e inicia imediatamente a sessão de preenchimento da clínica (sem exigência de OTP)
 
 import { NextRequest, NextResponse } from 'next/server';
-import { validateInviteToken, recordInviteOpened } from '@/lib/onboarding-tokens';
-import { createOTP } from '@/lib/onboarding-otp';
-import { sendOTPEmail } from '@/lib/email';
+import { validateInviteToken, recordInviteOpened, recordSessionValidated } from '@/lib/onboarding-tokens';
 import { getClientIP } from '@/lib/security';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { sql } from '@/lib/benavera-db';
+import { SignJWT } from 'jose';
+
+const CLINIC_SESSION_SECRET = new TextEncoder().encode(
+  process.env.CLINIC_SESSION_SECRET || process.env.JWT_SECRET || 'clinic-session-secret-change-me'
+);
+const CLINIC_SESSION_COOKIE = 'benavera_clinic_session';
+const CLINIC_SESSION_TTL = '24h';
 
 export async function POST(
   request: NextRequest,
@@ -17,8 +21,8 @@ export async function POST(
   const ip = getClientIP(request);
   const userAgent = request.headers.get('user-agent') || '';
 
-  // Rate limit por IP: máximo 10 tentativas/hora
-  const rl = checkRateLimit(`validate_${ip}`, 10, 60 * 60 * 1000);
+  // Rate limit por IP
+  const rl = checkRateLimit(`validate_${ip}`, 60, 60 * 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json({
       error: 'Muitas tentativas. Tente novamente mais tarde.',
@@ -52,7 +56,7 @@ export async function POST(
   // Registrar abertura do link
   await recordInviteOpened(invite.id, invite.onboardingId, ip, userAgent);
 
-  // Buscar e-mail da clínica para envio do OTP (não retornar integralmente)
+  // Buscar dados da clínica
   const onboardingRows = await sql`
     SELECT email, trade_name, contact_name, phone, status
     FROM clinic_onboardings
@@ -66,7 +70,7 @@ export async function POST(
 
   const onboarding = onboardingRows[0];
 
-  // Verificar se o credenciamento já foi submetido ou está em estado terminal
+  // Verificar se o credenciamento está em estado terminal
   const terminalStatuses = ['REJECTED', 'REVOKED', 'SUSPENDED'];
   if (terminalStatuses.includes(String(onboarding.status))) {
     return NextResponse.json({
@@ -75,44 +79,35 @@ export async function POST(
     }, { status: 410 });
   }
 
-  // Gerar OTP
-  const otpResult = await createOTP({
-    inviteId: invite.id,
+  // Registrar validação da sessão
+  await recordSessionValidated(invite.id);
+
+  // Gerar JWT da sessão da clínica
+  const clinicSessionToken = await new SignJWT({
     onboardingId: invite.onboardingId,
-    ip,
-    userAgent,
-  });
+    inviteId: invite.id,
+    type: 'clinic_session',
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime(CLINIC_SESSION_TTL)
+    .sign(CLINIC_SESSION_SECRET);
 
-  if (!otpResult.success) {
-    return NextResponse.json({ error: otpResult.error || 'Erro ao gerar código.' }, { status: 429 });
-  }
-
-  // Enviar OTP por e-mail
-  const email = String(onboarding.email);
-  const clinicName = String(onboarding.trade_name);
-
-  // Em produção, não retornamos o código — apenas em dev
-  const devCode = (otpResult as { devCode?: string }).devCode;
-
-  if (!devCode) {
-    // Produção: enviar e-mail real
-    sendOTPEmail({
-      to: email,
-      clinicName,
-      code: '000000', // Placeholder — código real vai no email.ts que tem acesso ao hash
-    }).catch(err => console.warn('[OTP Email]', err));
-
-    // Na prática, o código real é passado dentro do createOTP que chama sendOTPByEmail
-  }
-
-  return NextResponse.json({
+  const response = NextResponse.json({
     success: true,
-    maskedEmail: otpResult.maskedEmail,
-    maskedPhone: otpResult.maskedPhone,
     inviteId: invite.id,
     onboardingId: invite.onboardingId,
-    clinicName,
-    // Em desenvolvimento, devolver o código para facilitar testes
-    ...(process.env.NODE_ENV === 'development' && devCode ? { _devOtp: devCode } : {}),
+    clinicName: String(onboarding.trade_name),
+    redirect: `/c/${token}/formulario`,
   });
+
+  response.cookies.set(CLINIC_SESSION_COOKIE, clinicSessionToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24, // 24h
+  });
+
+  return response;
 }
