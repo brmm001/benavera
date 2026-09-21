@@ -6,6 +6,7 @@ import type { User, UserRole } from './benavera-db';
 import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
+import { getAdminToken, COOKIE_NAME as BV_ADMIN_COOKIE_NAME } from './auth-config';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'benavera-secret-dev-2026-change-in-production'
@@ -89,12 +90,16 @@ export async function loginUser(email: string, password: string): Promise<{
   }
 }
 
-// ── Obter sessão atual (JWT benavera_session) ────
+// ── Obter sessão atual (JWT benavera_session ou bv_admin) ────
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
-  if (!token) return null;
-  return verifyToken(token);
+  if (token) {
+    const session = await verifyToken(token);
+    if (session) return session;
+  }
+  // Fallback para admin logado via bv_admin
+  return getAdminSession();
 }
 
 // ── Obter sessão do admin existente (bv_admin) ───
@@ -113,13 +118,13 @@ export async function getAdminSession(): Promise<SessionPayload | null> {
   }
 
   // 2) Fallback: cookie bv_admin do sistema existente
-  const { getAdminToken, COOKIE_NAME: BV_COOKIE } = await import('./auth-config');
-  const bvToken = cookieStore.get(BV_COOKIE)?.value;
-  if (!bvToken || bvToken !== getAdminToken()) return null;
+  const bvToken = cookieStore.get(BV_ADMIN_COOKIE_NAME)?.value;
+  const expectedToken = getAdminToken();
+  if (!bvToken || bvToken !== expectedToken) return null;
 
-  // Retorna sessão sintética como BENAVERA_ADMIN
+  // Retorna sessão sintética como BENAVERA_ADMIN com UUID real da tabela users
   return {
-    userId: 'admin-benavera',
+    userId: 'a1000001-0001-4001-a001-000000000001',
     email: 'admin@benavera.com.br',
     name: 'Admin Benavera',
     role: 'BENAVERA_ADMIN' as UserRole,

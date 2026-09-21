@@ -2,7 +2,8 @@
 // app/admin/credenciamentos/[id]/page.tsx — Página individual de credenciamento
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import type { ClinicOnboarding, OnboardingDocument, OnboardingAuditLog, OnboardingStatus } from '@/lib/benavera-db';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -44,14 +45,16 @@ function Grid({ children }: { children: React.ReactNode }) {
   return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0 24px' }}>{children}</div>;
 }
 
-export default function OnboardingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function OnboardingDetailPage() {
   const router = useRouter();
-  const [id, setId] = useState('');
+  const routeParams = useParams();
+  const id = typeof routeParams?.id === 'string' ? routeParams.id : '';
+
   const [onboarding, setOnboarding] = useState<ClinicOnboarding | null>(null);
   const [documents, setDocuments] = useState<Array<OnboardingDocument & { signedUrl?: string }>>([]);
   const [auditLogs, setAuditLogs] = useState<OnboardingAuditLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState('');
+  const [userRole, setUserRole] = useState('BENAVERA_ADMIN');
   const [activeTab, setActiveTab] = useState<'dados' | 'documentos' | 'auditoria' | 'observacoes'>('dados');
   const [generatingLink, setGeneratingLink] = useState(false);
   const [inviteUrl, setInviteUrl] = useState('');
@@ -64,9 +67,11 @@ export default function OnboardingDetailPage({ params }: { params: Promise<{ id:
   const [reviewMessage, setReviewMessage] = useState('');
 
   useEffect(() => {
-    params.then(p => setId(p.id));
-    fetch('/api/auth/me').then(r => r.json()).then(d => { if (d.user) setUserRole(d.user.role); });
-  }, [params]);
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(d => { if (d.user) setUserRole(d.user.role); })
+      .catch(() => {});
+  }, []);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
@@ -78,17 +83,26 @@ export default function OnboardingDetailPage({ params }: { params: Promise<{ id:
         setOnboarding(data.onboarding);
         setDocuments(data.documents || []);
         setAuditLogs(data.auditLogs || []);
+      } else if (res.status === 401) {
+        router.push('/admin/login');
       } else if (res.status === 404) {
-        router.push('/admin/credenciamentos');
+        setOnboarding(null);
       }
+    } catch (e) {
+      console.error('Erro ao carregar dados do credenciamento:', e);
     } finally {
       setLoading(false);
     }
   }, [id, router]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    if (id) {
+      fetchData();
+    }
+  }, [id, fetchData]);
 
   const handleGenerateLink = async (sendEmail: boolean) => {
+    if (!id) return;
     setGeneratingLink(true);
     try {
       const res = await fetch(`/api/admin/onboardings/${id}/invite`, {
@@ -99,11 +113,17 @@ export default function OnboardingDetailPage({ params }: { params: Promise<{ id:
       const data = await res.json();
       if (res.ok) {
         setInviteUrl(data.inviteUrl);
-        await navigator.clipboard.writeText(data.inviteUrl);
+        try {
+          await navigator.clipboard.writeText(data.inviteUrl);
+        } catch {
+          window.prompt('Link de credenciamento gerado com sucesso! Copie abaixo:', data.inviteUrl);
+        }
         fetchData();
       } else {
         alert(data.error || 'Erro ao gerar link');
       }
+    } catch (e) {
+      alert('Erro ao conectar ao servidor para gerar link.');
     } finally {
       setGeneratingLink(false);
     }
@@ -171,7 +191,36 @@ export default function OnboardingDetailPage({ params }: { params: Promise<{ id:
     </div>
   );
 
-  if (!onboarding) return null;
+  if (!onboarding) {
+    return (
+      <div style={{ padding: '60px 40px', textAlign: 'center' }}>
+        <p style={{ fontSize: '40px', margin: '0 0 16px' }}>🪪</p>
+        <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#1c1d4c', margin: '0 0 8px' }}>
+          Credenciamento não encontrado
+        </h2>
+        <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>
+          O credenciamento solicitado não existe ou você não possui permissão para visualizá-lo.
+        </p>
+        <Link
+          href="/admin/credenciamentos"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 20px',
+            background: 'linear-gradient(135deg,#6370f1,#4040ca)',
+            color: 'white',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontSize: '14px',
+            fontWeight: '600',
+          }}
+        >
+          ← Voltar para Credenciamentos
+        </Link>
+      </div>
+    );
+  }
 
   const statusCfg = STATUS_LABELS[onboarding.status] || onboarding.status;
 

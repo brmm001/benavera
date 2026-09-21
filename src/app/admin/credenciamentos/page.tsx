@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import type { ClinicOnboarding, OnboardingStatus } from '@/lib/benavera-db';
 
 // ── Configuração de status ────────────────────────────────────────────────────
@@ -204,13 +205,19 @@ export default function CredenciamentosPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        await navigator.clipboard.writeText(data.inviteUrl);
-        setCopiedId(id);
-        setTimeout(() => setCopiedId(null), 3000);
+        try {
+          await navigator.clipboard.writeText(data.inviteUrl);
+          setCopiedId(id);
+          setTimeout(() => setCopiedId(null), 4000);
+        } catch {
+          window.prompt('Link de credenciamento gerado com sucesso! Copie abaixo:', data.inviteUrl);
+        }
         fetchItems();
       } else {
         alert(data.error || 'Erro ao gerar link');
       }
+    } catch (e) {
+      alert('Erro de conexão ao gerar link.');
     } finally {
       setGeneratingLink(null);
     }
@@ -334,11 +341,11 @@ export default function CredenciamentosPage() {
                     onMouseEnter={e => e.currentTarget.style.background = '#fafbff'}
                     onMouseLeave={e => e.currentTarget.style.background = 'white'}>
                     <td style={{ padding: '14px 16px' }}>
-                      <button onClick={() => router.push(`/admin/credenciamentos/${item.id}`)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
+                      <Link href={`/admin/credenciamentos/${item.id}`}
+                        style={{ textDecoration: 'none', textAlign: 'left', display: 'block' }}>
                         <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: '#1c1d4c' }}>{item.trade_name}</p>
                         {item.specialty && <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#94a3b8' }}>{item.specialty}</p>}
-                      </button>
+                      </Link>
                     </td>
                     <td style={{ padding: '14px 16px', fontSize: '13px', color: '#475569', fontFamily: 'monospace' }}>
                       {item.cnpj || '—'}
@@ -365,10 +372,10 @@ export default function CredenciamentosPage() {
                     </td>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        <button onClick={() => router.push(`/admin/credenciamentos/${item.id}`)}
-                          style={{ padding: '6px 10px', background: '#f0f4ff', color: '#4040ca', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                        <Link href={`/admin/credenciamentos/${item.id}`}
+                          style={{ textDecoration: 'none', padding: '6px 10px', background: '#f0f4ff', color: '#4040ca', borderRadius: '6px', fontSize: '12px', fontWeight: '600', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center' }}>
                           Ver
-                        </button>
+                        </Link>
 
                         {['PRE_REGISTERED', 'INVITE_SENT', 'INVITE_OPENED', 'IN_PROGRESS', 'PENDING_DOCUMENTS', 'CORRECTION_REQUIRED'].includes(item.status) && (
                           <button
@@ -380,10 +387,10 @@ export default function CredenciamentosPage() {
                         )}
 
                         {item.status === 'SUBMITTED' && (
-                          <button onClick={() => router.push(`/admin/credenciamentos/${item.id}`)}
-                            style={{ padding: '6px 10px', background: '#fef3c7', color: '#d97706', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                          <Link href={`/admin/credenciamentos/${item.id}`}
+                            style={{ textDecoration: 'none', padding: '6px 10px', background: '#fef3c7', color: '#d97706', borderRadius: '6px', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center' }}>
                             Analisar
-                          </button>
+                          </Link>
                         )}
                       </div>
                     </td>

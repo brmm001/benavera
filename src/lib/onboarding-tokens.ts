@@ -32,12 +32,16 @@ export async function createInvite(params: {
   const expiryDays = params.expiryDays ?? TOKEN_EXPIRY_DAYS;
   const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
 
+  const safeCreatedBy = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(params.createdBy)
+    ? params.createdBy
+    : 'a1000001-0001-4001-a001-000000000001';
+
   const rows = await sql`
     INSERT INTO onboarding_invites (
       onboarding_id, token_hash, token_prefix, expires_at, created_by
     ) VALUES (
       ${params.onboardingId}, ${hash}, ${prefix},
-      ${expiresAt.toISOString()}, ${params.createdBy}
+      ${expiresAt.toISOString()}, ${safeCreatedBy}
     )
     RETURNING id
   `;
@@ -174,9 +178,13 @@ export async function revokeAllInvites(
   onboardingId: string,
   revokedBy: string
 ): Promise<void> {
+  const safeRevokedBy = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(revokedBy)
+    ? revokedBy
+    : 'a1000001-0001-4001-a001-000000000001';
+
   await sql`
     UPDATE onboarding_invites
-    SET revoked_at = NOW(), revoked_by = ${revokedBy}
+    SET revoked_at = NOW(), revoked_by = ${safeRevokedBy}
     WHERE onboarding_id = ${onboardingId} AND revoked_at IS NULL
   `;
 }

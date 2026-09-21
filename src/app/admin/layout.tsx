@@ -5,7 +5,7 @@ import { AdminSidebar } from '@/components/AdminSidebar';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
-  if (!session) redirect('/login');
+  if (!session) redirect('/admin/login');
   if (session.role !== 'BENAVERA_ADMIN' && session.role !== 'BENAVERA_ANALYST') {
     redirect('/dashboard');
   }

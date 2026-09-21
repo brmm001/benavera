@@ -233,22 +233,51 @@ export async function updateOnboardingStatus(params: {
     };
   }
 
-  // Campos de data para cada transição
-  const dateFields: Record<string, string> = {
-    INVITE_SENT: 'invite_sent_at',
-    SUBMITTED: 'submitted_at',
-    APPROVED: 'approved_at',
-    ACTIVE: 'activated_at',
-    REJECTED: 'rejected_at',
-  };
-
-  const dateField = dateFields[params.newStatus];
-
-  if (dateField) {
+  if (params.newStatus === 'INVITE_SENT') {
     await sql`
       UPDATE clinic_onboardings
       SET status = ${params.newStatus},
-          ${sql.unsafe(dateField)} = NOW(),
+          invite_sent_at = NOW(),
+          rejection_reason = ${params.reason || null},
+          rejection_message = ${params.message || null},
+          updated_at = NOW()
+      WHERE id = ${params.id}
+    `;
+  } else if (params.newStatus === 'SUBMITTED') {
+    await sql`
+      UPDATE clinic_onboardings
+      SET status = ${params.newStatus},
+          submitted_at = NOW(),
+          rejection_reason = ${params.reason || null},
+          rejection_message = ${params.message || null},
+          updated_at = NOW()
+      WHERE id = ${params.id}
+    `;
+  } else if (params.newStatus === 'APPROVED') {
+    await sql`
+      UPDATE clinic_onboardings
+      SET status = ${params.newStatus},
+          approved_at = NOW(),
+          rejection_reason = ${params.reason || null},
+          rejection_message = ${params.message || null},
+          updated_at = NOW()
+      WHERE id = ${params.id}
+    `;
+  } else if (params.newStatus === 'ACTIVE') {
+    await sql`
+      UPDATE clinic_onboardings
+      SET status = ${params.newStatus},
+          activated_at = NOW(),
+          rejection_reason = ${params.reason || null},
+          rejection_message = ${params.message || null},
+          updated_at = NOW()
+      WHERE id = ${params.id}
+    `;
+  } else if (params.newStatus === 'REJECTED') {
+    await sql`
+      UPDATE clinic_onboardings
+      SET status = ${params.newStatus},
+          rejected_at = NOW(),
           rejection_reason = ${params.reason || null},
           rejection_message = ${params.message || null},
           updated_at = NOW()
@@ -367,13 +396,12 @@ export async function updateOnboardingData(params: {
     }
   }
 
-  // UPDATE com campos dinâmicos
+  // UPDATE com campos dinâmicos (field é restrito à lista allowedFields)
   for (const [field, value] of updates) {
-    await sql`
-      UPDATE clinic_onboardings
-      SET ${sql.unsafe(field)} = ${value as string | null}, updated_at = NOW()
-      WHERE id = ${params.id}
-    `;
+    await (sql as any)(
+      `UPDATE clinic_onboardings SET ${field} = $1, updated_at = NOW() WHERE id = $2`,
+      [value as string | null, params.id]
+    );
   }
 }
 
