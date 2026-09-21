@@ -233,3 +233,228 @@ export async function sendAnalystAlertEmail(opts: {
     html: baseLayout(content),
   });
 }
+
+// ─── Email: OTP de verificação ──────────────────────────────────────────────
+
+export async function sendOTPEmail(opts: {
+  to: string;
+  clinicName: string;
+  code: string;
+}) {
+  const { to, clinicName, code } = opts;
+
+  const content = `
+    <div style="border-top:4px solid #6370f1;padding:40px;">
+      <div style="font-size:36px;margin-bottom:12px;">🔐</div>
+      <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">Código de verificação</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">
+        Para proteger os dados da <strong>${clinicName}</strong>, confirme seu acesso com o código abaixo.
+      </p>
+      <div style="background:#f0f4ff;border-radius:14px;padding:28px;text-align:center;margin:24px 0;border:2px dashed #c7d7fe;">
+        <p style="font-size:42px;font-weight:900;letter-spacing:12px;color:#4040ca;margin:0;font-family:monospace;">${code}</p>
+        <p style="font-size:13px;color:#64748b;margin:12px 0 0;">Válido por 10 minutos</p>
+      </div>
+      <p style="font-size:14px;color:#64748b;line-height:1.6;margin:0;">
+        Se você não solicitou este código, ignore este e-mail. Nunca compartilhe este código com ninguém.<br/>
+        A Benavera nunca solicitará este código por telefone ou WhatsApp.
+      </p>
+    </div>
+  `;
+
+  return getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `${code} — Código de verificação Benavera`,
+    html: baseLayout(content, `Seu código de verificação para o credenciamento Benavera.`),
+  });
+}
+
+// ─── Email: Convite de credenciamento ──────────────────────────────────────
+
+export async function sendOnboardingInviteEmail(opts: {
+  to: string;
+  clinicName: string;
+  responsavel: string;
+  inviteUrl: string;
+  expiresAt: Date;
+}) {
+  const { to, clinicName, responsavel, inviteUrl, expiresAt } = opts;
+  const expiryFormatted = expiresAt.toLocaleDateString('pt-BR', {
+    day: '2-digit', month: 'long', year: 'numeric',
+  });
+
+  const content = `
+    <div style="padding:40px;">
+      <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">Olá, ${responsavel}! 👋</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">
+        Estamos prontos para concluir o credenciamento da <strong>${clinicName}</strong> na Benavera.
+      </p>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">
+        Seus dados básicos já estão preenchidos. Clique no botão abaixo para iniciar o preenchimento.
+      </p>
+      <a href="${inviteUrl}" style="display:inline-block;background:linear-gradient(135deg,#6370f1,#4040ca);color:#fff;font-weight:700;font-size:15px;padding:16px 36px;border-radius:12px;text-decoration:none;margin-bottom:24px;">
+        Iniciar credenciamento →
+      </a>
+      <div style="background:#fef9ec;border-radius:10px;padding:16px;border:1px solid #fde68a;margin:24px 0;">
+        <p style="font-size:13px;color:#92400e;margin:0;">
+          ⏱️ Este link expira em <strong>${expiryFormatted}</strong>.
+        </p>
+      </div>
+      <div style="background:#f0faf8;border-radius:10px;padding:16px;border:1px solid #b4e6de;margin:0;">
+        <p style="font-size:13px;color:#1e6560;margin:0;">
+          🔒 Seus dados são enviados por conexão segura (HTTPS). Uma verificação de identidade será solicitada.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `${clinicName} — Complete seu credenciamento na Benavera`,
+    html: baseLayout(content, `Finalize o credenciamento da ${clinicName} na Benavera.`),
+  });
+}
+
+// ─── Email: Correção solicitada ────────────────────────────────────────────
+
+export async function sendCorrectionRequestEmail(opts: {
+  to: string;
+  clinicName: string;
+  responsavel: string;
+  corrections: Array<{ label: string; message: string }>;
+  inviteUrl: string;
+}) {
+  const { to, clinicName, responsavel, corrections, inviteUrl } = opts;
+
+  const correctionItems = corrections.map(c => `
+    <li style="margin-bottom:12px;">
+      <strong style="color:#0f172a;">${c.label}</strong><br/>
+      <span style="color:#475569;font-size:14px;">${c.message}</span>
+    </li>
+  `).join('');
+
+  const content = `
+    <div style="border-top:4px solid #f59e0b;padding:40px;">
+      <div style="font-size:32px;margin-bottom:12px;">📋</div>
+      <h1 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">Correção necessária</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">
+        Olá, <strong>${responsavel}</strong>! Identificamos pontos que precisam ser corrigidos no credenciamento da <strong>${clinicName}</strong>.
+      </p>
+      <div style="background:#fef9ec;border-radius:10px;padding:20px;border:1px solid #fde68a;margin:20px 0;">
+        <p style="font-size:14px;font-weight:700;color:#92400e;margin:0 0 12px;">⚠️ Itens para correção:</p>
+        <ul style="margin:0;padding-left:20px;font-size:14px;color:#475569;line-height:1.8;">${correctionItems}</ul>
+      </div>
+      <a href="${inviteUrl}" style="display:inline-block;background:linear-gradient(135deg,#6370f1,#4040ca);color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;">
+        Corrigir agora →
+      </a>
+    </div>
+  `;
+
+  return getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `${clinicName} — Correção necessária no credenciamento`,
+    html: baseLayout(content, `Verifique os itens que precisam ser corrigidos.`),
+  });
+}
+
+// ─── Email: Credenciamento recebido (clínica) ──────────────────────────────
+
+export async function sendOnboardingSubmittedClinicEmail(opts: {
+  to: string;
+  clinicName: string;
+  responsavel: string;
+}) {
+  const { to, clinicName, responsavel } = opts;
+
+  const content = `
+    <div style="border-top:4px solid #10b981;padding:40px;">
+      <div style="font-size:36px;margin-bottom:12px;">✅</div>
+      <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">Credenciamento recebido!</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">
+        Olá, <strong>${responsavel}</strong>! Recebemos o credenciamento da <strong>${clinicName}</strong> com sucesso.
+      </p>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">
+        Nossa equipe fará a validação das informações e documentos. Você será avisado quando a análise for concluída.
+      </p>
+      <p style="font-size:13px;color:#94a3b8;margin-top:24px;">
+        Buscamos concentrar toda a documentação necessária nesta etapa. Em situações excepcionais, 
+        alterações cadastrais, exigências regulatórias, prevenção à fraude ou solicitações do parceiro 
+        financeiro poderão exigir atualização ou documentação complementar.
+      </p>
+    </div>
+  `;
+
+  return getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `${clinicName} — Credenciamento recebido com sucesso`,
+    html: baseLayout(content, `Seu credenciamento foi recebido.`),
+  });
+}
+
+// ─── Email: Alerta interno — submissão recebida ────────────────────────────
+
+export async function sendOnboardingSubmittedAlert(opts: {
+  to: string;
+  analystName: string;
+  clinicName: string;
+  adminUrl: string;
+}) {
+  const { to, analystName, clinicName, adminUrl } = opts;
+
+  const content = `
+    <div style="border-top:4px solid #6370f1;padding:40px;">
+      <div style="font-size:32px;margin-bottom:12px;">📥</div>
+      <h1 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">Novo credenciamento para análise</h1>
+      <p style="font-size:14px;color:#64748b;margin:0 0 16px;">Olá, <strong>${analystName}</strong>!</p>
+      <p style="font-size:15px;color:#475569;margin:0 0 16px;">
+        A clínica <strong>${clinicName}</strong> submeteu o credenciamento e aguarda análise.
+      </p>
+      <a href="${adminUrl}" style="display:inline-block;background:#6370f1;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none;">
+        Analisar credenciamento →
+      </a>
+    </div>
+  `;
+
+  return getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `📥 Novo credenciamento — ${clinicName}`,
+    html: baseLayout(content),
+  });
+}
+
+// ─── Email: Credenciamento aprovado ──────────────────────────────────────
+
+export async function sendOnboardingApprovedEmail(opts: {
+  to: string;
+  clinicName: string;
+  responsavel: string;
+}) {
+  const { to, clinicName, responsavel } = opts;
+
+  const content = `
+    <div style="border-top:4px solid #10b981;padding:40px;">
+      <div style="font-size:36px;margin-bottom:12px;">🎉</div>
+      <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">Credenciamento aprovado!</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">
+        Parabéns, <strong>${responsavel}</strong>! O credenciamento da <strong>${clinicName}</strong> foi aprovado.
+      </p>
+      <div style="background:#f0faf8;border-radius:10px;padding:20px;border:1px solid #b4e6de;">
+        <p style="font-size:14px;color:#1e6560;margin:0;">
+          ⚠️ A aprovação cadastral e a ativação operacional são etapas separadas. 
+          A concessão de crédito depende do parceiro financeiro e não é garantida pela Benavera.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `🎉 Credenciamento aprovado — ${clinicName}`,
+    html: baseLayout(content, `O credenciamento da ${clinicName} foi aprovado.`),
+  });
+}

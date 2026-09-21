@@ -87,9 +87,13 @@ export async function middleware(request: NextRequest) {
     const role = payload.role as string;
 
     // Controle de acesso por perfil:
-    // Apenas BENAVERA_ADMIN e BENAVERA_ANALYST podem acessar /admin
+    // Benavera staff pode acessar /admin
+    const benaveraRoles = new Set([
+      'BENAVERA_ADMIN', 'BENAVERA_ANALYST', 'BENAVERA_COMPLIANCE',
+      'BENAVERA_COMERCIAL', 'BENAVERA_FINANCEIRO', 'BENAVERA_SUPORTE',
+    ]);
     if (pathname.startsWith('/admin')) {
-      if (role !== 'BENAVERA_ADMIN' && role !== 'BENAVERA_ANALYST') {
+      if (!benaveraRoles.has(role)) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
       }
     }
@@ -104,7 +108,7 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/equipe') ||
       pathname.startsWith('/configuracoes')
     ) {
-      if (role === 'BENAVERA_ADMIN' || role === 'BENAVERA_ANALYST') {
+      if (benaveraRoles.has(role)) {
         return NextResponse.redirect(new URL('/admin', request.url));
       }
     }

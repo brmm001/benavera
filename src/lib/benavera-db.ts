@@ -27,7 +27,160 @@ export type UserRole =
   | 'CLINIC_ATTENDANT'
   | 'CLINIC_FINANCIAL'
   | 'BENAVERA_ANALYST'
-  | 'BENAVERA_ADMIN';
+  | 'BENAVERA_ADMIN'
+  | 'BENAVERA_COMPLIANCE'
+  | 'BENAVERA_COMERCIAL'
+  | 'BENAVERA_FINANCEIRO'
+  | 'BENAVERA_SUPORTE';
+
+export type OnboardingStatus =
+  | 'DRAFT'
+  | 'PRE_REGISTERED'
+  | 'INVITE_SENT'
+  | 'INVITE_OPENED'
+  | 'IN_PROGRESS'
+  | 'PENDING_DOCUMENTS'
+  | 'SUBMITTED'
+  | 'UNDER_REVIEW'
+  | 'CORRECTION_REQUIRED'
+  | 'APPROVED'
+  | 'CONTRACT_PENDING'
+  | 'CONTRACT_SIGNED'
+  | 'ACTIVE'
+  | 'REJECTED'
+  | 'EXPIRED'
+  | 'REVOKED'
+  | 'SUSPENDED';
+
+export type DocumentReviewStatus = 'PENDING' | 'VALIDATED' | 'CORRECTION_REQUESTED' | 'REJECTED';
+export type ScanStatus = 'PENDING' | 'CLEAN' | 'THREAT_DETECTED' | 'ERROR';
+
+export interface ClinicOnboarding {
+  // ── Core (pré-cadastro) ─────────────────────────────────
+  id: string;
+  trade_name: string;
+  legal_name: string | null;
+  cnpj: string | null;
+  contact_name: string;
+  contact_cpf: string | null;
+  phone: string;
+  email: string;
+  city: string;
+  state: string;
+  specialty: string | null;
+  average_ticket: string | null;
+  internal_notes: string | null;
+  trade_name_confirmed: string | null;
+  municipal_registration: string | null;
+  state_registration: string | null;
+  // ── Endereço ────────────────────────────────────────────
+  address_cep: string | null;
+  address_street: string | null;
+  address_number: string | null;
+  address_complement: string | null;
+  address_neighborhood: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  phone_secondary: string | null;
+  email_admin: string | null;
+  email_financial: string | null;
+  website: string | null;
+  // ── Responsável legal ───────────────────────────────────
+  legal_rep_name: string | null;
+  legal_rep_cpf: string | null;
+  legal_rep_role: string | null;
+  legal_rep_email: string | null;
+  legal_rep_phone: string | null;
+  legal_rep_has_powers: boolean | null;
+  authorized_rep_name: string | null;
+  authorized_rep_cpf: string | null;
+  authorized_rep_role: string | null;
+  // ── Responsável técnico ─────────────────────────────────
+  tech_rep_name: string | null;
+  tech_rep_cpf: string | null;
+  tech_rep_council: string | null;
+  tech_rep_council_number: string | null;
+  tech_rep_council_state: string | null;
+  cnes: string | null;
+  sanitary_license_number: string | null;
+  sanitary_license_expiry: string | null;
+  operating_permit: string | null;
+  // ── Dados bancários ─────────────────────────────────────
+  bank_name: string | null;
+  bank_code: string | null;
+  bank_agency: string | null;
+  bank_account: string | null;
+  bank_account_type: string | null;
+  bank_holder_name: string | null;
+  bank_holder_document: string | null;
+  bank_pix_key: string | null;
+  bank_titularity_divergence: boolean;
+  // ── Status ──────────────────────────────────────────────
+  status: OnboardingStatus;
+  progress_percent: number;
+  assigned_to: string | null;
+  created_by: string;
+  clinic_id: string | null;
+  // ── Timestamps ──────────────────────────────────────────
+  created_at: string;
+  updated_at: string;
+  invite_sent_at: string | null;
+  invite_opened_at: string | null;
+  started_at: string | null;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  approved_at: string | null;
+  activated_at: string | null;
+  rejected_at: string | null;
+  rejection_reason: string | null;
+  rejection_message: string | null;
+  privacy_policy_version: string | null;
+  terms_version: string | null;
+  // ── Joined ──────────────────────────────────────────────
+  assigned_to_name?: string;
+  created_by_name?: string;
+  active_invite_expires_at?: string | null;
+  // ── Index signature para acesso dinâmico ────────────────
+  [key: string]: unknown;
+}
+
+export interface OnboardingDocument {
+  id: string;
+  onboarding_id: string;
+  document_type: string;
+  document_label: string;
+  is_required: boolean;
+  current_version: number;
+  storage_key: string | null;
+  original_filename: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  sha256: string | null;
+  scan_status: ScanStatus;
+  review_status: DocumentReviewStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  correction_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OnboardingAuditLog {
+  id: string;
+  onboarding_id: string | null;
+  actor_type: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  actor_role: string | null;
+  action: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  metadata: Record<string, unknown> | null;
+  ip: string | null;
+  user_agent: string | null;
+  created_at: string;
+}
 
 export type ApplicationStatus =
   | 'DRAFT'
