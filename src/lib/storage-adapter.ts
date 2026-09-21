@@ -12,6 +12,8 @@
 import { createHash, randomBytes } from 'crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
+import os from 'os';
+import { sql } from './benavera-db';
 
 // ── Tipos de arquivo permitidos ───────────────────────────────────────────────
 const ALLOWED_MIME_TYPES = new Set([
@@ -117,34 +119,133 @@ export interface StorageAdapter {
   getSignedUrl(key: string, ttlSeconds?: number): Promise<string>;
   delete(key: string): Promise<void>;
   exists(key: string): Promise<boolean>;
+  readFile(key: string): Promise<{ buffer: Buffer; mimeType: string } | null>;
 }
 
-// ── LocalDiskAdapter (desenvolvimento) ────────────────────────────────────────
-const LOCAL_STORAGE_ROOT = path.join(process.cwd(), 'uploads', 'credenciamento');
+// ── DatabaseStorageAdapter (Neon Postgres) ───────────────────────────────────
+// Solução robusta e persistente para ambientes Serverless (Vercel, AWS Lambda)
+let _tableEnsured = false;
+async function ensureDocumentTable() {
+  if (_tableEnsured) return;
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS onboarding_document_files (
+        storage_key VARCHAR(255) PRIMARY KEY,
+        file_data_base64 TEXT NOT NULL,
+        mime_type VARCHAR(100) NOT NULL,
+        size_bytes BIGINT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `;
+    _tableEnsured = true;
+  } catch {
+    // tabela já existente ou erro gerenciado
+  }
+}
+
+export class DatabaseStorageAdapter implements StorageAdapter {
+  async upload(key: string, buffer: Buffer, mimeType: string): Promise<void> {
+    await ensureDocumentTable();
+    const base64 = buffer.toString('base64');
+    await sql`
+      INSERT INTO onboarding_document_files (storage_key, file_data_base64, mime_type, size_bytes, created_at)
+      VALUES (${key}, ${base64}, ${mimeType}, ${buffer.length}, NOW())
+      ON CONFLICT (storage_key) DO UPDATE
+      SET file_data_base64 = EXCLUDED.file_data_base64,
+          mime_type = EXCLUDED.mime_type,
+          size_bytes = EXCLUDED.size_bytes,
+          created_at = NOW()
+    `;
+
+    // Cache em /tmp se for possível (silencioso em caso de falha)
+    try {
+      const tmpPath = path.join(os.tmpdir(), 'benavera_uploads', key);
+      await fs.mkdir(path.dirname(tmpPath), { recursive: true });
+      await fs.writeFile(tmpPath, buffer);
+    } catch { /* silencioso */ }
+  }
+
+  async getSignedUrl(key: string, _ttlSeconds = 900): Promise<string> {
+    const encodedKey = encodeURIComponent(key);
+    return `/api/admin/onboardings/file-proxy?key=${encodedKey}`;
+  }
+
+  async delete(key: string): Promise<void> {
+    await sql`DELETE FROM onboarding_document_files WHERE storage_key = ${key}`;
+    try {
+      const tmpPath = path.join(os.tmpdir(), 'benavera_uploads', key);
+      await fs.unlink(tmpPath);
+    } catch { /* silencioso */ }
+  }
+
+  async exists(key: string): Promise<boolean> {
+    const rows = await sql`SELECT 1 FROM onboarding_document_files WHERE storage_key = ${key} LIMIT 1`;
+    return Boolean(rows.length > 0);
+  }
+
+  async readFile(key: string): Promise<{ buffer: Buffer; mimeType: string } | null> {
+    // 1. Tentar ler do cache local /tmp
+    try {
+      const tmpPath = path.join(os.tmpdir(), 'benavera_uploads', key);
+      const data = await fs.readFile(tmpPath);
+      const rows = await sql`SELECT mime_type FROM onboarding_document_files WHERE storage_key = ${key} LIMIT 1`;
+      return { buffer: data, mimeType: rows[0]?.mime_type ? String(rows[0].mime_type) : 'application/octet-stream' };
+    } catch {
+      // Fallback para o banco
+    }
+
+    const rows = await sql`
+      SELECT file_data_base64, mime_type
+      FROM onboarding_document_files
+      WHERE storage_key = ${key}
+      LIMIT 1
+    `;
+
+    if (!rows[0] || !rows[0].file_data_base64) {
+      return null;
+    }
+
+    const buffer = Buffer.from(String(rows[0].file_data_base64), 'base64');
+    const mimeType = String(rows[0].mime_type || 'application/octet-stream');
+    return { buffer, mimeType };
+  }
+}
+
+// ── LocalDiskAdapter ─────────────────────────────────────────────────────────
+// Protegido contra erros de sistema de arquivos somente-leitura em serverless
+function getLocalStorageRoot(): string {
+  const isServerless = Boolean(
+    process.env.VERCEL ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    (typeof process.cwd === 'function' && process.cwd().startsWith('/var/task'))
+  );
+  return isServerless
+    ? path.join(os.tmpdir(), 'benavera_uploads')
+    : path.join(process.cwd(), 'uploads', 'credenciamento');
+}
 
 export class LocalDiskAdapter implements StorageAdapter {
   async upload(key: string, buffer: Buffer, _mimeType: string): Promise<void> {
-    const filePath = path.join(LOCAL_STORAGE_ROOT, key);
+    const filePath = path.join(getLocalStorageRoot(), key);
     const dir = path.dirname(filePath);
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(filePath, buffer);
   }
 
   async getSignedUrl(key: string, _ttlSeconds = 900): Promise<string> {
-    // Em desenvolvimento, retorna URL da API que serve o arquivo com autenticação
     const encodedKey = encodeURIComponent(key);
-    return `/api/admin/onboardings/file-proxy?key=${encodedKey}&_dev=1`;
+    return `/api/admin/onboardings/file-proxy?key=${encodedKey}`;
   }
 
   async delete(key: string): Promise<void> {
-    const filePath = path.join(LOCAL_STORAGE_ROOT, key);
+    const filePath = path.join(getLocalStorageRoot(), key);
     try {
       await fs.unlink(filePath);
     } catch { /* Arquivo pode não existir */ }
   }
 
   async exists(key: string): Promise<boolean> {
-    const filePath = path.join(LOCAL_STORAGE_ROOT, key);
+    const filePath = path.join(getLocalStorageRoot(), key);
     try {
       await fs.access(filePath);
       return true;
@@ -153,11 +254,11 @@ export class LocalDiskAdapter implements StorageAdapter {
     }
   }
 
-  // Método auxiliar para leitura (apenas em dev)
-  async readFile(key: string): Promise<Buffer | null> {
-    const filePath = path.join(LOCAL_STORAGE_ROOT, key);
+  async readFile(key: string): Promise<{ buffer: Buffer; mimeType: string } | null> {
+    const filePath = path.join(getLocalStorageRoot(), key);
     try {
-      return await fs.readFile(filePath);
+      const buffer = await fs.readFile(filePath);
+      return { buffer, mimeType: 'application/octet-stream' };
     } catch {
       return null;
     }
@@ -186,6 +287,10 @@ export class S3Adapter implements StorageAdapter {
   async exists(_key: string): Promise<boolean> {
     throw new Error('S3Adapter: Configure as variáveis de ambiente S3 para produção.');
   }
+
+  async readFile(_key: string): Promise<{ buffer: Buffer; mimeType: string } | null> {
+    throw new Error('S3Adapter: Configure as variáveis de ambiente S3 para produção.');
+  }
 }
 
 // ── Factory: retorna o adapter correto conforme ambiente ─────────────────────
@@ -194,15 +299,19 @@ let _storageInstance: StorageAdapter | null = null;
 export function getStorageAdapter(): StorageAdapter {
   if (_storageInstance) return _storageInstance;
 
-  const provider = process.env.STORAGE_PROVIDER || 'local';
+  const provider = process.env.STORAGE_PROVIDER;
 
   if (provider === 's3' || provider === 'r2') {
     const bucket = process.env.S3_BUCKET || process.env.R2_BUCKET;
     const region = process.env.AWS_REGION || 'auto';
     if (!bucket) throw new Error('STORAGE_PROVIDER=s3 mas S3_BUCKET não configurado.');
     _storageInstance = new S3Adapter(bucket, region);
-  } else {
+  } else if (provider === 'local') {
     _storageInstance = new LocalDiskAdapter();
+  } else {
+    // Padrão: DatabaseStorageAdapter (Neon Postgres)
+    // 100% persistente e imune a erros de /var/task read-only em Serverless/Vercel
+    _storageInstance = new DatabaseStorageAdapter();
   }
 
   return _storageInstance;
