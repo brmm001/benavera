@@ -157,37 +157,6 @@ export default function LoginPage() {
             {loading ? 'Entrando…' : 'Entrar'}
           </button>
         </form>
-
-        {/* Demo accounts */}
-        <div style={{ marginTop: '32px', padding: '16px', background: '#f8fafc', borderRadius: '10px' }}>
-          <p style={{ fontSize: '12px', fontWeight: '600', color: '#64748b', margin: '0 0 10px 0' }}>
-            CONTAS DE DEMONSTRAÇÃO
-          </p>
-          {[
-            { label: 'Admin Benavera', email: 'admin@benavera.com.br', password: 'Benavera@2026' },
-            { label: 'Analista', email: 'analista@benavera.com.br', password: 'Benavera@2026' },
-            { label: 'Admin Clínica', email: 'admin@odontoprime.com.br', password: 'Clinica@2026' },
-            { label: 'Atendente', email: 'atendente@odontoprime.com.br', password: 'Clinica@2026' },
-          ].map(acc => (
-            <button
-              key={acc.email}
-              type="button"
-              onClick={() => { setEmail(acc.email); setPassword(acc.password); }}
-              style={{
-                display: 'block', width: '100%', textAlign: 'left',
-                padding: '6px 8px', marginBottom: '4px',
-                background: 'none', border: 'none', cursor: 'pointer',
-                borderRadius: '6px', transition: 'background 0.15s',
-                fontFamily: 'inherit',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#e2e8f0')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-            >
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#4040ca' }}>{acc.label}: </span>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>{acc.email}</span>
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );
