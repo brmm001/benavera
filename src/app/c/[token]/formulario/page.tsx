@@ -1,7 +1,7 @@
 'use client';
 // app/c/[token]/formulario/page.tsx — Wizard multi-etapas de credenciamento
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { OnboardingDocument } from '@/lib/benavera-db';
 
@@ -36,6 +36,65 @@ const DECLARATIONS = [
 
 type FormData = Record<string, string | boolean | null>;
 type Documents = Array<OnboardingDocument & { uploadProgress?: number; uploading?: boolean }>;
+
+interface FormContextType {
+  formData: FormData;
+  updateField: (field: string, value: string | boolean | null) => void;
+}
+
+const FormContext = createContext<FormContextType>({
+  formData: {},
+  updateField: () => {},
+});
+
+const Grid2 = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0 20px' }}>{children}</div>
+);
+
+const InputField = ({ label, field, type = 'text', required = false, placeholder = '' }: {
+  label: string; field: string; type?: string; required?: boolean; placeholder?: string;
+}) => {
+  const { formData, updateField } = useContext(FormContext);
+  return (
+    <div style={{ marginBottom: '18px' }}>
+      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#7c93b5', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
+      </label>
+      <input
+        type={type}
+        value={String(formData[field] ?? '')}
+        onChange={e => updateField(field, e.target.value)}
+        placeholder={placeholder}
+        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: 'white', fontSize: '15px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+        onFocus={e => e.target.style.borderColor = '#6370f1'}
+        onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
+      />
+    </div>
+  );
+};
+
+const SelectField = ({ label, field, options, required = false }: {
+  label: string; field: string; options: Array<{ value: string; label: string }>; required?: boolean;
+}) => {
+  const { formData, updateField } = useContext(FormContext);
+  return (
+    <div style={{ marginBottom: '18px' }}>
+      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#7c93b5', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
+      </label>
+      <select
+        value={String(formData[field] ?? '')}
+        onChange={e => updateField(field, e.target.value)}
+        style={{ width: '100%', padding: '12px 14px', background: 'rgba(20,20,50,0.8)', border: '1.5px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: 'white', fontSize: '15px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}>
+        <option value="">Selecione…</option>
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  );
+};
+
+const UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
+const UF_OPTIONS = UFS.map(uf => ({ value: uf, label: uf }));
 
 export default function WizardPage() {
   const router = useRouter();
@@ -87,20 +146,20 @@ export default function WizardPage() {
         });
         if (res.ok) {
           const d = await res.json();
-          setProgress(d.progress || progress);
+          if (d.progress !== undefined) setProgress(d.progress);
         }
       } catch { /* Silencioso */ }
       finally { setSaving(false); }
     }, 1500);
-  }, [token, progress]);
+  }, [token]);
 
-  const updateField = (field: string, value: string | boolean | null) => {
+  const updateField = useCallback((field: string, value: string | boolean | null) => {
     setFormData(prev => {
       const next = { ...prev, [field]: value };
       scheduleAutosave(next);
       return next;
     });
-  };
+  }, [scheduleAutosave]);
 
   // ── Upload de documento ──────────────────────────────────────────────────
   const handleUpload = async (documentId: string, file: File) => {
@@ -158,50 +217,6 @@ export default function WizardPage() {
     }
   };
 
-  // ── Componentes de formulário ────────────────────────────────────────────
-  const InputField = ({ label, field, type = 'text', required = false, placeholder = '' }: {
-    label: string; field: string; type?: string; required?: boolean; placeholder?: string;
-  }) => (
-    <div style={{ marginBottom: '18px' }}>
-      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#7c93b5', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
-      </label>
-      <input
-        type={type}
-        value={String(formData[field] || '')}
-        onChange={e => updateField(field, e.target.value)}
-        placeholder={placeholder}
-        style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.05)', border: '1.5px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: 'white', fontSize: '15px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
-        onFocus={e => e.target.style.borderColor = '#6370f1'}
-        onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
-      />
-    </div>
-  );
-
-  const SelectField = ({ label, field, options, required = false }: {
-    label: string; field: string; options: Array<{ value: string; label: string }>; required?: boolean;
-  }) => (
-    <div style={{ marginBottom: '18px' }}>
-      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#7c93b5', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
-      </label>
-      <select
-        value={String(formData[field] || '')}
-        onChange={e => updateField(field, e.target.value)}
-        style={{ width: '100%', padding: '12px 14px', background: 'rgba(20,20,50,0.8)', border: '1.5px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: 'white', fontSize: '15px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}>
-        <option value="">Selecione…</option>
-        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-    </div>
-  );
-
-  const Grid2 = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0 20px' }}>{children}</div>
-  );
-
-  const UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
-  const UF_OPTIONS = UFS.map(uf => ({ value: uf, label: uf }));
-
   // ── Tela de carregamento ─────────────────────────────────────────────────
   if (loading) return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif' }}>
@@ -237,7 +252,8 @@ export default function WizardPage() {
   const requiredDocsUploaded = documents.filter(d => d.is_required).every(d => d.storage_key);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0b0c1e', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <FormContext.Provider value={{ formData, updateField }}>
+      <div style={{ minHeight: '100vh', background: '#0b0c1e', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'); * { box-sizing: border-box; } ::placeholder { color: rgba(255,255,255,0.2); } select option { background: #1a1b3e; }` }} />
 
       {/* Topbar */}
@@ -553,5 +569,6 @@ export default function WizardPage() {
         </div>
       </div>
     </div>
+  </FormContext.Provider>
   );
 }
