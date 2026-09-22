@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   ArrowRight, CheckCircle2, ShieldCheck, Zap, TrendingUp, DollarSign,
-  Users, Building2, CreditCard, ChevronRight, Clock, Star, Phone, FileText
+  Users, Building2, CreditCard, ChevronRight, Clock, Star, Phone, FileText,
+  MessageCircle
 } from 'lucide-react';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 import { ArticleCard } from '@/components/ArticleCard';
@@ -213,9 +214,11 @@ export default function HomePage() {
                   <ArrowRight size={17} />
                 </Link>
 
-                <Link
-                  href="/portal/login"
-                  id="hero-portal-btn"
+                <a
+                  href="https://wa.me/414187223343?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20um%20consultor%20da%20Benavera."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  id="hero-consultor-btn"
                   className="btn-ghost"
                   style={{
                     borderColor: 'rgba(255,255,255,0.2)',
@@ -225,9 +228,9 @@ export default function HomePage() {
                     gap: '0.5rem',
                   }}
                 >
-                  <Building2 size={16} />
-                  Acessar Portal da Clínica
-                </Link>
+                  <MessageCircle size={16} />
+                  Falar com consultor
+                </a>
               </div>
 
               {/* Trust Badges */}
