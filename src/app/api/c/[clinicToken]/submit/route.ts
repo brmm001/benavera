@@ -165,28 +165,34 @@ export async function POST(
       responsavel: onboarding.contact_name,
     }).catch(err => console.warn('[Email Submitted Clinic]', err));
 
-    // Notificar analistas (buscar todos com role compliance/admin)
-    const analystRows = await sql`
-      SELECT email, name FROM users
-      WHERE role IN ('BENAVERA_ADMIN', 'BENAVERA_COMPLIANCE') AND ativo = TRUE
-      LIMIT 5
-    `;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.benavera.com.br';
-    for (const analyst of analystRows) {
-      sendOnboardingSubmittedAlert({
-        to: String(analyst.email),
-        analystName: String(analyst.name),
-        clinicName: onboarding.trade_name,
-        adminUrl: `${baseUrl}/admin/credenciamentos/${onboardingId}`,
-      }).catch(err => console.warn('[Email Alert Analyst]', err));
+    // Notificar analistas (não bloqueia o fluxo de submissão)
+    try {
+      const analystRows = await sql`
+        SELECT email, name FROM users
+        WHERE role::text IN ('BENAVERA_ADMIN', 'BENAVERA_COMPLIANCE', 'BENAVERA_ANALYST') AND ativo = TRUE
+        LIMIT 5
+      `;
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.benavera.com.br';
+      for (const analyst of analystRows) {
+        sendOnboardingSubmittedAlert({
+          to: String(analyst.email),
+          analystName: String(analyst.name),
+          clinicName: onboarding.trade_name,
+          adminUrl: `${baseUrl}/admin/credenciamentos/${onboardingId}`,
+        }).catch(err => console.warn('[Email Alert Analyst]', err));
+      }
+    } catch (emailErr) {
+      console.warn('[Notify Analysts Error]', emailErr);
     }
 
     return NextResponse.json({
       success: true,
       message: 'Credenciamento enviado com sucesso. Nossa equipe entrará em contato.',
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Clinic Submit POST]', err);
-    return NextResponse.json({ error: 'Erro ao enviar credenciamento. Tente novamente.' }, { status: 500 });
+    return NextResponse.json({
+      error: err?.message || 'Erro ao enviar credenciamento. Tente novamente.',
+    }, { status: 500 });
   }
 }

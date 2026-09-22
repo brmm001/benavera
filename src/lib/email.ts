@@ -1,12 +1,17 @@
 import { Resend } from 'resend';
 
 // Lazy instantiation — evita crash no build sem RESEND_API_KEY
-function getResend(): Resend {
+function getResend(): Resend | { emails: { send: (payload: unknown) => Promise<{ data: { id: string }; error: null }> } } {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
-    throw new Error(
-      'RESEND_API_KEY não configurada. Adicione nas variáveis de ambiente do Render/Vercel.'
-    );
+    return {
+      emails: {
+        send: async (payload: unknown) => {
+          console.warn('[Email] RESEND_API_KEY não configurada. Simulação de envio para:', (payload as Record<string, unknown>)?.to);
+          return { data: { id: 'simulated-email-id' }, error: null };
+        },
+      },
+    };
   }
   return new Resend(key);
 }
