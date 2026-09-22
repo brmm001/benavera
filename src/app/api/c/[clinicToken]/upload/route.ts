@@ -63,7 +63,7 @@ export async function POST(
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
-    const documentId = formData.get('documentId') as string | null;
+    const documentId = (formData.get('documentId') as string | null) || request.nextUrl.searchParams.get('docId');
 
     if (!file || !documentId) {
       return NextResponse.json({ error: 'Arquivo e documentId são obrigatórios.' }, { status: 400 });

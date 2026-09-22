@@ -27,14 +27,14 @@ export const REQUIRED_DOCUMENTS = [
 // ── Máquina de estados ────────────────────────────────────────────────────────
 const VALID_STATUS_TRANSITIONS: Record<OnboardingStatus, OnboardingStatus[]> = {
   DRAFT: ['PRE_REGISTERED'],
-  PRE_REGISTERED: ['INVITE_SENT', 'SUBMITTED', 'REVOKED'],
+  PRE_REGISTERED: ['INVITE_SENT', 'IN_PROGRESS', 'SUBMITTED', 'REVOKED'],
   INVITE_SENT: ['INVITE_OPENED', 'IN_PROGRESS', 'SUBMITTED', 'REVOKED', 'EXPIRED'],
   INVITE_OPENED: ['IN_PROGRESS', 'SUBMITTED', 'REVOKED'],
   IN_PROGRESS: ['PENDING_DOCUMENTS', 'SUBMITTED', 'REVOKED'],
   PENDING_DOCUMENTS: ['IN_PROGRESS', 'SUBMITTED', 'REVOKED'],
-  SUBMITTED: ['UNDER_REVIEW'],
+  SUBMITTED: ['UNDER_REVIEW', 'APPROVED', 'REJECTED'],
   UNDER_REVIEW: ['CORRECTION_REQUIRED', 'APPROVED', 'REJECTED'],
-  CORRECTION_REQUIRED: ['UNDER_REVIEW', 'REVOKED'],
+  CORRECTION_REQUIRED: ['UNDER_REVIEW', 'SUBMITTED', 'REVOKED'],
   APPROVED: ['CONTRACT_PENDING', 'ACTIVE'],
   CONTRACT_PENDING: ['CONTRACT_SIGNED'],
   CONTRACT_SIGNED: ['ACTIVE'],
@@ -640,9 +640,7 @@ export async function canApproveOnboarding(onboardingId: string): Promise<{
   for (const doc of docs) {
     if (doc.is_required) {
       if (!doc.storage_key) {
-        pendingItems.push(`Documento pendente: ${doc.document_label}`);
-      } else if (doc.review_status !== 'VALIDATED') {
-        pendingItems.push(`Documento não validado: ${doc.document_label}`);
+        pendingItems.push(`Documento obrigatório pendente de envio: ${doc.document_label}`);
       }
     }
   }

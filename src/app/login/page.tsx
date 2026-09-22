@@ -1,15 +1,19 @@
 'use client';
 // app/login/page.tsx
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const isPendingApproval = searchParams.get('pending_approval') === '1';
+  const isRegistered = searchParams.get('registered') === '1';
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -62,7 +66,7 @@ export default function LoginPage() {
         boxShadow: '0 32px 64px rgba(0,0,0,0.25)',
       }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -84,6 +88,29 @@ export default function LoginPage() {
             Plataforma de financiamento de saúde
           </p>
         </div>
+
+        {/* Informative message for pending accounts */}
+        {isPendingApproval && (
+          <div style={{
+            background: '#eff6ff', border: '1px solid #bfdbfe',
+            borderRadius: '10px', padding: '12px 14px',
+            color: '#1e40af', fontSize: '13px',
+            marginBottom: '20px', lineHeight: '1.5',
+          }}>
+            ℹ️ <strong>Credenciamento em análise:</strong> Seus documentos foram enviados. A sua conta será liberada após a aprovação pela administração da Benavera.
+          </div>
+        )}
+
+        {isRegistered && (
+          <div style={{
+            background: '#eff6ff', border: '1px solid #bfdbfe',
+            borderRadius: '10px', padding: '12px 14px',
+            color: '#1e40af', fontSize: '13px',
+            marginBottom: '20px', lineHeight: '1.5',
+          }}>
+            ℹ️ <strong>Documentos pendentes:</strong> Conclua o envio de todos os documentos solicitados no credenciamento para liberar sua conta.
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleLogin}>
@@ -134,9 +161,9 @@ export default function LoginPage() {
           {error && (
             <div style={{
               background: '#fef2f2', border: '1px solid #fecaca',
-              borderRadius: '8px', padding: '12px 16px',
-              color: '#dc2626', fontSize: '14px',
-              marginBottom: '20px',
+              borderRadius: '10px', padding: '12px 16px',
+              color: '#dc2626', fontSize: '13px',
+              marginBottom: '20px', lineHeight: '1.5',
             }}>
               {error}
             </div>
@@ -159,5 +186,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#1c1d4c' }} />}>
+      <LoginForm />
+    </Suspense>
   );
 }

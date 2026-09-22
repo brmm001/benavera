@@ -64,11 +64,11 @@ export async function POST(
     }
 
     // Verificar requisitos para aprovação
-    if (status === 'APPROVED') {
+    if (status === 'APPROVED' || status === 'ACTIVE') {
       const { canApprove, pendingItems } = await canApproveOnboarding(id);
       if (!canApprove) {
         return NextResponse.json({
-          error: 'Não é possível aprovar: existem itens obrigatórios pendentes.',
+          error: 'Não é possível aprovar o credenciamento: existem documentos obrigatórios não enviados.',
           pendingItems,
         }, { status: 422 });
       }
@@ -90,12 +90,67 @@ export async function POST(
     }
 
     // Ações pós-transição
-    if (status === 'APPROVED') {
+    if (status === 'APPROVED' || status === 'ACTIVE') {
+      // 1. Auto-validar qualquer documento enviado que ainda esteja pendente de revisão
+      await sql`
+        UPDATE onboarding_documents
+        SET review_status = 'VALIDATED',
+            reviewed_by = ${session.userId},
+            reviewed_at = NOW(),
+            updated_at = NOW()
+        WHERE onboarding_id = ${id}
+          AND storage_key IS NOT NULL
+          AND review_status != 'VALIDATED'
+      `;
+
+      // 2. Liberar clinic e usuários no banco de dados (ativo = TRUE)
+      if (onboarding.clinic_id) {
+        await sql`
+          UPDATE clinics
+          SET ativo = TRUE, updated_at = NOW()
+          WHERE id = ${onboarding.clinic_id}
+        `;
+        await sql`
+          UPDATE users
+          SET ativo = TRUE, updated_at = NOW()
+          WHERE clinic_id = ${onboarding.clinic_id}
+        `;
+      } else {
+        const clinicRows = await sql`
+          INSERT INTO clinics (
+            nome_fantasia, razao_social, cnpj, email, telefone, whatsapp,
+            cidade, estado, especialidade, ativo
+          ) VALUES (
+            ${onboarding.trade_name},
+            ${onboarding.legal_name || onboarding.trade_name},
+            ${onboarding.cnpj || '00.000.000/0001-00'},
+            ${onboarding.email},
+            ${onboarding.phone},
+            ${onboarding.phone},
+            ${onboarding.city},
+            ${onboarding.state},
+            ${onboarding.specialty || 'Geral'},
+            TRUE
+          )
+          RETURNING id
+        `;
+        const clinicId = clinicRows[0].id;
+        await sql`UPDATE clinic_onboardings SET clinic_id = ${clinicId} WHERE id = ${id}`;
+        await sql`UPDATE users SET clinic_id = ${clinicId}, ativo = TRUE WHERE id = ${onboarding.created_by}`;
+      }
+
       sendOnboardingApprovedEmail({
         to: onboarding.email,
         clinicName: onboarding.trade_name,
         responsavel: onboarding.contact_name,
       }).catch(err => console.warn('[Email Aprovação]', err));
+    }
+
+    if (status === 'REJECTED' || status === 'SUSPENDED' || status === 'REVOKED') {
+      if (onboarding.clinic_id) {
+        await sql`UPDATE clinics SET ativo = FALSE, updated_at = NOW() WHERE id = ${onboarding.clinic_id}`;
+        await sql`UPDATE users SET ativo = FALSE, updated_at = NOW() WHERE clinic_id = ${onboarding.clinic_id}`;
+      }
     }
 
     if (status === 'CORRECTION_REQUIRED' && corrections?.length) {
@@ -115,28 +170,6 @@ export async function POST(
         corrections,
         inviteUrl,
       }).catch(err => console.warn('[Email Correção]', err));
-    }
-
-    if (status === 'ACTIVE') {
-      // Criar clínica se não existir, ou ativar existente
-      if (!onboarding.clinic_id) {
-        const clinicRows = await sql`
-          INSERT INTO clinics (nome_fantasia, razao_social, cnpj, email, cidade, estado, especialidade, ativo)
-          VALUES (
-            ${onboarding.trade_name},
-            ${onboarding.legal_name || onboarding.trade_name},
-            ${onboarding.cnpj || ''},
-            ${onboarding.email},
-            ${onboarding.city},
-            ${onboarding.state},
-            ${onboarding.specialty || 'Geral'},
-            TRUE
-          )
-          RETURNING id
-        `;
-        const clinicId = String(clinicRows[0].id);
-        await sql`UPDATE clinic_onboardings SET clinic_id = ${clinicId} WHERE id = ${id}`;
-      }
     }
 
     return NextResponse.json({ success: true, status });

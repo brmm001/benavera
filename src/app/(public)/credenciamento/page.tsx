@@ -73,8 +73,12 @@ export default function CredenciamentoPage() {
         throw new Error(data.error || 'Erro ao realizar credenciamento.');
       }
 
-      // Redireciona para login do portal com sucesso
-      router.push('/login?registered=1');
+      // Redireciona diretamente para o fluxo de envio de documentos
+      if (data.redirectUrl) {
+        router.push(data.redirectUrl);
+      } else {
+        router.push('/login?pending_approval=1');
+      }
     } catch (err: any) {
       setError(err.message || 'Erro inesperado.');
     } finally {
@@ -280,6 +284,10 @@ export default function CredenciamentoPage() {
                   </div>
                 </div>
 
+                <div style={{ marginTop: '1.5rem', padding: '0.875rem 1rem', background: '#eff6ff', borderRadius: '10px', border: '1px solid #bfdbfe', fontSize: '0.8125rem', color: '#1e40af', lineHeight: '1.5' }}>
+                  ℹ️ <strong>Importante:</strong> Na próxima etapa, você precisará anexar todos os documentos obrigatórios da clínica. Sua conta no portal só será liberada após o envio completo dos documentos e a aprovação pela administração da Benavera.
+                </div>
+
                 <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between' }}>
                   <button
                     type="button"
@@ -294,7 +302,7 @@ export default function CredenciamentoPage() {
                     className="btn-action btn-action-primary"
                     style={{ padding: '0.875rem 2rem' }}
                   >
-                    {loading ? 'Credenciando Clínica...' : '🚀 Concluir Credenciamento'}
+                    {loading ? 'Processando dados...' : 'Avançar para Envio de Documentos →'}
                   </button>
                 </div>
               </div>

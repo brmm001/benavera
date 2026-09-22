@@ -250,6 +250,17 @@ export default function OnboardingDetailPage() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: '12px',
+              fontWeight: '700',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              background: onboarding.status === 'APPROVED' || onboarding.status === 'ACTIVE' ? '#f0fdf4' : '#fffbeb',
+              color: onboarding.status === 'APPROVED' || onboarding.status === 'ACTIVE' ? '#059669' : '#d97706',
+              border: onboarding.status === 'APPROVED' || onboarding.status === 'ACTIVE' ? '1px solid #bbf7d0' : '1px solid #fde68a'
+            }}>
+              {onboarding.status === 'APPROVED' || onboarding.status === 'ACTIVE' ? '✓ Conta Liberada' : '🔒 Conta Bloqueada'}
+            </span>
             <span style={{ fontSize: '13px', fontWeight: '700', padding: '6px 14px', borderRadius: '20px', background: '#f0f4ff', color: '#4040ca' }}>
               {statusCfg}
             </span>
@@ -301,17 +312,27 @@ export default function OnboardingDetailPage() {
         )}
 
         {onboarding.status === 'SUBMITTED' && canApprove && (
-          <button onClick={() => setShowStatusModal('UNDER_REVIEW')}
-            style={{ padding: '10px 18px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit' }}>
-            📋 Iniciar análise
-          </button>
+          <>
+            <button onClick={() => setShowStatusModal('APPROVED')}
+              style={{ padding: '10px 18px', background: '#059669', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit' }}>
+              ✓ Aprovar e Liberar Conta
+            </button>
+            <button onClick={() => setShowStatusModal('UNDER_REVIEW')}
+              style={{ padding: '10px 18px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit' }}>
+              📋 Iniciar análise
+            </button>
+            <button onClick={() => setShowStatusModal('REJECTED')}
+              style={{ padding: '10px 18px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit' }}>
+              ✕ Reprovar
+            </button>
+          </>
         )}
 
         {onboarding.status === 'UNDER_REVIEW' && canApprove && (
           <>
             <button onClick={() => setShowStatusModal('APPROVED')}
               style={{ padding: '10px 18px', background: '#059669', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit' }}>
-              ✓ Aprovar
+              ✓ Aprovar e Liberar Conta
             </button>
             <button onClick={() => setShowStatusModal('CORRECTION_REQUIRED')}
               style={{ padding: '10px 18px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit' }}>
@@ -612,9 +633,15 @@ export default function OnboardingDetailPage() {
               </>
             )}
 
+            {showStatusModal === 'APPROVED' && (
+              <p style={{ fontSize: '14px', color: '#475569', marginBottom: '20px', lineHeight: '1.6' }}>
+                Confirmar a aprovação deste credenciamento? Todos os documentos obrigatórios enviados serão validados e a conta de acesso da clínica será <strong>liberada imediatamente</strong> para login no portal.
+              </p>
+            )}
+
             {showStatusModal === 'ACTIVE' && (
               <p style={{ fontSize: '14px', color: '#475569', marginBottom: '20px', lineHeight: '1.6' }}>
-                Confirmar a ativação da clínica? Isso criará o registro definitivo da clínica na plataforma Benavera.
+                Confirmar a ativação da clínica? A conta e o acesso ao portal da clínica serão liberados.
               </p>
             )}
 

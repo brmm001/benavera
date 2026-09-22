@@ -238,17 +238,41 @@ export default function WizardPage() {
   if (submitted) return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');` }} />
-      <div style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '52px', maxWidth: '520px', width: '100%', textAlign: 'center', border: '1px solid rgba(255,255,255,0.12)' }}>
-        <div style={{ fontSize: '64px', marginBottom: '24px' }}>🎉</div>
-        <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '800', margin: '0 0 16px', letterSpacing: '-0.5px' }}>
-          Credenciamento enviado!
+      <div style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '48px', maxWidth: '540px', width: '100%', textAlign: 'center', border: '1px solid rgba(255,255,255,0.12)' }}>
+        <div style={{ fontSize: '56px', marginBottom: '20px' }}>🎉</div>
+        <h1 style={{ color: 'white', fontSize: '26px', fontWeight: '800', margin: '0 0 14px', letterSpacing: '-0.5px' }}>
+          Documentos enviados com sucesso!
         </h1>
-        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '15px', lineHeight: '1.7', margin: '0 0 28px' }}>
-          Recebemos suas informações e documentos com sucesso. Nossa equipe iniciará a análise e você será notificado por e-mail sobre os próximos passos.
+        <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', lineHeight: '1.7', margin: '0 0 24px' }}>
+          Recebemos os dados e documentos da sua clínica. Seu credenciamento foi encaminhado para a equipe de compliance e administração da Benavera.
         </p>
-        <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '18px', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: '1.7', textAlign: 'left' }}>
-          ℹ️ Em situações excepcionais, alterações cadastrais, exigências regulatórias, prevenção à fraude ou solicitações do parceiro financeiro poderão exigir documentação complementar.
+
+        <div style={{ background: 'rgba(99,112,241,0.1)', border: '1px solid rgba(99,112,241,0.3)', borderRadius: '14px', padding: '20px', marginBottom: '28px', textAlign: 'left' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: '700', color: '#c7d2fe' }}>
+            🔒 Liberação da conta
+          </p>
+          <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+            A sua conta no portal Benavera só será liberada após a validação de todos os documentos e a aprovação formal pelo administrador. Você será notificado por e-mail assim que a análise for concluída.
+          </p>
         </div>
+
+        <button
+          onClick={() => router.push('/login')}
+          style={{
+            padding: '14px 28px',
+            background: 'linear-gradient(135deg, #6370f1, #4040ca)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '12px',
+            fontSize: '15px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            transition: 'all 0.2s',
+          }}
+        >
+          Ir para a tela de Login
+        </button>
       </div>
     </div>
   );

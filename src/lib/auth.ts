@@ -54,10 +54,11 @@ export async function loginUser(email: string, password: string): Promise<{
 }> {
   try {
     const rows = await sql`
-      SELECT u.*, c.nome_fantasia as clinic_name
+      SELECT u.*, c.nome_fantasia as clinic_name, c.ativo as clinic_ativo
       FROM users u
       LEFT JOIN clinics c ON c.id = u.clinic_id
-      WHERE u.email = ${email.toLowerCase().trim()} AND u.ativo = true
+      WHERE u.email = ${email.toLowerCase().trim()}
+      LIMIT 1
     `;
 
     const user = rows[0];
@@ -68,6 +69,47 @@ export async function loginUser(email: string, password: string): Promise<{
     const passwordMatch = await bcrypt.compare(password, String(user.password_hash));
     if (!passwordMatch) {
       return { success: false, error: 'Credenciais inválidas.' };
+    }
+
+    // Se o usuário ou a clínica estiverem inativos, bloqueia o login até aprovação
+    const isUserActive = Boolean(user.ativo);
+    const isClinicActive = user.clinic_id ? Boolean(user.clinic_ativo) : true;
+
+    if (!isUserActive || !isClinicActive) {
+      // Busca status do credenciamento para detalhar para a clínica
+      const onboardingRows = await sql`
+        SELECT status FROM clinic_onboardings
+        WHERE clinic_id = ${user.clinic_id} OR created_by = ${user.id} OR email = ${user.email}
+        ORDER BY created_at DESC LIMIT 1
+      `;
+      const obStatus = onboardingRows[0]?.status;
+
+      if (obStatus === 'SUBMITTED' || obStatus === 'UNDER_REVIEW') {
+        return {
+          success: false,
+          error: 'Sua conta está em análise de credenciamento e aguarda a aprovação dos documentos pela administração. Assim que aprovada, seu acesso será liberado.',
+        };
+      } else if (obStatus === 'IN_PROGRESS' || obStatus === 'PENDING_DOCUMENTS' || obStatus === 'DRAFT' || obStatus === 'PRE_REGISTERED') {
+        return {
+          success: false,
+          error: 'Seu credenciamento ainda não foi concluído. Envie todos os documentos solicitados para que sua conta possa ser avaliada e liberada.',
+        };
+      } else if (obStatus === 'CORRECTION_REQUIRED') {
+        return {
+          success: false,
+          error: 'Foram solicitadas correções na documentação do seu credenciamento. Acesse o link enviado por e-mail para regularizar.',
+        };
+      } else if (obStatus === 'REJECTED') {
+        return {
+          success: false,
+          error: 'Seu pedido de credenciamento não foi aprovado pela administração. Entre em contato com o suporte Benavera.',
+        };
+      }
+
+      return {
+        success: false,
+        error: 'Sua conta ainda não foi liberada. É obrigatório enviar todos os documentos e aguardar aprovação pelo administrador.',
+      };
     }
 
     // Atualizar last_login
