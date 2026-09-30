@@ -1382,3 +1382,266 @@
   .sim-tabs { flex-direction: column; }
   .sim-tab { justify-content: flex-start; }
 }
+
+/* ── SIMULAÇÃO DE JUROS DO PACIENTE ─────────────────────────── */
+.sim-juros-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .75rem;
+}
+
+.sim-juros-badge-active {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .375rem;
+  background: var(--sim-brand-50);
+  border: 1px solid var(--sim-brand-200);
+  padding: .375rem .75rem;
+  border-radius: var(--sim-radius-sm);
+  color: var(--sim-brand-800);
+  font-size: .875rem;
+  white-space: nowrap;
+}
+
+.sim-juros-badge-anual {
+  font-size: .75rem;
+  color: var(--sim-brand-600);
+  font-weight: 500;
+}
+
+.sim-juros-selector-box {
+  background: #f8fafc;
+  border: 1.5px solid var(--sim-slate-200);
+  border-radius: var(--sim-radius);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .875rem;
+}
+
+.sim-juros-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.sim-juros-preset-btn {
+  padding: .4rem .75rem;
+  border-radius: var(--sim-radius-sm);
+  border: 1.5px solid var(--sim-slate-200);
+  background: #fff;
+  color: var(--sim-slate-700);
+  font-size: .8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--sim-transition);
+  font-family: 'Inter', sans-serif;
+}
+
+.sim-juros-preset-btn:hover:not(.sim-juros-preset-btn--active) {
+  border-color: var(--sim-brand-300);
+  background: var(--sim-brand-50);
+  color: var(--sim-brand-700);
+}
+
+.sim-juros-preset-btn--active {
+  background: linear-gradient(135deg, var(--sim-brand-600), var(--sim-brand-800));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--sim-shadow-brand);
+}
+
+.sim-juros-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sim-slider-input {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sim-slate-200);
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--sim-brand-600);
+}
+
+.sim-juros-number-wrap {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1.5px solid var(--sim-slate-200);
+  border-radius: var(--sim-radius-sm);
+  padding: .35rem .625rem;
+  gap: .25rem;
+  width: 120px;
+}
+
+.sim-juros-num-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: .9375rem;
+  font-weight: 700;
+  color: var(--sim-slate-900);
+  font-family: 'Inter', sans-serif;
+  text-align: right;
+}
+
+.sim-juros-unit {
+  font-size: .8125rem;
+  font-weight: 600;
+  color: var(--sim-slate-500);
+  white-space: nowrap;
+}
+
+/* ── CALLOUT E DETALHE DE JUROS ─────────────────────────────── */
+.sim-paciente-juros-summary {
+  margin-top: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.sim-juros-callout {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1px solid var(--sim-brand-200);
+  border-radius: var(--sim-radius);
+  padding: .875rem 1rem;
+}
+
+.sim-juros-callout-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .375rem;
+}
+
+.sim-juros-callout-badge {
+  font-size: .6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--sim-brand-700);
+}
+
+.sim-juros-callout-rate {
+  font-size: .875rem;
+  font-weight: 700;
+  color: var(--sim-brand-900);
+}
+
+.sim-juros-callout-text {
+  font-size: .8125rem;
+  color: var(--sim-slate-700);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.sim-btn-amortizacao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .5rem 1rem;
+  border-radius: var(--sim-radius-sm);
+  border: 1px solid var(--sim-slate-200);
+  background: #fff;
+  color: var(--sim-brand-700);
+  font-size: .8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--sim-transition);
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+}
+
+.sim-btn-amortizacao:hover {
+  background: var(--sim-brand-50);
+  border-color: var(--sim-brand-300);
+}
+
+/* ── TABELA DE AMORTIZAÇÃO ──────────────────────────────────── */
+.sim-amortizacao-modal-card {
+  margin-top: 1.5rem;
+  background: #fff;
+  border-radius: var(--sim-radius-lg);
+  border: 1px solid var(--sim-slate-200);
+  padding: 1.5rem;
+  box-shadow: var(--sim-shadow);
+}
+
+.sim-amortizacao-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.sim-amortizacao-header h4 {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--sim-slate-900);
+  margin: 0;
+}
+
+.sim-tabela-scroll {
+  overflow-x: auto;
+  max-height: 380px;
+  overflow-y: auto;
+  border: 1px solid var(--sim-slate-100);
+  border-radius: var(--sim-radius-sm);
+}
+
+.sim-tabela-parcelas {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .8125rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.sim-tabela-parcelas th {
+  background: var(--sim-slate-50);
+  color: var(--sim-slate-600);
+  font-weight: 600;
+  padding: .625rem .875rem;
+  text-align: right;
+  border-bottom: 1px solid var(--sim-slate-200);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.sim-tabela-parcelas th:first-child { text-align: left; }
+
+.sim-tabela-parcelas td {
+  padding: .5rem .875rem;
+  border-bottom: 1px solid var(--sim-slate-100);
+  text-align: right;
+  color: var(--sim-slate-700);
+}
+
+.sim-tabela-parcelas td:first-child { text-align: left; }
+
+.sim-tabela-parcelas tr:hover td {
+  background: var(--sim-slate-50);
+}
+
+.sim-tabela-parcelas tfoot td {
+  background: var(--sim-slate-100);
+  font-weight: 700;
+  color: var(--sim-slate-900);
+  border-top: 2px solid var(--sim-slate-200);
+  border-bottom: none;
+}
+
+.sim-col-juros {
+  color: var(--sim-brand-700) !important;
+  font-weight: 600;
+}
+

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Benavera - Motor de Simulacao Financeira para Clinicas
  * Todas as regras financeiras ficam aqui, separadas da interface.
  */
@@ -38,6 +38,7 @@ export interface SimulacaoInput {
   modalidade: Modalidade;
   risco: RiscoInadimplencia;
   taxa_personalizada?: number;
+  juros_paciente_personalizado?: number;
 }
 
 export interface ResultadoPaciente {
@@ -46,6 +47,9 @@ export interface ResultadoPaciente {
   parcelas: number;
   parcela_estimada: number;
   total_pago: number;
+  total_juros: number;
+  taxa_juros_mensal: number;
+  taxa_juros_anual: number;
   juros_aparentes: number;
 }
 
@@ -149,10 +153,16 @@ export function simular(
   config: SimulatorConfig,
   incluirInterno = false,
 ): ResultadoSimulacao {
-  const { valor_tratamento, parcelas, modalidade, risco, taxa_personalizada } = input;
+  const { valor_tratamento, parcelas, modalidade, risco, taxa_personalizada, juros_paciente_personalizado } = input;
   const taxa_total = resolverTaxa(config, modalidade, risco, taxa_personalizada);
   const taxa_decimal = taxa_total / 100;
-  const taxa_mensal = getTaxaMensal(config, parcelas);
+  
+  // Taxa de juros mensal para o paciente
+  const taxa_mensal = modalidade === "sem_juros"
+    ? 0
+    : (juros_paciente_personalizado !== undefined
+        ? juros_paciente_personalizado / 100
+        : getTaxaMensal(config, parcelas));
 
   let valor_financiado: number;
   let custo_operacao: number;
@@ -191,14 +201,18 @@ export function simular(
   }
 
   let parcela_estimada: number;
-  if (modalidade === "sem_juros") {
-    parcela_estimada = valor_tratamento / parcelas;
+  if (modalidade === "sem_juros" || taxa_mensal === 0) {
+    parcela_estimada = valor_financiado / parcelas;
   } else {
     parcela_estimada = calcularPMT(valor_financiado, taxa_mensal, parcelas);
   }
 
   const total_pago =
-    modalidade === "sem_juros" ? valor_tratamento : parcela_estimada * parcelas;
+    (modalidade === "sem_juros" || taxa_mensal === 0) ? valor_financiado : parcela_estimada * parcelas;
+
+  const total_juros = Math.max(0, total_pago - valor_financiado);
+  const taxa_juros_mensal = taxa_mensal * 100;
+  const taxa_juros_anual = taxa_mensal > 0 ? (Math.pow(1 + taxa_mensal, 12) - 1) * 100 : 0;
 
   let interno: ResultadoInterno | undefined;
   if (incluirInterno) {
@@ -227,6 +241,9 @@ export function simular(
       parcelas,
       parcela_estimada,
       total_pago,
+      total_juros,
+      taxa_juros_mensal,
+      taxa_juros_anual,
       juros_aparentes,
     },
     clinica: {
@@ -306,10 +323,45 @@ export function compararModalidades(
   parcelas: number,
   risco: RiscoInadimplencia,
   config: SimulatorConfig,
+  juros_paciente_personalizado?: number,
 ): ComparativoModalidades {
   return {
-    clinica_absorve: simular({ valor_tratamento, parcelas, modalidade: "clinica_absorve", risco }, config),
-    taxa_repassada: simular({ valor_tratamento, parcelas, modalidade: "taxa_repassada", risco }, config),
+    clinica_absorve: simular({ valor_tratamento, parcelas, modalidade: "clinica_absorve", risco, juros_paciente_personalizado }, config),
+    taxa_repassada: simular({ valor_tratamento, parcelas, modalidade: "taxa_repassada", risco, juros_paciente_personalizado }, config),
     sem_juros: simular({ valor_tratamento, parcelas, modalidade: "sem_juros", risco }, config),
   };
+}
+
+export interface ParcelaDetalhe {
+  numero: number;
+  valorParcela: number;
+  amortizacao: number;
+  juros: number;
+  saldoDevedor: number;
+}
+
+export function gerarTabelaAmortizacao(
+  valorFinanciado: number,
+  taxaMensalPercentual: number,
+  parcelas: number,
+): ParcelaDetalhe[] {
+  const i = taxaMensalPercentual / 100;
+  const pmt = i === 0 ? valorFinanciado / parcelas : calcularPMT(valorFinanciado, i, parcelas);
+  let saldo = valorFinanciado;
+  const cronograma: ParcelaDetalhe[] = [];
+
+  for (let n = 1; n <= parcelas; n++) {
+    const jurosParcela = i === 0 ? 0 : saldo * i;
+    const amortizacao = pmt - jurosParcela;
+    saldo = Math.max(0, saldo - amortizacao);
+    cronograma.push({
+      numero: n,
+      valorParcela: pmt,
+      amortizacao,
+      juros: jurosParcela,
+      saldoDevedor: saldo,
+    });
+  }
+
+  return cronograma;
 }
