@@ -28,6 +28,8 @@ const PROTECTED_PREFIXES = [
   '/api/patients',
   '/api/payouts',
   '/api/partners',
+  '/atendente',
+  '/api/atendente',
 ];
 
 // Exceções públicas dentro dos prefixos protegidos
@@ -61,6 +63,11 @@ export async function middleware(request: NextRequest) {
   // Redireciona a tela de login do admin diretamente para o painel (sem proteção de senha)
   if (pathname === '/admin/login') {
     return NextResponse.redirect(new URL('/admin/leads', request.url));
+  }
+
+  // ── Login do atendente (/atendente/login é público) ───────────────────────
+  if (pathname === '/atendente/login') {
+    return NextResponse.next();
   }
 
   // ── Rotas do admin (/admin/* e /api/admin/*) ──────────────────────────────
@@ -108,6 +115,16 @@ export async function middleware(request: NextRequest) {
     ) {
       if (benaveraRoles.has(role)) {
         return NextResponse.redirect(new URL('/admin', request.url));
+      }
+    }
+
+    // Atendentes só acessam /atendente/*
+    if (pathname.startsWith('/atendente') || pathname.startsWith('/api/atendente')) {
+      if (role !== 'BENAVERA_COMERCIAL' && role !== 'BENAVERA_ADMIN') {
+        if (pathname.startsWith('/api/')) {
+          return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
+        }
+        return NextResponse.redirect(new URL('/login', request.url));
       }
     }
 

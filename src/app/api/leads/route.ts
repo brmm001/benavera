@@ -8,6 +8,7 @@ import {
   getClinicLeads,
 } from '@/lib/db';
 import type { PatientLead, ClinicLead } from '@/types';
+import { distributeLeadToAtendente } from '@/lib/lead-distribution';
 
 // POST /api/leads — Submissão de leads (Paciente ou Clínica)
 export async function POST(request: NextRequest) {
@@ -83,6 +84,11 @@ export async function POST(request: NextRequest) {
 
       const result = await saveClinicLead(clinicData);
 
+      // Distribuição automática ao atendente disponível (fire-and-forget)
+      distributeLeadToAtendente(result.id, 'clinic').catch(e =>
+        console.error('[LeadDistribution] Erro na distribuição do lead de clínica:', e)
+      );
+
       console.log(
         `[Benavera Lead] Clínica salva ID=${result.id} | Clínica=${maskPII(nomeClinica)} | Contato=${maskPII(nome)}`
       );
@@ -132,6 +138,11 @@ export async function POST(request: NextRequest) {
       };
 
       const result = await savePatientLead(patientData);
+
+      // Distribuição automática ao atendente disponível (fire-and-forget)
+      distributeLeadToAtendente(result.id, 'patient').catch(e =>
+        console.error('[LeadDistribution] Erro na distribuição do lead de paciente:', e)
+      );
 
       console.log(
         `[Benavera Lead] Paciente salvo ID=${result.id} | Tratamento=${tratamento} | Cidade=${cidade}`
