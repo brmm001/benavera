@@ -68,8 +68,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── Admin: sem autenticação extra ─────────────────────────────────────────
+  // ── Admin: verifica se é atendente tentando acessar indevidamente ─────────
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+    // Se tiver JWT de BENAVERA_COMERCIAL, redireciona para o painel do atendente
+    const adminToken = request.cookies.get(JWT_COOKIE)?.value;
+    if (adminToken) {
+      try {
+        const { payload } = await jwtVerify(adminToken, JWT_SECRET);
+        if (payload.role === 'BENAVERA_COMERCIAL') {
+          return NextResponse.redirect(new URL('/atendente', request.url));
+        }
+      } catch {
+        // Token inválido — deixa passar para o admin (sem senha)
+      }
+    }
     return NextResponse.next();
   }
 
