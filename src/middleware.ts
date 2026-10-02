@@ -9,12 +9,10 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'benavera-secret-dev-2026-change-in-production'
 );
 
-// Cookie do sistema JWT completo (clínicas e futuros usuários)
+// Cookie do sistema JWT completo
 const JWT_COOKIE = 'benavera_session';
-// Cookie do sistema de admin de senha única (sistema existente)
-const BV_ADMIN_COOKIE = 'bv_admin';
 
-// Apenas estas rotas e prefixos exigem login.
+// Prefixos que exigem autenticação
 const PROTECTED_PREFIXES = [
   '/dashboard',
   '/novo-financiamento',
@@ -60,32 +58,38 @@ function isProtectedRoute(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Redireciona a tela de login do admin diretamente para o painel (sem proteção de senha)
+  // Admin: redireciona /admin/login → /admin/leads (sem senha)
   if (pathname === '/admin/login') {
     return NextResponse.redirect(new URL('/admin/leads', request.url));
   }
 
-  // ── Login do atendente (/atendente/login é público) ───────────────────────
-  if (pathname === '/atendente/login') {
+  // ── Sempre público: login/logout do atendente e toda a API de auth ────────
+  if (pathname === '/atendente/login' || pathname.startsWith('/api/auth/')) {
     return NextResponse.next();
   }
 
-  // ── Rotas do admin (/admin/* e /api/admin/*) ──────────────────────────────
-  // Acesso direto liberado sem senha
+  // ── Admin: sem autenticação extra ─────────────────────────────────────────
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
     return NextResponse.next();
   }
 
-  // Se NÃO for uma rota protegida, permite acesso livre
+  // Rota não protegida → libera
   if (!isProtectedRoute(pathname)) {
     return NextResponse.next();
   }
 
-  // ── Outras rotas protegidas (clínicas, dashboard) ─────────────────────────
-  // Usam o sistema JWT (benavera_session)
+  // ── Rota protegida: verifica JWT ──────────────────────────────────────────
   const token = request.cookies.get(JWT_COOKIE)?.value;
 
   if (!token) {
+    // Sem sessão → redireciona para o login correto por contexto
+    const isAtendenteRoute = pathname.startsWith('/atendente') || pathname.startsWith('/api/atendente');
+    if (isAtendenteRoute) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Não autenticado.', loginUrl: '/atendente/login' }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL('/atendente/login', request.url));
+    }
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
     }
@@ -103,7 +107,7 @@ export async function middleware(request: NextRequest) {
       'BENAVERA_COMERCIAL', 'BENAVERA_FINANCEIRO', 'BENAVERA_SUPORTE',
     ]);
 
-    // Usuários Benavera com JWT redirecionam de /dashboard para /admin
+    // Staff Benavera acessando rotas de clínica → redireciona pro admin
     if (
       pathname.startsWith('/dashboard') ||
       pathname.startsWith('/novo-financiamento') ||
@@ -118,17 +122,17 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // Atendentes só acessam /atendente/*
+    // Rota do atendente: só BENAVERA_COMERCIAL ou BENAVERA_ADMIN
     if (pathname.startsWith('/atendente') || pathname.startsWith('/api/atendente')) {
       if (role !== 'BENAVERA_COMERCIAL' && role !== 'BENAVERA_ADMIN') {
         if (pathname.startsWith('/api/')) {
           return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
         }
-        return NextResponse.redirect(new URL('/login', request.url));
+        return NextResponse.redirect(new URL('/atendente/login', request.url));
       }
     }
 
-    // Passar headers de sessão para as rotas
+    // Injeta headers de sessão para as Server Components e API Routes
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-user-id', String(payload.userId || ''));
     requestHeaders.set('x-user-role', role);
@@ -137,6 +141,16 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next({ request: { headers: requestHeaders } });
   } catch {
+    // Token inválido ou expirado
+    const isAtendenteRoute = pathname.startsWith('/atendente') || pathname.startsWith('/api/atendente');
+    if (isAtendenteRoute) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Sessão expirada.', loginUrl: '/atendente/login' }, { status: 401 });
+      }
+      const response = NextResponse.redirect(new URL('/atendente/login', request.url));
+      response.cookies.delete(JWT_COOKIE);
+      return response;
+    }
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Sessão expirada.' }, { status: 401 });
     }

@@ -1,4 +1,6 @@
 // src/app/atendente/layout.tsx
+// Layout protegido do painel do atendente — exige sessão BENAVERA_COMERCIAL ou BENAVERA_ADMIN
+
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { AtendenteSidebar } from '@/components/AtendenteSidebar';
@@ -11,7 +13,8 @@ export default async function AtendenteLayout({ children }: { children: React.Re
   }
 
   if (session.role !== 'BENAVERA_COMERCIAL' && session.role !== 'BENAVERA_ADMIN') {
-    redirect('/login');
+    // Role incorreta: redireciona para o login do atendente (não o da clínica)
+    redirect('/atendente/login');
   }
 
   return (

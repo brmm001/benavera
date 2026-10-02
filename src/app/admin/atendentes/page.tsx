@@ -2,7 +2,7 @@
 // src/app/admin/atendentes/page.tsx
 // Gerenciamento de atendentes + distribuição de leads + comissões
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 type Atendente = {
   id: string;
@@ -59,9 +59,18 @@ export default function AdminAtendentesPage() {
   const [novoForm, setNovoForm] = useState({ name: '', email: '', password: '', lead_limit: 30 });
   const [regraForm, setRegraForm] = useState({ nome: '', evento: 'cadastro_validado', valor: '' });
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [comissaoFiltroStatus, setComissaoFiltroStatus] = useState('all');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [justificativa, setJustificativa] = useState('');
+
+  // ── Importação em massa ──────────────────────────────────────
+  const [showImport, setShowImport] = useState(false);
+  const [importRows, setImportRows] = useState<{ whatsapp: string; nome_clinica: string }[]>([]);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ inseridos: number; distribuidos: number; duplicados: number; invalidos: number; erros: string[] } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -108,15 +117,23 @@ export default function AdminAtendentesPage() {
   async function handleCriarAtendente(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const res = await fetch('/api/admin/atendentes', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(novoForm),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setShowNovoAtendente(false);
-      setNovoForm({ name: '', email: '', password: '', lead_limit: 30 });
-      fetchAll();
+    setSaveError(null);
+    try {
+      const res = await fetch('/api/admin/atendentes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShowNovoAtendente(false);
+        setNovoForm({ name: '', email: '', password: '', lead_limit: 30 });
+        setSaveError(null);
+        fetchAll();
+      } else {
+        setSaveError(data.error || 'Erro ao criar atendente. Tente novamente.');
+      }
+    } catch {
+      setSaveError('Erro de conexão. Verifique sua internet e tente novamente.');
     }
     setSaving(false);
   }
@@ -195,6 +212,11 @@ export default function AdminAtendentesPage() {
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
               <form onSubmit={handleCriarAtendente} style={{ background: 'white', borderRadius: '16px', padding: '28px', width: '400px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#1c1d4c' }}>Novo atendente</h2>
+                {saveError && (
+                  <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', color: '#dc2626' }}>
+                    {saveError}
+                  </div>
+                )}
                 {[['name','Nome completo','text'],['email','E-mail','email'],['password','Senha inicial','password']].map(([f,l,t]) => (
                   <div key={f}>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '4px' }}>{l}</label>
@@ -208,7 +230,7 @@ export default function AdminAtendentesPage() {
                     onChange={e => setNovoForm(p => ({...p, lead_limit: Number(e.target.value)}))} style={inputStyle} />
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                  <button type="button" onClick={() => setShowNovoAtendente(false)} style={{ flex: 1, padding: '10px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px' }}>Cancelar</button>
+                  <button type="button" onClick={() => { setShowNovoAtendente(false); setSaveError(null); }} style={{ flex: 1, padding: '10px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px' }}>Cancelar</button>
                   <button type="submit" disabled={saving} style={{ flex: 1, padding: '10px', background: '#6370f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: '700' }}>{saving ? 'Criando…' : 'Criar'}</button>
                 </div>
               </form>
@@ -298,6 +320,202 @@ export default function AdminAtendentesPage() {
       {/* ── TAB 1: Distribuição ───────────────────────────── */}
       {tab === 1 && (
         <div>
+          {/* Botão Importar */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <button
+              onClick={() => { setShowImport(true); setImportRows([]); setImportError(null); setImportResult(null); }}
+              style={{
+                padding: '9px 18px', background: '#10b981', color: 'white', border: 'none',
+                borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: 'pointer',
+                fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px',
+              }}
+            >
+              <span style={{ fontSize: '15px' }}>⬆</span> Importar leads em massa
+            </button>
+          </div>
+
+          {/* Modal Importação */}
+          {showImport && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ background: 'white', borderRadius: '18px', padding: '32px', width: '560px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <h2 style={{ margin: '0 0 4px', fontSize: '19px', fontWeight: '800', color: '#1c1d4c' }}>Importar leads em massa</h2>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Upload de CSV com telefone e nome da clínica. Os leads serão distribuídos automaticamente pelo rodízio.</p>
+                  </div>
+                  <button onClick={() => setShowImport(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#94a3b8', padding: '0 4px', lineHeight: 1 }}>✕</button>
+                </div>
+
+                {/* Resultado */}
+                {importResult && (
+                  <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: '12px', padding: '16px 20px' }}>
+                    <p style={{ margin: '0 0 8px', fontWeight: '800', color: '#15803d', fontSize: '15px' }}>✅ Importação concluída!</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px', fontSize: '13px', color: '#1e293b' }}>
+                      <span>✔ Inseridos: <strong>{importResult.inseridos}</strong></span>
+                      <span>📡 Distribuídos: <strong>{importResult.distribuidos}</strong></span>
+                      <span>🔁 Duplicados ignorados: <strong>{importResult.duplicados}</strong></span>
+                      <span>⚠ Inválidos: <strong>{importResult.invalidos}</strong></span>
+                    </div>
+                    {importResult.erros.length > 0 && (
+                      <details style={{ marginTop: '10px' }}>
+                        <summary style={{ fontSize: '12px', color: '#dc2626', cursor: 'pointer', fontWeight: '600' }}>Ver {importResult.erros.length} erros</summary>
+                        <ul style={{ margin: '6px 0 0', paddingLeft: '16px', fontSize: '12px', color: '#dc2626' }}>
+                          {importResult.erros.map((e, i) => <li key={i}>{e}</li>)}
+                        </ul>
+                      </details>
+                    )}
+                    <button onClick={() => { setShowImport(false); fetchAll(); }} style={{ marginTop: '14px', padding: '8px 18px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit' }}>Fechar e atualizar</button>
+                  </div>
+                )}
+
+                {!importResult && (
+                  <>
+                    {/* Instruções + Upload */}
+                    <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '16px', border: '1px solid #e2e8f0' }}>
+                      <p style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: '700', color: '#334155' }}>📄 Formato do CSV</p>
+                      <p style={{ margin: '0 0 8px', fontSize: '12px', color: '#64748b' }}>O arquivo deve ter duas colunas, separadas por vírgula ou ponto e vírgula. A primeira linha pode ser cabeçalho (será ignorada automaticamente).</p>
+                      <div style={{ background: '#1e293b', color: '#a3e635', borderRadius: '8px', padding: '10px 14px', fontFamily: 'monospace', fontSize: '12px', lineHeight: 1.7 }}>
+                        telefone,nome_clinica<br />
+                        11999998888,Clínica Exemplo<br />
+                        21988887777,Odonto Saúde<br />
+                        4733336666,Ortopedia Silva
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '8px' }}>Selecionar arquivo CSV</label>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv,text/csv,text/plain"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setImportError(null);
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            const text = ev.target?.result as string;
+                            const lines = text.split(/\r?\n/).filter(l => l.trim());
+                            if (lines.length === 0) { setImportError('Arquivo vazio.'); return; }
+                            // Detectar separador
+                            const sep = lines[0].includes(';') ? ';' : ',';
+                            const parsed: { whatsapp: string; nome_clinica: string }[] = [];
+                            for (let i = 0; i < lines.length; i++) {
+                              const cols = lines[i].split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
+                              const phone = (cols[0] || '').replace(/\D/g, '');
+                              const name = cols[1] || '';
+                              // Pular cabeçalho (se primeira linha não for número)
+                              if (i === 0 && isNaN(Number(phone[0]))) continue;
+                              if (phone || name) parsed.push({ whatsapp: phone, nome_clinica: name });
+                            }
+                            if (parsed.length === 0) { setImportError('Nenhum registro válido encontrado no arquivo.'); return; }
+                            if (parsed.length > 500) { setImportError('Máximo de 500 leads por importação.'); return; }
+                            setImportRows(parsed);
+                          };
+                          reader.readAsText(file, 'UTF-8');
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{
+                          width: '100%', padding: '32px 16px', border: '2px dashed #cbd5e1', borderRadius: '12px',
+                          background: importRows.length > 0 ? '#f0fdf4' : '#f8fafc',
+                          cursor: 'pointer', fontSize: '14px', color: '#64748b', fontFamily: 'inherit',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <span style={{ fontSize: '28px' }}>{importRows.length > 0 ? '✅' : '📁'}</span>
+                        {importRows.length > 0
+                          ? <><strong style={{ color: '#15803d' }}>{importRows.length} registros carregados</strong><span style={{ fontSize: '12px' }}>Clique para trocar o arquivo</span></>
+                          : <><strong>Clique para selecionar um CSV</strong><span style={{ fontSize: '12px' }}>Aceita arquivos .csv</span></>}
+                      </button>
+                    </div>
+
+                    {importError && (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#dc2626' }}>
+                        {importError}
+                      </div>
+                    )}
+
+                    {/* Preview */}
+                    {importRows.length > 0 && (
+                      <div>
+                        <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: '700', color: '#334155' }}>Prévia — primeiros {Math.min(5, importRows.length)} registros</p>
+                        <div style={{ background: '#f8fafc', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                            <thead>
+                              <tr style={{ background: '#f1f5f9' }}>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontWeight: '700' }}>Telefone</th>
+                                <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontWeight: '700' }}>Nome da Clínica</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {importRows.slice(0, 5).map((r, i) => (
+                                <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                                  <td style={{ padding: '8px 12px', color: '#1e293b' }}>{r.whatsapp}</td>
+                                  <td style={{ padding: '8px 12px', color: '#1e293b' }}>{r.nome_clinica || <em style={{ color: '#94a3b8' }}>vazio</em>}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          {importRows.length > 5 && (
+                            <p style={{ margin: 0, padding: '8px 12px', fontSize: '11px', color: '#94a3b8', borderTop: '1px solid #f1f5f9' }}>… e mais {importRows.length - 5} registro(s)</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Ações */}
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowImport(false)}
+                        style={{ flex: 1, padding: '11px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px' }}
+                      >Cancelar</button>
+                      <button
+                        type="button"
+                        disabled={importing || importRows.length === 0}
+                        onClick={async () => {
+                          if (importRows.length === 0) return;
+                          setImporting(true);
+                          setImportError(null);
+                          try {
+                            const res = await fetch('/api/admin/atendentes/importar', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ leads: importRows }),
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                              setImportResult(data.results);
+                            } else {
+                              setImportError(data.error || 'Erro ao importar. Tente novamente.');
+                            }
+                          } catch {
+                            setImportError('Erro de conexão. Tente novamente.');
+                          }
+                          setImporting(false);
+                        }}
+                        style={{
+                          flex: 2, padding: '11px', background: importing ? '#94a3b8' : '#10b981',
+                          color: 'white', border: 'none', borderRadius: '8px',
+                          cursor: importing || importRows.length === 0 ? 'not-allowed' : 'pointer',
+                          fontFamily: 'inherit', fontSize: '13px', fontWeight: '700',
+                        }}
+                      >
+                        {importing ? '⏳ Importando…' : `Importar ${importRows.length} leads e distribuir`}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {distStats && (
             <>
               {/* Fila */}

@@ -132,7 +132,9 @@ export async function loginUser(email: string, password: string): Promise<{
   }
 }
 
-// ── Obter sessão atual (JWT benavera_session ou bv_admin) ────
+// ── Obter sessão atual (JWT benavera_session ou fallback admin) ────
+// ATENÇÃO: retorna sempre uma sessão (pode ser o admin mock).
+// Use getJwtSession() quando precisar garantir que há um JWT real.
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
@@ -142,6 +144,16 @@ export async function getSession(): Promise<SessionPayload | null> {
   }
   // Fallback para admin logado via bv_admin
   return getAdminSession();
+}
+
+// ── Obter sessão apenas do JWT real (sem fallback de admin) ──────
+// Retorna null se não houver cookie JWT válido.
+// Use em APIs que precisam distinguir "não logado" vs "admin mock".
+export async function getJwtSession(): Promise<SessionPayload | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+  if (!token) return null;
+  return verifyToken(token);
 }
 
 // ── Obter sessão do admin existente (bv_admin) ───
