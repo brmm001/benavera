@@ -1,7 +1,9 @@
 import { neon } from '@neondatabase/serverless';
 
-const url = 'postgresql://neondb_owner:npg_a4EFbjtv8Aip@ep-lively-queen-axlifs9v-pooler.c-4.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
-const sql = neon(url);
+// Uso: node --env-file=.env.local scripts/check-tables.mjs
+const url = process.env.DATABASE_URL;
+if (!url) throw new Error('DATABASE_URL não definida (use --env-file=.env.local)');
+const sql = neon(url.replace(/^["']|["']$/g, '').trim());
 
 const tables = await sql`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name`;
 console.log('Tables:', tables.map(x => x.table_name));

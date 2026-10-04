@@ -2,8 +2,10 @@
 import bcrypt from 'bcryptjs';
 import { neon } from '@neondatabase/serverless';
 
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_1XPh7JtnbqTr@ep-lively-queen-axlifs9v-pooler.c-4.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
-const sql = neon(DATABASE_URL);
+// Uso: node --env-file=.env.local scripts/seed-users.mjs
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) throw new Error('DATABASE_URL não definida (use --env-file=.env.local)');
+const sql = neon(DATABASE_URL.replace(/^["']|["']$/g, '').trim());
 
 // IDs fixos com formato UUID válido
 const IDS = {
