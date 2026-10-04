@@ -45,8 +45,19 @@ export async function POST(request: NextRequest) {
     };
 
     for (const lead of leads) {
-      const whatsapp = (lead.whatsapp || '').replace(/\D/g, '');
-      const nome_clinica = (lead.nome_clinica || '').trim();
+      let whatsapp = (lead.whatsapp || '').replace(/\D/g, '');
+      let nome_clinica = (lead.nome_clinica || '').trim();
+
+      // Proteção: colunas invertidas (telefone veio no nome e vice-versa)
+      const nomeDigits = nome_clinica.replace(/\D/g, '');
+      if (
+        (whatsapp.length < 10 || whatsapp.length > 13) &&
+        /^[\d\s()+\-.]+$/.test(nome_clinica) &&
+        nomeDigits.length >= 10 && nomeDigits.length <= 13
+      ) {
+        nome_clinica = (lead.whatsapp || '').trim();
+        whatsapp = nomeDigits;
+      }
 
       // Validação básica
       if (whatsapp.length < 10 || whatsapp.length > 13) {

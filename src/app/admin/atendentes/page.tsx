@@ -45,6 +45,101 @@ function fmt(iso?: string) {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 }
 
+// ── Parser de CSV para importação de leads ──────────────────────────────
+// Detecta separador, respeita aspas e identifica automaticamente qual coluna
+// é o telefone e qual é o nome da clínica (pelo cabeçalho ou pelo conteúdo),
+// independente da ordem das colunas no arquivo.
+function splitCsvLine(line: string, sep: string): string[] {
+  const out: string[] = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (ch === sep && !inQuotes) {
+      out.push(cur.trim());
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+function looksLikePhone(value: string): boolean {
+  const v = value.trim();
+  if (!v) return false;
+  // Apenas dígitos e símbolos comuns de telefone
+  if (!/^[\d\s()+\-.]+$/.test(v)) return false;
+  const digits = v.replace(/\D/g, '');
+  return digits.length >= 10 && digits.length <= 13;
+}
+
+const PHONE_HEADERS = /(telefone|fone|whats|celular|phone|tel\b|numero|número)/i;
+const NAME_HEADERS = /(nome|clinica|clínica|empresa|razao|razão|fantasia|estabelecimento)/i;
+
+function parseLeadsCsv(raw: string): { whatsapp: string; nome_clinica: string }[] {
+  const text = raw.replace(/^\uFEFF/, ''); // remove BOM do Excel
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length === 0) return [];
+
+  // Detectar separador pela primeira linha (o mais frequente entre ; , tab)
+  const first = lines[0];
+  const counts: Array<[string, number]> = [';', ',', '\t'].map(s => [s, first.split(s).length - 1]);
+  counts.sort((a, b) => b[1] - a[1]);
+  const sep = counts[0][1] > 0 ? counts[0][0] : ',';
+
+  const rows = lines.map(l => splitCsvLine(l, sep));
+
+  // Detectar cabeçalho
+  let phoneIdx = -1;
+  let nameIdx = -1;
+  let start = 0;
+  const header = rows[0];
+  const headerHasPhone = header.some(looksLikePhone);
+  if (!headerHasPhone) {
+    start = 1;
+    header.forEach((h, i) => {
+      if (phoneIdx === -1 && PHONE_HEADERS.test(h)) phoneIdx = i;
+    });
+    header.forEach((h, i) => {
+      if (nameIdx === -1 && i !== phoneIdx && NAME_HEADERS.test(h)) nameIdx = i;
+    });
+  }
+
+  // Se o cabeçalho não resolveu, detectar pelo conteúdo (coluna com mais telefones)
+  const dataRows = rows.slice(start);
+  if (phoneIdx === -1) {
+    const maxCols = Math.max(...dataRows.map(r => r.length));
+    let best = -1;
+    let bestScore = 0;
+    for (let c = 0; c < maxCols; c++) {
+      const score = dataRows.filter(r => looksLikePhone(r[c] || '')).length;
+      if (score > bestScore) { bestScore = score; best = c; }
+    }
+    phoneIdx = best;
+  }
+
+  const parsed: { whatsapp: string; nome_clinica: string }[] = [];
+  for (const cols of dataRows) {
+    let phoneRaw = phoneIdx >= 0 ? (cols[phoneIdx] || '') : '';
+    let pIdx = phoneIdx;
+    // Fallback por linha: se a coluna esperada não tem telefone, procurar em outra
+    if (!looksLikePhone(phoneRaw)) {
+      const alt = cols.findIndex(looksLikePhone);
+      if (alt >= 0) { phoneRaw = cols[alt]; pIdx = alt; }
+    }
+    let name = nameIdx >= 0 && nameIdx !== pIdx ? (cols[nameIdx] || '') : '';
+    if (!name) name = cols.find((c, i) => i !== pIdx && c && !looksLikePhone(c)) || '';
+    const phone = phoneRaw.replace(/\D/g, '');
+    if (phone || name) parsed.push({ whatsapp: phone, nome_clinica: name.trim() });
+  }
+  return parsed;
+}
+
 const TAB_LABELS = ['Atendentes', 'Distribuição', 'Comissões'];
 
 export default function AdminAtendentesPage() {
@@ -397,19 +492,8 @@ export default function AdminAtendentesPage() {
                           const reader = new FileReader();
                           reader.onload = (ev) => {
                             const text = ev.target?.result as string;
-                            const lines = text.split(/\r?\n/).filter(l => l.trim());
-                            if (lines.length === 0) { setImportError('Arquivo vazio.'); return; }
-                            // Detectar separador
-                            const sep = lines[0].includes(';') ? ';' : ',';
-                            const parsed: { whatsapp: string; nome_clinica: string }[] = [];
-                            for (let i = 0; i < lines.length; i++) {
-                              const cols = lines[i].split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
-                              const phone = (cols[0] || '').replace(/\D/g, '');
-                              const name = cols[1] || '';
-                              // Pular cabeçalho (se primeira linha não for número)
-                              if (i === 0 && isNaN(Number(phone[0]))) continue;
-                              if (phone || name) parsed.push({ whatsapp: phone, nome_clinica: name });
-                            }
+                            if (!text || !text.trim()) { setImportError('Arquivo vazio.'); return; }
+                            const parsed = parseLeadsCsv(text);
                             if (parsed.length === 0) { setImportError('Nenhum registro válido encontrado no arquivo.'); return; }
                             if (parsed.length > 500) { setImportError('Máximo de 500 leads por importação.'); return; }
                             setImportRows(parsed);
