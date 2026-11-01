@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAdminSession } from '@/lib/auth';
 import { sanitizeString } from '@/lib/security';
 import {
   updatePatientLeadStatus,
@@ -13,6 +14,10 @@ type Props = {
 };
 
 export async function GET(request: NextRequest, { params }: Props) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
 
   const { id } = await params;
   const events = await getLeadEvents(id);
@@ -21,6 +26,10 @@ export async function GET(request: NextRequest, { params }: Props) {
 }
 
 export async function PATCH(request: NextRequest, { params }: Props) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
 
   const { id } = await params;
   try {
@@ -51,6 +60,10 @@ export async function PATCH(request: NextRequest, { params }: Props) {
 }
 
 export async function DELETE(request: NextRequest, { params }: Props) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
 
   const { id } = await params;
   const searchParams = request.nextUrl.searchParams;

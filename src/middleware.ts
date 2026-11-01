@@ -12,6 +12,9 @@ const JWT_SECRET = new TextEncoder().encode(
 // Cookie do sistema JWT completo
 const JWT_COOKIE = 'benavera_session';
 
+// Cookie legado do admin (senha única)
+const BV_ADMIN_COOKIE = 'bv_admin';
+
 // Prefixos que exigem autenticação
 const PROTECTED_PREFIXES = [
   '/dashboard',
@@ -21,6 +24,8 @@ const PROTECTED_PREFIXES = [
   '/repasses',
   '/equipe',
   '/configuracoes',
+  '/admin',
+  '/api/admin',
   '/api/applications',
   '/api/dashboard',
   '/api/patients',
@@ -32,7 +37,7 @@ const PROTECTED_PREFIXES = [
 
 // Exceções públicas dentro dos prefixos protegidos
 const PUBLIC_EXCEPTIONS = [
-  '/api/admin/debug',
+  '/admin/login',
 ];
 
 function isProtectedRoute(pathname: string): boolean {
@@ -49,39 +54,27 @@ function isProtectedRoute(pathname: string): boolean {
   ) {
     return false;
   }
-  if (PUBLIC_EXCEPTIONS.some(exc => pathname.startsWith(exc))) {
+  if (PUBLIC_EXCEPTIONS.some(exc => pathname === exc || pathname.startsWith(exc + '/'))) {
     return false;
   }
   return PROTECTED_PREFIXES.some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'));
 }
 
+// Roles válidas do staff Benavera
+const BENAVERA_ADMIN_ROLES = new Set([
+  'BENAVERA_ADMIN', 'BENAVERA_ANALYST', 'BENAVERA_COMPLIANCE',
+  'BENAVERA_FINANCEIRO', 'BENAVERA_SUPORTE',
+]);
+const BENAVERA_ALL_ROLES = new Set([
+  ...BENAVERA_ADMIN_ROLES,
+  'BENAVERA_COMERCIAL',
+]);
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Admin: redireciona /admin/login → /admin/leads (sem senha)
-  if (pathname === '/admin/login') {
-    return NextResponse.redirect(new URL('/admin/leads', request.url));
-  }
-
   // ── Sempre público: login/logout do atendente e toda a API de auth ────────
   if (pathname === '/atendente/login' || pathname.startsWith('/api/auth/')) {
-    return NextResponse.next();
-  }
-
-  // ── Admin: verifica se é atendente tentando acessar indevidamente ─────────
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    // Se tiver JWT de BENAVERA_COMERCIAL, redireciona para o painel do atendente
-    const adminToken = request.cookies.get(JWT_COOKIE)?.value;
-    if (adminToken) {
-      try {
-        const { payload } = await jwtVerify(adminToken, JWT_SECRET);
-        if (payload.role === 'BENAVERA_COMERCIAL') {
-          return NextResponse.redirect(new URL('/atendente', request.url));
-        }
-      } catch {
-        // Token inválido — deixa passar para o admin (sem senha)
-      }
-    }
     return NextResponse.next();
   }
 
@@ -93,6 +86,60 @@ export async function middleware(request: NextRequest) {
   // ── Rota protegida: verifica JWT ──────────────────────────────────────────
   const token = request.cookies.get(JWT_COOKIE)?.value;
 
+  // ── Admin routes: tentam JWT primeiro, fallback para bv_admin ─────────────
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+
+    // 1) Tentar JWT
+    if (token) {
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        const role = payload.role as string;
+
+        // BENAVERA_COMERCIAL não pode acessar admin → redireciona pro atendente
+        if (role === 'BENAVERA_COMERCIAL') {
+          return NextResponse.redirect(new URL('/atendente', request.url));
+        }
+
+        // Só roles admin podem acessar /admin
+        if (BENAVERA_ADMIN_ROLES.has(role)) {
+          const requestHeaders = new Headers(request.headers);
+          requestHeaders.set('x-user-id', String(payload.userId || ''));
+          requestHeaders.set('x-user-role', role);
+          requestHeaders.set('x-clinic-id', String(payload.clinicId || ''));
+          requestHeaders.set('x-user-name', String(payload.name || ''));
+          return NextResponse.next({ request: { headers: requestHeaders } });
+        }
+
+        // Role inválida para admin
+        if (pathname.startsWith('/api/')) {
+          return NextResponse.json({ error: 'Sem permissão para acessar o painel administrativo.' }, { status: 403 });
+        }
+        return NextResponse.redirect(new URL('/admin/login', request.url));
+      } catch {
+        // JWT inválido — continua para fallback bv_admin
+      }
+    }
+
+    // 2) Fallback: cookie bv_admin (senha única legada)
+    const bvToken = request.cookies.get(BV_ADMIN_COOKIE)?.value;
+    const expectedToken = process.env.ADMIN_SECRET ?? 'bv-secure-token-9x2k7p4m8q1r';
+    if (bvToken && bvToken === expectedToken) {
+      // Admin legado autenticado
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-user-id', 'a1000001-0001-4001-a001-000000000001');
+      requestHeaders.set('x-user-role', 'BENAVERA_ADMIN');
+      requestHeaders.set('x-user-name', 'Admin Benavera');
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
+
+    // 3) Sem autenticação válida
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+    return NextResponse.redirect(new URL('/admin/login', request.url));
+  }
+
+  // ── Rotas não-admin protegidas ────────────────────────────────────────────
   if (!token) {
     // Sem sessão → redireciona para o login correto por contexto
     const isAtendenteRoute = pathname.startsWith('/atendente') || pathname.startsWith('/api/atendente');
@@ -114,11 +161,6 @@ export async function middleware(request: NextRequest) {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const role = payload.role as string;
 
-    const benaveraRoles = new Set([
-      'BENAVERA_ADMIN', 'BENAVERA_ANALYST', 'BENAVERA_COMPLIANCE',
-      'BENAVERA_COMERCIAL', 'BENAVERA_FINANCEIRO', 'BENAVERA_SUPORTE',
-    ]);
-
     // Staff Benavera acessando rotas de clínica → redireciona pro admin
     if (
       pathname.startsWith('/dashboard') ||
@@ -129,7 +171,7 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/equipe') ||
       pathname.startsWith('/configuracoes')
     ) {
-      if (benaveraRoles.has(role)) {
+      if (BENAVERA_ALL_ROLES.has(role)) {
         return NextResponse.redirect(new URL('/admin', request.url));
       }
     }

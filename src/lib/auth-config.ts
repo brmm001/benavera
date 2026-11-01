@@ -5,9 +5,23 @@ export const COOKIE_NAME = 'bv_admin';
 export const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 dias
 
 export function getAdminToken(): string {
-  return process.env.ADMIN_SECRET ?? 'bv-secure-token-9x2k7p4m8q1r';
+  const token = process.env.ADMIN_SECRET;
+  if (!token) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('ADMIN_SECRET não configurado em produção.');
+    }
+    return 'bv-dev-token-local-only';
+  }
+  return token;
 }
 
 export function getAdminPassword(): string {
-  return process.env.ADMIN_PASSWORD ?? 'Bvr@Admin#2026!';
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('ADMIN_PASSWORD não configurado em produção.');
+    }
+    return 'dev-password-local-only';
+  }
+  return password;
 }

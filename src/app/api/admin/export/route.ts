@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAdminSession } from '@/lib/auth';
 
 import { getPatientLeads, getClinicLeads } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
-  // A autorização agora é garantida 100% pelo middleware.ts
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
 
   const type = request.nextUrl.searchParams.get('type') || 'patient';
 

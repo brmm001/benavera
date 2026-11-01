@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET || "bv-secure-token";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Bvr@Admin#2026!";
-
 export async function POST(request: Request) {
   try {
+    const ADMIN_SECRET = process.env.ADMIN_SECRET;
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+    if (!ADMIN_SECRET || !ADMIN_PASSWORD) {
+      console.error('[simulator/admin-auth] ADMIN_SECRET ou ADMIN_PASSWORD não configurados.');
+      return NextResponse.json({ error: "Configuração de autenticação ausente." }, { status: 500 });
+    }
+
     const { password } = await request.json();
     if (password !== ADMIN_PASSWORD) {
       return NextResponse.json({ error: "Senha incorreta" }, { status: 401 });

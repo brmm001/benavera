@@ -132,9 +132,8 @@ export async function loginUser(email: string, password: string): Promise<{
   }
 }
 
-// ── Obter sessão atual (JWT benavera_session ou fallback admin) ────
-// ATENÇÃO: retorna sempre uma sessão (pode ser o admin mock).
-// Use getJwtSession() quando precisar garantir que há um JWT real.
+// ── Obter sessão atual (JWT benavera_session ou fallback admin via bv_admin) ────
+// Retorna null se não houver nenhum cookie válido.
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
@@ -161,7 +160,8 @@ export async function getJwtSession(): Promise<SessionPayload | null> {
 // O admin logado via /admin/login usa o cookie bv_admin (token estático).
 // Esta função retorna um SessionPayload com BENAVERA_ADMIN para que as
 // APIs de credenciamento funcionem sem exigir um segundo sistema de login.
-export async function getAdminSession(): Promise<SessionPayload> {
+// Retorna null se o cookie bv_admin estiver ausente ou inválido.
+export async function getAdminSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
 
   // 1) Tentar primeiro o JWT completo se existir
@@ -171,7 +171,14 @@ export async function getAdminSession(): Promise<SessionPayload> {
     if (jwtSession) return jwtSession;
   }
 
-  // Acesso direto sem senha: admin ativo com permissão total BENAVERA_ADMIN
+  // 2) Verificar cookie bv_admin (token estático do login admin)
+  const adminCookie = cookieStore.get(BV_ADMIN_COOKIE_NAME)?.value;
+  if (!adminCookie) return null;
+
+  const expectedToken = getAdminToken();
+  if (adminCookie !== expectedToken) return null;
+
+  // Cookie bv_admin válido — retorna sessão admin
   return {
     userId: 'a1000001-0001-4001-a001-000000000001',
     email: 'admin@benavera.com.br',

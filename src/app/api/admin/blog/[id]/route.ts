@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { getAdminSession } from '@/lib/auth';
 import {
   getBlogArticleById,
   updateBlogArticle,
@@ -9,6 +10,11 @@ import {
 interface Props { params: Promise<{ id: string }> }
 
 export async function GET(_req: NextRequest, { params }: Props) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
+
   const { id } = await params;
   const article = await getBlogArticleById(id);
   if (!article) return NextResponse.json({ success: false, error: 'Não encontrado.' }, { status: 404 });
@@ -16,6 +22,11 @@ export async function GET(_req: NextRequest, { params }: Props) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Props) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
+
   const { id } = await params;
   try {
     const body = await req.json();
@@ -30,6 +41,11 @@ export async function PATCH(req: NextRequest, { params }: Props) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Props) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
+
   const { id } = await params;
   const ok = await deleteBlogArticle(id);
   if (!ok) return NextResponse.json({ success: false, error: 'Artigo não encontrado.' }, { status: 404 });

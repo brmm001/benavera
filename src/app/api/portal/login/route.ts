@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getNeonClient } from '@/lib/neon';
 import { signPortalToken, PORTAL_COOKIE } from '@/lib/portal-auth';
 import type { PortalSession } from '@/lib/portal-auth';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,9 +36,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Clinica ainda nao ativada. Entre em contato com a Benavera.' }, { status: 403 });
     }
 
-    // Verificar senha
+    // Verificar senha com bcrypt
     const storedHash = (user.password_hash as string) || '';
-    const isValid = password === storedHash || password.length >= 6;
+    if (!storedHash) {
+      return NextResponse.json({ success: false, error: 'Conta sem senha configurada. Entre em contato com o suporte.' }, { status: 401 });
+    }
+    const isValid = await bcrypt.compare(password, storedHash);
     if (!isValid) {
       return NextResponse.json({ success: false, error: 'Email ou senha incorretos.' }, { status: 401 });
     }

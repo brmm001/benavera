@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { getAdminSession } from '@/lib/auth';
 import {
   getBlogArticles,
   createBlogArticle,
@@ -8,6 +9,11 @@ import {
 import { articles as staticArticles, articleContent } from '@/content/articles';
 
 export async function GET(req: NextRequest) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
+
   const { searchParams } = req.nextUrl;
   const status = (searchParams.get('status') ?? 'all') as 'all' | 'draft' | 'published';
   const category = searchParams.get('category') ?? undefined;
@@ -53,6 +59,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
 

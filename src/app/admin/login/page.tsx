@@ -52,10 +52,13 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
 
-  // Acesso direto liberado: redireciona imediatamente para o painel
+  // Redirecionar apenas após login bem-sucedido
   useEffect(() => {
-    window.location.assign('/admin/leads');
-  }, []);
+    if (state && 'success' in state && state.success) {
+      setRedirecting(true);
+      window.location.assign('/admin/leads');
+    }
+  }, [state]);
 
   return (
     <div

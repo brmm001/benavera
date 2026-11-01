@@ -2,9 +2,15 @@
 // Proxy para servir arquivos armazenados de forma segura
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getAdminSession } from '@/lib/auth';
 import { getStorageAdapter } from '@/lib/storage-adapter';
 
 export async function GET(request: NextRequest) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const key = searchParams.get('key');
 

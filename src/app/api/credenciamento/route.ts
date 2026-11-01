@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Verifica se usuário com este email já existe
     const existingUser = await sql`
-      SELECT id, email, ativo, clinic_id FROM users WHERE email = ${cleanEmail} LIMIT 1
+      SELECT id, email, ativo, clinic_id, password_hash FROM users WHERE email = ${cleanEmail} LIMIT 1
     `;
 
     if (existingUser[0]) {
@@ -55,6 +55,22 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           { error: 'Já existe uma conta ativa com este e-mail. Por favor, acesse a tela de login.' },
           { status: 409 }
+        );
+      }
+
+      // Verificar senha antes de permitir retomada do credenciamento
+      const existingPasswordHash = existingUser[0].password_hash;
+      if (!existingPasswordHash) {
+        return NextResponse.json(
+          { error: 'Conta sem senha configurada. Entre em contato com o suporte.' },
+          { status: 401 }
+        );
+      }
+      const passwordMatch = await bcrypt.compare(password, String(existingPasswordHash));
+      if (!passwordMatch) {
+        return NextResponse.json(
+          { error: 'Credenciais inválidas.' },
+          { status: 401 }
         );
       }
 

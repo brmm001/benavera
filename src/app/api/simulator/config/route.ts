@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getSimulatorConfig, updateSimulatorConfig } from "@/lib/simulator-db";
 
 // GET /api/simulator/config - retorna configuracoes atuais
@@ -17,7 +17,13 @@ export async function POST(request: Request) {
   try {
     const adminSecret = request.headers.get("x-admin-secret");
     const expectedSecret = process.env.ADMIN_SECRET;
-    if (expectedSecret && adminSecret !== expectedSecret) {
+
+    if (!expectedSecret) {
+      console.error("[simulator/config] ADMIN_SECRET não configurado.");
+      return NextResponse.json({ error: "Configuração de autenticação ausente." }, { status: 500 });
+    }
+
+    if (adminSecret !== expectedSecret) {
       return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
     }
 
