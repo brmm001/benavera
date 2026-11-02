@@ -215,7 +215,7 @@ export default function HomePage() {
                 </Link>
 
                 <a
-                  href="https://wa.me/414187223343?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20um%20consultor%20da%20Benavera."
+                  href="https://wa.me/5547992080926?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20um%20consultor%20da%20Benavera."
                   target="_blank"
                   rel="noopener noreferrer"
                   id="hero-consultor-btn"

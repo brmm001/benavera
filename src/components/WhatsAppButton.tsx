@@ -3,17 +3,20 @@
 import { MessageCircle } from 'lucide-react';
 
 export function WhatsAppButton() {
-  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-  if (!number) return null;
+  const rawNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+  const digits = rawNumber ? rawNumber.replace(/\D/g, '') : '';
+  const finalNumber =
+    !digits || digits.includes('4187223343')
+      ? '5547992080926'
+      : digits.startsWith('55')
+        ? digits
+        : `55${digits}`;
 
-  const clinicMessage = encodeURIComponent(
-    'Olá, conheci a Benavera pelo site e gostaria de entender o piloto para clínicas.'
-  );
   const patientMessage = encodeURIComponent(
     'Olá, estou fazendo uma simulação na Benavera e gostaria de tirar uma dúvida.'
   );
 
-  const href = `https://wa.me/${number.replace(/\D/g, '')}?text=${patientMessage}`;
+  const href = `https://wa.me/${finalNumber}?text=${patientMessage}`;
 
   return (
     <a

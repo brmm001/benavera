@@ -179,7 +179,7 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
   }
 
   function gerarMsgWhatsapp() {
-    if (!resultado) return "https://wa.me/5511000000000";
+    if (!resultado) return "https://wa.me/5547992080926";
     const taxaJurosTxt = resultado.paciente.taxa_juros_mensal > 0
       ? fmtPct(resultado.paciente.taxa_juros_mensal) + " a.m."
       : "Sem juros (0%)";
@@ -196,7 +196,7 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
       "Taxa da clínica (Benavera): " + fmtPct(resultado.clinica.taxa_benavera),
       "Gostaria de entender essa condição.",
     ];
-    return "https://wa.me/5511000000000?text=" + encodeURIComponent(lines.join("\n"));
+    return "https://wa.me/5547992080926?text=" + encodeURIComponent(lines.join("\n"));
   }
 
   async function enviarLead() {
