@@ -40,7 +40,15 @@ export async function GET(request: NextRequest) {
       `;
     }
 
-    return NextResponse.json({ payouts: rows });
+    const payouts = rows.map((r: any) => ({
+      ...r,
+      valor_bruto: Number(r.valor_financiado ?? r.valor_tratamento ?? 0),
+      taxa_benavera: Number(r.taxa_benavera ?? 0),
+      valor_liquido: Number(r.valor_liquido_clinica ?? r.valor_financiado ?? 0),
+      data_pagamento: r.data_paga || null,
+    }));
+
+    return NextResponse.json({ payouts });
   } catch (err) {
     console.error('[Payouts GET]', err);
     return NextResponse.json({ error: 'Erro ao buscar repasses.' }, { status: 500 });

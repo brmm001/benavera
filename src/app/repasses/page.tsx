@@ -8,14 +8,30 @@ interface Payout {
   patient_nome: string;
   partner_nome: string;
   valor_bruto: number;
+  valor_financiado?: number;
   taxa_benavera: number;
   valor_liquido: number;
+  valor_liquido_clinica?: number;
   status: string;
   data_prevista: string | null;
   data_pagamento: string | null;
-  comprovante_url: string | null;
+  data_paga?: string | null;
+  comprovante_url?: string | null;
   created_at: string;
 }
+
+const STATUS_MAP: Record<string, { label: string; bg: string; color: string }> = {
+  PAID: { label: '✓ PAGO', bg: '#ecfdf5', color: '#059669' },
+  PAGO: { label: '✓ PAGO', bg: '#ecfdf5', color: '#059669' },
+  SCHEDULED: { label: 'Programado', bg: '#eff6ff', color: '#2563eb' },
+  PROCESSING: { label: 'Em processamento', bg: '#eff6ff', color: '#2563eb' },
+  PROCESSANDO: { label: 'Em processamento', bg: '#eff6ff', color: '#2563eb' },
+  SOLICITADO: { label: 'Solicitado', bg: '#eff6ff', color: '#2563eb' },
+  AWAITING_DISBURSEMENT: { label: 'Aguardando liquidação', bg: '#fffbeb', color: '#d97706' },
+  AWAITING_CONTRACT: { label: 'Aguardando contrato', bg: '#f1f5f9', color: '#64748b' },
+  DIVERGENCE: { label: 'Divergência', bg: '#fef2f2', color: '#dc2626' },
+  CANCELLED: { label: 'Cancelado', bg: '#f1f5f9', color: '#64748b' },
+};
 
 export default function RepassesPage() {
   const [payouts, setPayouts] = useState<Payout[]>([]);
@@ -45,13 +61,17 @@ export default function RepassesPage() {
     return Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const isPaidStatus = (s: string) => s === 'PAID' || s === 'PAGO';
+  const isPendingStatus = (s: string) =>
+    ['SCHEDULED', 'PROCESSING', 'PROCESSANDO', 'SOLICITADO', 'AWAITING_DISBURSEMENT', 'AWAITING_CONTRACT'].includes(s);
+
   const totalPago = payouts
-    .filter((p) => p.status === 'PAGO')
-    .reduce((acc, p) => acc + Number(p.valor_liquido || 0), 0);
+    .filter((p) => isPaidStatus(p.status))
+    .reduce((acc, p) => acc + Number(p.valor_liquido ?? p.valor_liquido_clinica ?? 0), 0);
 
   const totalPrevisto = payouts
-    .filter((p) => p.status === 'SOLICITADO' || p.status === 'PROCESSANDO')
-    .reduce((acc, p) => acc + Number(p.valor_liquido || 0), 0);
+    .filter((p) => isPendingStatus(p.status))
+    .reduce((acc, p) => acc + Number(p.valor_liquido ?? p.valor_liquido_clinica ?? 0), 0);
 
   return (
     <div style={{ padding: '32px 40px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'inherit' }}>
@@ -117,7 +137,8 @@ export default function RepassesPage() {
             </thead>
             <tbody>
               {payouts.map((p) => {
-                const isPaid = p.status === 'PAGO';
+                const st = STATUS_MAP[p.status] || { label: p.status, bg: '#eff6ff', color: '#2563eb' };
+                const paidAt = p.data_pagamento || p.data_paga;
                 return (
                   <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '16px 20px', fontWeight: '700', fontFamily: 'monospace', color: '#4040ca' }}>
@@ -130,13 +151,13 @@ export default function RepassesPage() {
                       {p.partner_nome || 'Benavera'}
                     </td>
                     <td style={{ padding: '16px 20px', color: '#64748b' }}>
-                      {formatCurrency(p.valor_bruto)}
+                      {formatCurrency(p.valor_bruto ?? p.valor_financiado)}
                     </td>
                     <td style={{ padding: '16px 20px', color: '#dc2626' }}>
                       -{formatCurrency(p.taxa_benavera)}
                     </td>
                     <td style={{ padding: '16px 20px', fontWeight: '700', color: '#059669' }}>
-                      {formatCurrency(p.valor_liquido)}
+                      {formatCurrency(p.valor_liquido ?? p.valor_liquido_clinica)}
                     </td>
                     <td style={{ padding: '16px 20px' }}>
                       <span
@@ -146,15 +167,19 @@ export default function RepassesPage() {
                           borderRadius: '20px',
                           fontSize: '12px',
                           fontWeight: '700',
-                          backgroundColor: isPaid ? '#ecfdf5' : '#eff6ff',
-                          color: isPaid ? '#059669' : '#2563eb',
+                          backgroundColor: st.bg,
+                          color: st.color,
                         }}
                       >
-                        {isPaid ? '✓ PAGO' : p.status}
+                        {st.label}
                       </span>
                     </td>
                     <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '13px' }}>
-                      {p.data_pagamento ? new Date(p.data_pagamento).toLocaleDateString('pt-BR') : (p.data_prevista ? `Prev: ${new Date(p.data_prevista).toLocaleDateString('pt-BR')}` : '—')}
+                      {paidAt
+                        ? new Date(paidAt).toLocaleDateString('pt-BR')
+                        : p.data_prevista
+                        ? `Prev: ${new Date(p.data_prevista).toLocaleDateString('pt-BR')}`
+                        : '—'}
                     </td>
                   </tr>
                 );

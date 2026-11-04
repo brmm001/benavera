@@ -5,19 +5,34 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+  SUBMITTED: { label: 'Enviado', color: '#d97706', bg: '#fffbeb' },
+  PRE_ANALYSIS: { label: 'Pré-análise', color: '#d97706', bg: '#fffbeb' },
+  PRE_ANALYSIS_APPROVED: { label: 'Pré-aprovado', color: '#d97706', bg: '#fffbeb' },
+  PRE_ANALYSIS_REVIEW: { label: 'Em revisão', color: '#d97706', bg: '#fffbeb' },
   INTERNAL_REVIEW: { label: 'Em análise', color: '#d97706', bg: '#fffbeb' },
+  READY_FOR_LENDERS: { label: 'Encaminhando', color: '#d97706', bg: '#fffbeb' },
+  SUBMITTED_TO_LENDER: { label: 'Em análise parceiro', color: '#d97706', bg: '#fffbeb' },
+  LENDER_ANALYSIS: { label: 'Em análise parceiro', color: '#d97706', bg: '#fffbeb' },
+  AWAITING_CLINIC: { label: 'Aguarda clínica', color: '#ea580c', bg: '#fff7ed' },
+  AWAITING_DOCUMENTS: { label: 'Aguarda documentos', color: '#ea580c', bg: '#fff7ed' },
+  PRE_APPROVED: { label: 'Pré-aprovado', color: '#0891b2', bg: '#ecfeff' },
   OFFERS_AVAILABLE: { label: 'Proposta disponível', color: '#0891b2', bg: '#ecfeff' },
   OFFER_SELECTED: { label: 'Opção escolhida', color: '#0891b2', bg: '#ecfeff' },
+  CONTRACT_PENDING: { label: 'Contrato pendente', color: '#0891b2', bg: '#ecfeff' },
+  CONTRACT_SENT: { label: 'Contrato enviado', color: '#0891b2', bg: '#ecfeff' },
   CONTRACT_SIGNED: { label: 'Contrato assinado', color: '#059669', bg: '#f0fdf4' },
   APPROVED: { label: 'Aprovado', color: '#059669', bg: '#f0fdf4' },
   PAYOUT_SCHEDULED: { label: 'Repasse programado', color: '#059669', bg: '#f0fdf4' },
   PAYOUT_COMPLETED: { label: 'Pago', color: '#059669', bg: '#f0fdf4' },
+  TREATMENT_RELEASED: { label: 'Tratamento liberado', color: '#059669', bg: '#f0fdf4' },
+  PRE_ANALYSIS_DECLINED: { label: 'Recusado', color: '#dc2626', bg: '#fef2f2' },
   DECLINED: { label: 'Recusado', color: '#dc2626', bg: '#fef2f2' },
   CANCELLED: { label: 'Cancelado', color: '#64748b', bg: '#f1f5f9' },
+  EXPIRED: { label: 'Expirado', color: '#64748b', bg: '#f1f5f9' },
 };
 
 function formatCurrency(v: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v || 0));
 }
 
 function formatDateTime(d: string) {
@@ -50,7 +65,8 @@ export default function FinanciamentoDetailPage() {
       .catch(() => setLoading(false));
   }, [id]);
 
-  async function generateLink() {
+  async function ensureLink(): Promise<string> {
+    if (proposalLink) return proposalLink;
     setGeneratingLink(true);
     const res = await fetch(`/api/applications/${id}/action`, {
       method: 'POST',
@@ -59,13 +75,30 @@ export default function FinanciamentoDetailPage() {
     });
     const d = await res.json();
     setGeneratingLink(false);
-    if (d.url) setProposalLink(d.url);
+    if (d.url) {
+      setProposalLink(d.url);
+      return d.url;
+    }
+    return '';
   }
 
-  async function copyLink() {
-    await navigator.clipboard.writeText(proposalLink);
+  async function handleCopyLink() {
+    const url = await ensureLink();
+    if (!url) return;
+    await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function handleSendWhatsApp() {
+    const url = await ensureLink();
+    if (!url) return;
+    const rawPhone = String(data?.application?.patient_celular || '').replace(/\D/g, '');
+    const phone = rawPhone ? (rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`) : '';
+    const msg = encodeURIComponent(
+      `Olá, ${data?.application?.patient_nome || ''}! As opções de financiamento do seu tratamento na clínica ${data?.application?.clinic_nome || ''} já estão disponíveis. Confira e escolha a melhor opção para você: ${url}`
+    );
+    window.open(phone ? `https://wa.me/${phone}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
   }
 
   if (loading) return <div style={{ padding: '48px', color: '#94a3b8' }}>Carregando…</div>;
@@ -78,7 +111,7 @@ export default function FinanciamentoDetailPage() {
   const hasOffers = app.status === 'OFFERS_AVAILABLE' || proposals.length > 0;
   const elapsed = timeSince(app.created_at);
   const elapsedMins = Math.floor((Date.now() - new Date(app.created_at).getTime()) / 60000);
-  const isOverSLA = elapsedMins > 15 && !['APPROVED', 'CONTRACT_SIGNED', 'PAYOUT_SCHEDULED', 'PAYOUT_COMPLETED', 'TREATMENT_RELEASED', 'DECLINED', 'CANCELLED'].includes(app.status);
+  const isOverSLA = elapsedMins > 15 && !['APPROVED', 'CONTRACT_SIGNED', 'PAYOUT_SCHEDULED', 'PAYOUT_COMPLETED', 'TREATMENT_RELEASED', 'DECLINED', 'CANCELLED', 'EXPIRED'].includes(app.status);
 
   return (
     <div style={{ padding: '40px 48px', maxWidth: '960px' }}>
@@ -187,8 +220,8 @@ export default function FinanciamentoDetailPage() {
                     </div>
                     {(p.taxa_mensal || p.cet_anual) && (
                       <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#64748b' }}>
-                        Taxa: {p.taxa_mensal ? `${(p.taxa_mensal * 100).toFixed(2)}% a.m.` : '—'}
-                        {p.cet_anual ? ` · CET: ${(p.cet_anual * 100).toFixed(2)}% a.a.` : ''}
+                        Taxa: {p.taxa_mensal ? `${(Number(p.taxa_mensal) * 100).toFixed(2)}% a.m.` : '—'}
+                        {p.cet_anual ? ` · CET: ${(Number(p.cet_anual) * 100).toFixed(2)}% a.a.` : ''}
                       </p>
                     )}
                   </div>
@@ -202,18 +235,18 @@ export default function FinanciamentoDetailPage() {
                 </p>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   <button
-                    onClick={generateLink}
+                    onClick={handleSendWhatsApp}
                     disabled={generatingLink}
                     style={{ padding: '10px 16px', background: '#25D366', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', fontFamily: 'inherit' }}
                   >
-                    📱 WhatsApp
+                    📱 Enviar no WhatsApp
                   </button>
                   <button
-                    onClick={generateLink}
+                    onClick={handleCopyLink}
                     disabled={generatingLink}
-                    style={{ padding: '10px 16px', background: '#6370f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', fontFamily: 'inherit' }}
+                    style={{ padding: '10px 16px', background: copied ? '#059669' : '#6370f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', fontFamily: 'inherit' }}
                   >
-                    🔗 {generatingLink ? 'Gerando…' : 'Copiar link'}
+                    🔗 {generatingLink ? 'Gerando…' : copied ? '✓ Link copiado!' : 'Copiar link'}
                   </button>
                 </div>
                 {proposalLink && (
@@ -221,7 +254,7 @@ export default function FinanciamentoDetailPage() {
                     <span style={{ flex: 1, fontSize: '13px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {proposalLink}
                     </span>
-                    <button onClick={copyLink}
+                    <button onClick={handleCopyLink}
                       style={{ padding: '6px 12px', background: copied ? '#059669' : '#6370f1', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', flexShrink: 0, fontFamily: 'inherit' }}>
                       {copied ? '✓ Copiado' : 'Copiar'}
                     </button>

@@ -9,13 +9,21 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const search = searchParams.get('search') || '';
+  const id = searchParams.get('id') || '';
   const clinicId = session.clinicId;
 
   if (!clinicId) return NextResponse.json({ patients: [] });
 
   try {
     let rows;
-    if (search) {
+    if (id) {
+      rows = await sql`
+        SELECT id, nome, cpf, data_nascimento, celular, email
+        FROM patients
+        WHERE clinic_id = ${clinicId} AND id = ${id}
+        LIMIT 1
+      `;
+    } else if (search) {
       const q = `%${search}%`;
       rows = await sql`
         SELECT id, nome, cpf, data_nascimento, celular, email

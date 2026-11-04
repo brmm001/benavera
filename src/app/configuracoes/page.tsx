@@ -1,29 +1,79 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function ConfiguracoesPage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [clinicData, setClinicData] = useState({
-    nomeFantasia: 'OdontoPrime Clínica Integrada',
-    razaoSocial: 'Odonto Prime Serviços Odontológicos LTDA',
-    cnpj: '12.345.678/0001-90',
-    telefone: '(11) 3456-7890',
-    emailFinanceiro: 'financeiro@odontoprime.com.br',
-    chavePix: '12345678000190',
+    nomeFantasia: '',
+    razaoSocial: '',
+    cnpj: '',
+    telefone: '',
+    emailFinanceiro: '',
+    chavePix: '',
     tipoPix: 'CNPJ',
-    banco: '341 - Itaú Unibanco S.A.',
-    agencia: '1234',
-    conta: '56789-0',
+    banco: '',
+    agencia: '',
+    conta: '',
     notifWhatsapp: true,
     notifEmail: true,
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/configuracoes');
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Erro ao carregar configurações.');
+        }
+        if (data.clinic) {
+          setClinicData(data.clinic);
+        }
+      } catch (err: any) {
+        setError(err.message || 'Erro ao carregar configurações.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      const res = await fetch('/api/configuracoes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clinicData),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Erro ao salvar configurações.');
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao salvar configurações.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div style={{ padding: '48px', color: '#64748b', fontSize: '14px' }}>
+        Carregando configurações da clínica...
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '32px 40px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'inherit' }}>
@@ -40,18 +90,26 @@ export default function ConfiguracoesPage() {
         </div>
       )}
 
+      {error && (
+        <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '14px 20px', borderRadius: '10px', marginBottom: '24px', fontWeight: '600', fontSize: '14px' }}>
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSave}>
         {/* Dados da Empresa */}
         <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '24px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', margin: '0 0 16px' }}>Dados Cadastrais</h2>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>Nome Fantasia</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>Nome Fantasia *</label>
               <input
                 type="text"
+                required
                 value={clinicData.nomeFantasia}
                 onChange={(e) => setClinicData({ ...clinicData, nomeFantasia: e.target.value })}
+                placeholder="Nome fantasia da clínica"
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
@@ -61,12 +119,13 @@ export default function ConfiguracoesPage() {
                 type="text"
                 value={clinicData.razaoSocial}
                 onChange={(e) => setClinicData({ ...clinicData, razaoSocial: e.target.value })}
+                placeholder="Razão social"
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>CNPJ</label>
               <input
@@ -82,6 +141,17 @@ export default function ConfiguracoesPage() {
                 type="text"
                 value={clinicData.telefone}
                 onChange={(e) => setClinicData({ ...clinicData, telefone: e.target.value })}
+                placeholder="(00) 00000-0000"
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>E-mail Financeiro</label>
+              <input
+                type="email"
+                value={clinicData.emailFinanceiro}
+                onChange={(e) => setClinicData({ ...clinicData, emailFinanceiro: e.target.value })}
+                placeholder="financeiro@suaclinica.com.br"
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
@@ -113,6 +183,7 @@ export default function ConfiguracoesPage() {
                 type="text"
                 value={clinicData.chavePix}
                 onChange={(e) => setClinicData({ ...clinicData, chavePix: e.target.value })}
+                placeholder="Informe a chave PIX da clínica"
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
@@ -125,6 +196,7 @@ export default function ConfiguracoesPage() {
                 type="text"
                 value={clinicData.banco}
                 onChange={(e) => setClinicData({ ...clinicData, banco: e.target.value })}
+                placeholder="Ex: 341 - Itaú Unibanco"
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
@@ -134,6 +206,7 @@ export default function ConfiguracoesPage() {
                 type="text"
                 value={clinicData.agencia}
                 onChange={(e) => setClinicData({ ...clinicData, agencia: e.target.value })}
+                placeholder="0001"
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
@@ -143,6 +216,7 @@ export default function ConfiguracoesPage() {
                 type="text"
                 value={clinicData.conta}
                 onChange={(e) => setClinicData({ ...clinicData, conta: e.target.value })}
+                placeholder="00000-0"
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
@@ -152,7 +226,7 @@ export default function ConfiguracoesPage() {
         {/* Notificações */}
         <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '24px', marginBottom: '28px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
           <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', margin: '0 0 16px' }}>Canais de Notificação</h2>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
               <input
@@ -179,19 +253,20 @@ export default function ConfiguracoesPage() {
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button
             type="submit"
+            disabled={saving}
             style={{
               padding: '12px 28px',
-              backgroundColor: '#6370f1',
+              backgroundColor: saving ? '#94a3b8' : '#6370f1',
               color: '#fff',
               fontWeight: '700',
               fontSize: '14px',
               borderRadius: '8px',
               border: 'none',
-              cursor: 'pointer',
+              cursor: saving ? 'not-allowed' : 'pointer',
               boxShadow: '0 4px 12px rgba(99,112,241,0.3)',
             }}
           >
-            Salvar Alterações
+            {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>
       </form>

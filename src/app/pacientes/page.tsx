@@ -13,6 +13,14 @@ interface Patient {
   email: string | null;
 }
 
+function formatCPF(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
 export default function PacientesPage() {
   const router = useRouter();
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -182,7 +190,7 @@ export default function PacientesPage() {
                   </td>
                   <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                     <button
-                      onClick={() => router.push(`/novo-financiamento`)}
+                      onClick={() => router.push(`/novo-financiamento?patientId=${encodeURIComponent(p.id)}`)}
                       style={{
                         padding: '6px 12px',
                         backgroundColor: '#f0f4ff',
@@ -219,7 +227,7 @@ export default function PacientesPage() {
                   required
                   value={form.nome}
                   onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                  placeholder="Ex: Carlos Eduardo Silva"
+                  placeholder="Ex: Maria da Silva"
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
                 />
               </div>
@@ -231,7 +239,7 @@ export default function PacientesPage() {
                     type="text"
                     required
                     value={form.cpf}
-                    onChange={(e) => setForm({ ...form, cpf: e.target.value })}
+                    onChange={(e) => setForm({ ...form, cpf: formatCPF(e.target.value) })}
                     placeholder="000.000.000-00"
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
                   />
@@ -254,7 +262,7 @@ export default function PacientesPage() {
                     type="text"
                     value={form.celular}
                     onChange={(e) => setForm({ ...form, celular: e.target.value })}
-                    placeholder="(11) 98888-7777"
+                    placeholder="(00) 00000-0000"
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
                   />
                 </div>

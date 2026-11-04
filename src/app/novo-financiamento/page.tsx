@@ -77,6 +77,24 @@ export default function NovoFinanciamentoPage() {
   const entradaNum = parseCurrency(entrada);
   const valorFinanciado = Math.max(0, valorTratamentoNum - entradaNum);
 
+  // Pré-selecionar paciente se vier via ?patientId=...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get('patientId');
+    if (pid) {
+      fetch(`/api/patients?id=${encodeURIComponent(pid)}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.patients && d.patients[0]) {
+            setSelectedPatient(d.patients[0]);
+            setSearchQuery(d.patients[0].nome);
+            setStep('treatment');
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
   // Busca de pacientes
   useEffect(() => {
     if (searchQuery.length < 2) { setSearchResults([]); return; }
