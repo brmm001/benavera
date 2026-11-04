@@ -45,7 +45,7 @@ ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;">${prehead
   </td></tr>
   <!-- Footer -->
   <tr><td style="padding:24px 0;text-align:center;font-size:12px;color:#94a3b8;">
-    <p style="margin:0;">Benavera — Financiamento Odontológico</p>
+    <p style="margin:0;">Benavera Correspondentes Bancários LTDA — CNPJ: 69.952.939/0001-52</p>
     <p style="margin:4px 0 0;">Você recebeu este email porque está cadastrado na plataforma Benavera.</p>
   </td></tr>
 </table>

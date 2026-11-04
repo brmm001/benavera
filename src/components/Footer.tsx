@@ -292,7 +292,7 @@ export function Footer() {
           }}
         >
           <p style={{ fontSize: '0.8125rem', color: '#475569', margin: 0 }}>
-            © {currentYear} Benavera. Todos os direitos reservados.
+            © {currentYear} Benavera Correspondentes Bancários LTDA — CNPJ: 69.952.939/0001-52. Todos os direitos reservados.
           </p>
           <p style={{ fontSize: '0.8125rem', color: '#475569', margin: 0 }}>
             www.benavera.com.br

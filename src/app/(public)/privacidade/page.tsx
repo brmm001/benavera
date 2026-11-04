@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const sections = [
   {
     title: '1. Quem somos',
-    content: `A Benavera é uma plataforma tecnológica que organiza a jornada financeira relacionada ao pagamento de tratamentos. Nesta Política de Privacidade, explicamos como coletamos, usamos e protegemos seus dados pessoais ao interagir com nosso site e serviços.`,
+    content: `A Benavera (Benavera Correspondentes Bancários LTDA, inscrita no CNPJ sob o nº 69.952.939/0001-52) é uma plataforma tecnológica que organiza a jornada financeira relacionada ao pagamento de tratamentos. Nesta Política de Privacidade, explicamos como coletamos, usamos e protegemos seus dados pessoais ao interagir com nosso site e serviços.`,
   },
   {
     title: '2. Dados que coletamos',

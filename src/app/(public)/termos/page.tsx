@@ -14,7 +14,7 @@ const sections = [
   },
   {
     title: '2. O que é a Benavera',
-    content: `A Benavera é uma plataforma tecnológica que organiza informações sobre possibilidades de pagamento para tratamentos. Não somos uma instituição financeira, não concedemos crédito diretamente e não garantimos aprovação de qualquer proposta.`,
+    content: `A Benavera (Benavera Correspondentes Bancários LTDA, inscrita no CNPJ sob o nº 69.952.939/0001-52) é uma plataforma tecnológica e correspondente bancário que organiza informações sobre possibilidades de pagamento para tratamentos. Não somos uma instituição financeira, não concedemos crédito diretamente e não garantimos aprovação de qualquer proposta.`,
   },
   {
     title: '3. Uso permitido',

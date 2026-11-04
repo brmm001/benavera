@@ -677,6 +677,7 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
         <footer className="sim-aviso">
           <p><strong>Estimativa apenas.</strong> Esta simulação é apenas uma estimativa. As condições finais dependem da análise de crédito e da modalidade contratada.</p>
           <p style={{ marginTop: "0.5rem" }}>Valores apresentados possuem caráter exclusivamente indicativo e podem variar conforme análise de crédito, perfil do solicitante, prazo, instituição financeira, condições comerciais e políticas vigentes no momento da contratação. A simulação não representa garantia de aprovação ou concessão de crédito.</p>
+          <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", opacity: 0.8 }}>Benavera Correspondentes Bancários LTDA — CNPJ: 69.952.939/0001-52</p>
         </footer>
 
         <div className="sim-footer-nav">

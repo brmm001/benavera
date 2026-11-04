@@ -11,6 +11,8 @@ const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Benavera',
+  legalName: 'Benavera Correspondentes Bancários LTDA',
+  taxID: '69.952.939/0001-52',
   url: SITE_URL,
   logo: {
     '@type': 'ImageObject',
