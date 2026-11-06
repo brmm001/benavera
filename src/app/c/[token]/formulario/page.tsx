@@ -209,6 +209,28 @@ export default function WizardPage() {
     });
   }, [scheduleAutosave]);
 
+  const copyLegalToTechRep = useCallback(() => {
+    setFormData(prev => {
+      const spec = String(prev.specialty || '').toLowerCase();
+      const defaultCouncil = prev.tech_rep_council
+        ? String(prev.tech_rep_council)
+        : spec.includes('odonto')
+          ? 'CRO'
+          : (spec.includes('cirurgia') || spec.includes('oftalmo') || spec.includes('ortoped') || spec.includes('dermato'))
+            ? 'CRM'
+            : '';
+      const next: FormData = {
+        ...prev,
+        tech_rep_name: prev.legal_rep_name || prev.contact_name || prev.tech_rep_name || '',
+        tech_rep_cpf: prev.legal_rep_cpf || prev.contact_cpf || prev.tech_rep_cpf || '',
+        tech_rep_council_state: prev.tech_rep_council_state || prev.address_state || prev.state || '',
+        ...(defaultCouncil ? { tech_rep_council: defaultCouncil } : {}),
+      };
+      scheduleAutosave(next);
+      return next;
+    });
+  }, [scheduleAutosave]);
+
   // ── Upload de documento ──────────────────────────────────────────────────
   const handleUpload = async (documentId: string, file: File) => {
     setError('');
@@ -453,6 +475,35 @@ export default function WizardPage() {
                 <InputField label="Cargo" field="authorized_rep_role" placeholder="Ex: Procurador, Diretor" />
               </div>
             )}
+
+            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <button
+                type="button"
+                onClick={copyLegalToTechRep}
+                style={{
+                  padding: '10px 16px',
+                  background: (formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
+                    ? 'rgba(74,222,128,0.14)'
+                    : 'rgba(99,112,241,0.16)',
+                  color: (formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
+                    ? '#86efac'
+                    : '#c7d2fe',
+                  border: `1px solid ${(formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf) ? 'rgba(74,222,128,0.35)' : 'rgba(99,112,241,0.35)'}`,
+                  borderRadius: '10px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                {(formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
+                  ? '✓ Responsável Técnico já preenchido com os dados do Responsável Legal'
+                  : '🩺 O Responsável Legal também é o Responsável Técnico (copiar dados)'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -460,7 +511,35 @@ export default function WizardPage() {
         {currentStep === 3 && (
           <div>
             <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>🩺 Responsável técnico</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 28px' }}>Profissional de saúde responsável técnico pela clínica</p>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 18px' }}>Profissional de saúde responsável técnico pela clínica</p>
+            <div style={{ marginBottom: '22px' }}>
+              <button
+                type="button"
+                onClick={copyLegalToTechRep}
+                style={{
+                  padding: '10px 16px',
+                  background: (formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
+                    ? 'rgba(74,222,128,0.14)'
+                    : 'rgba(99,112,241,0.16)',
+                  color: (formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
+                    ? '#86efac'
+                    : '#c7d2fe',
+                  border: `1px solid ${(formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf) ? 'rgba(74,222,128,0.35)' : 'rgba(99,112,241,0.35)'}`,
+                  borderRadius: '10px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                {(formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
+                  ? '✓ Mesmo que o Responsável Legal (dados aplicados)'
+                  : '👤 O Responsável Técnico é o mesmo que o Responsável Legal'}
+              </button>
+            </div>
             <Grid2>
               <InputField label="Nome completo" field="tech_rep_name" required placeholder="Nome como no conselho" />
               <InputField label="CPF" field="tech_rep_cpf" required placeholder="000.000.000-00" />
