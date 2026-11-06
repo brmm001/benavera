@@ -48,7 +48,7 @@ const FormContext = createContext<FormContextType>({
 });
 
 const Grid2 = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0 20px' }}>{children}</div>
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '0 20px' }}>{children}</div>
 );
 
 const InputField = ({ label, field, type = 'text', required = false, placeholder = '' }: {
@@ -287,7 +287,7 @@ export default function WizardPage() {
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'); * { box-sizing: border-box; } ::placeholder { color: rgba(255,255,255,0.2); } select option { background: #1a1b3e; }` }} />
 
       {/* Topbar */}
-      <div style={{ background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '14px clamp(16px, 4vw, 24px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '20px' }}>🪪</span>
           <span style={{ fontSize: '16px', fontWeight: '800', color: 'white' }}>Benavera</span>
@@ -321,7 +321,7 @@ export default function WizardPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '720px', margin: '0 auto', padding: '36px 24px' }}>
+      <div style={{ maxWidth: '720px', margin: '0 auto', padding: 'clamp(24px, 5vw, 36px) clamp(16px, 4vw, 24px)' }}>
         {error && (
           <div style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px', color: '#fca5a5', fontSize: '14px' }}>
             {error}
@@ -562,7 +562,21 @@ export default function WizardPage() {
         {currentStep === 6 && (
           <div>
             <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>✍️ Declarações</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 28px' }}>Leia cada item com atenção e marque sua concordância individualmente</p>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 18px' }}>Leia cada item com atenção e marque sua concordância individualmente</p>
+            <div style={{ marginBottom: '16px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextVal = !allDeclarationsAccepted;
+                  const nextMap: Record<string, boolean> = {};
+                  DECLARATIONS.forEach(d => { nextMap[d.id] = nextVal; });
+                  setAcceptances(nextMap);
+                }}
+                style={{ padding: '8px 14px', background: 'rgba(99,112,241,0.16)', color: '#c7d2fe', border: '1px solid rgba(99,112,241,0.35)', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                {allDeclarationsAccepted ? 'Desmarcar todas' : '✓ Marcar todas as declarações'}
+              </button>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {DECLARATIONS.map((decl, i) => (
                 <label key={decl.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: acceptances[decl.id] ? 'rgba(99,112,241,0.08)' : 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '14px', border: `1px solid ${acceptances[decl.id] ? 'rgba(99,112,241,0.25)' : 'rgba(255,255,255,0.07)'}`, cursor: 'pointer', transition: 'all 0.15s' }}>

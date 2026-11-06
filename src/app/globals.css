@@ -1790,3 +1790,101 @@ body {
   animation: shimmer 1.5s infinite;
   border-radius: 6px;
 }
+
+/* ============================================================
+   PORTAL & CREDENCIAMENTO FORM HELPERS
+   ============================================================ */
+
+.portal-form-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.4375rem;
+}
+
+.portal-form-input {
+  width: 100%;
+  padding: 0.8125rem 0.9375rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  color: #0f172a;
+  background: white;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+  outline: none;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.portal-form-input:hover {
+  border-color: #c7d7fe;
+}
+
+.portal-form-input:focus {
+  border-color: #4040ca;
+  box-shadow: 0 0 0 3px rgba(64, 64, 202, 0.12);
+}
+
+.portal-form-input::placeholder {
+  color: #94a3b8;
+}
+
+.btn-action-outline {
+  background: white;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.btn-action-outline:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.credenciamento-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.875rem;
+  margin-bottom: 2rem;
+}
+
+.credenciamento-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.125rem;
+}
+
+.credenciamento-actions {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.875rem;
+}
+
+@media (max-width: 639px) {
+  .credenciamento-benefits-grid {
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+  }
+
+  .credenciamento-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .credenciamento-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .credenciamento-actions .btn-action {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    padding: 0.875rem 1.25rem !important;
+  }
+}
