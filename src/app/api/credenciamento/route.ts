@@ -18,6 +18,11 @@ export async function POST(req: NextRequest) {
       nomeClinica,
       cnpj,
       especialidade,
+      cep,
+      rua,
+      numero,
+      complemento,
+      bairro,
       cidade,
       estado,
       nomeResponsavel,
@@ -44,6 +49,8 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanEmail = email.toLowerCase().trim();
+    const cleanCity = (cidade || 'São Paulo').trim();
+    const cleanState = (estado || 'SP').trim();
 
     // 1. Verifica se usuário com este email já existe
     const existingUser = await sql`
@@ -83,6 +90,49 @@ export async function POST(req: NextRequest) {
 
       if (existingOnboarding[0]) {
         const onboardingId = String(existingOnboarding[0].id);
+
+        // Atualiza campos preenchidos no form anterior para que não venham em branco
+        await sql`
+          UPDATE clinic_onboardings
+          SET
+            trade_name = COALESCE(${nomeClinica || null}, trade_name),
+            legal_name = COALESCE(legal_name, ${nomeClinica || null}),
+            cnpj = COALESCE(cnpj, ${cnpj || null}),
+            address_cep = COALESCE(address_cep, ${cep || null}),
+            address_street = COALESCE(address_street, ${rua || null}),
+            address_number = COALESCE(address_number, ${numero || null}),
+            address_complement = COALESCE(address_complement, ${complemento || null}),
+            address_neighborhood = COALESCE(address_neighborhood, ${bairro || null}),
+            address_city = COALESCE(address_city, city, ${cleanCity || null}),
+            address_state = COALESCE(address_state, state, ${cleanState || null}),
+            city = COALESCE(city, ${cleanCity || null}),
+            state = COALESCE(state, ${cleanState || null}),
+            email_admin = COALESCE(email_admin, email, ${cleanEmail}),
+            email_financial = COALESCE(email_financial, email, ${cleanEmail}),
+            legal_rep_name = COALESCE(legal_rep_name, contact_name, ${nomeResponsavel || null}),
+            legal_rep_role = COALESCE(legal_rep_role, ${cargo || null}),
+            legal_rep_email = COALESCE(legal_rep_email, email, ${cleanEmail}),
+            legal_rep_phone = COALESCE(legal_rep_phone, phone, ${whatsapp || null}),
+            updated_at = NOW()
+          WHERE id = ${onboardingId}
+        `;
+
+        if (existingUser[0].clinic_id) {
+          await sql`
+            UPDATE clinics
+            SET
+              cep = COALESCE(cep, ${cep || null}),
+              logradouro = COALESCE(logradouro, ${rua || null}),
+              numero = COALESCE(numero, ${numero || null}),
+              complemento = COALESCE(complemento, ${complemento || null}),
+              bairro = COALESCE(bairro, ${bairro || null}),
+              cidade = COALESCE(cidade, ${cleanCity || null}),
+              estado = COALESCE(estado, ${cleanState || null}),
+              updated_at = NOW()
+            WHERE id = ${existingUser[0].clinic_id}
+          `;
+        }
+
         const invite = await createInvite({
           onboardingId,
           createdBy: String(existingUser[0].id),
@@ -125,11 +175,12 @@ export async function POST(req: NextRequest) {
     // 2. Insere a clínica no banco com ativo = FALSE (bloqueada até admin aprovar após envio de docs)
     const clinicRows = await sql`
       INSERT INTO clinics (
-        nome_fantasia, razao_social, cnpj, telefone, whatsapp, email,
-        responsavel, cidade, estado, especialidade, ativo
+        nome_fantasia, razao_social, cnpj, telefone, whatsapp, email, email_financeiro,
+        responsavel, cep, logradouro, numero, complemento, bairro, cidade, estado, especialidade, ativo
       ) VALUES (
-        ${nomeClinica}, ${nomeClinica}, ${cnpj || '00.000.000/0001-00'}, ${whatsapp}, ${whatsapp}, ${cleanEmail},
-        ${nomeResponsavel || null}, ${cidade || 'São Paulo'}, ${estado || 'SP'},
+        ${nomeClinica}, ${nomeClinica}, ${cnpj || '00.000.000/0001-00'}, ${whatsapp}, ${whatsapp}, ${cleanEmail}, ${cleanEmail},
+        ${nomeResponsavel || null}, ${cep || null}, ${rua || null}, ${numero || null}, ${complemento || null}, ${bairro || null},
+        ${cleanCity}, ${cleanState},
         ${especialidade || 'Geral'}, FALSE
       )
       RETURNING id
@@ -153,16 +204,28 @@ export async function POST(req: NextRequest) {
 
     const userId = userRows[0].id;
 
-    // 5. Cria o registro de credenciamento (clinic_onboardings)
+    // 5. Cria o registro de credenciamento (clinic_onboardings) já com endereço e responsável pré-preenchidos
     const onboardingRows = await sql`
       INSERT INTO clinic_onboardings (
         trade_name, legal_name, cnpj, contact_name,
         phone, email, city, state, specialty,
+        address_cep, address_street, address_number, address_complement, address_neighborhood,
+        address_city, address_state,
+        email_admin, email_financial,
+        legal_rep_name, legal_rep_role, legal_rep_email, legal_rep_phone, legal_rep_has_powers,
+        tech_rep_name, tech_rep_council_state,
+        bank_account_type, bank_holder_name, bank_holder_document, bank_pix_key,
         status, progress_percent, clinic_id, created_by
       ) VALUES (
         ${nomeClinica}, ${nomeClinica}, ${cnpj || null}, ${nomeResponsavel || nomeClinica},
-        ${whatsapp}, ${cleanEmail}, ${cidade || 'São Paulo'}, ${estado || 'SP'}, ${especialidade || 'Geral'},
-        'IN_PROGRESS', 25, ${clinicId}, ${userId}
+        ${whatsapp}, ${cleanEmail}, ${cleanCity}, ${cleanState}, ${especialidade || 'Geral'},
+        ${cep || null}, ${rua || null}, ${numero || null}, ${complemento || null}, ${bairro || null},
+        ${cleanCity}, ${cleanState},
+        ${cleanEmail}, ${cleanEmail},
+        ${nomeResponsavel || nomeClinica}, ${cargo || 'Diretor / Sócio'}, ${cleanEmail}, ${whatsapp}, TRUE,
+        ${nomeResponsavel || null}, ${cleanState},
+        'corrente', ${nomeClinica}, ${cnpj || null}, ${cnpj || null},
+        'IN_PROGRESS', 35, ${clinicId}, ${userId}
       )
       RETURNING id
     `;
@@ -194,7 +257,7 @@ export async function POST(req: NextRequest) {
           pagina_origem, status_comercial
         ) VALUES (
           ${leadId}, ${nomeResponsavel || nomeClinica}, ${nomeClinica}, ${cargo || 'Sócio'},
-          ${whatsapp}, ${cleanEmail}, ${cidade || 'SP'}, ${estado || 'SP'},
+          ${whatsapp}, ${cleanEmail}, ${cleanCity}, ${cleanState},
           ${especialidade || 'Geral'}, ${volumeMensal || null}, ${ticketMedio || null},
           '/credenciamento', 'em_credenciamento'
         )

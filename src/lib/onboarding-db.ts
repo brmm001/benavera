@@ -60,22 +60,40 @@ export async function createOnboarding(params: {
   email: string;
   city: string;
   state: string;
+  addressCep?: string;
+  addressStreet?: string;
+  addressNumber?: string;
+  addressComplement?: string;
+  addressNeighborhood?: string;
+  legalRepRole?: string;
   specialty?: string;
   averageTicket?: string;
   internalNotes?: string;
   createdBy: string;
   assignedTo?: string;
 }): Promise<{ id: string }> {
+  const cleanEmail = params.email.toLowerCase().trim();
   const rows = await sql`
     INSERT INTO clinic_onboardings (
       trade_name, legal_name, cnpj, contact_name, contact_cpf,
-      phone, email, city, state, specialty, average_ticket,
+      phone, email, city, state,
+      address_cep, address_street, address_number, address_complement, address_neighborhood,
+      address_city, address_state, email_admin,
+      legal_rep_name, legal_rep_cpf, legal_rep_role, legal_rep_email, legal_rep_phone,
+      specialty, average_ticket,
       internal_notes, created_by, assigned_to, status
     ) VALUES (
-      ${params.tradeName}, ${params.legalName || null}, ${params.cnpj || null},
+      ${params.tradeName}, ${params.legalName || params.tradeName}, ${params.cnpj || null},
       ${params.contactName}, ${params.contactCpf || null},
-      ${params.phone}, ${params.email.toLowerCase().trim()},
-      ${params.city}, ${params.state}, ${params.specialty || null},
+      ${params.phone}, ${cleanEmail},
+      ${params.city}, ${params.state},
+      ${params.addressCep || null}, ${params.addressStreet || null},
+      ${params.addressNumber || null}, ${params.addressComplement || null},
+      ${params.addressNeighborhood || null},
+      ${params.city}, ${params.state}, ${cleanEmail},
+      ${params.contactName}, ${params.contactCpf || null}, ${params.legalRepRole || null},
+      ${cleanEmail}, ${params.phone},
+      ${params.specialty || null},
       ${params.averageTicket || null}, ${params.internalNotes || null},
       ${params.createdBy}, ${params.assignedTo || null}, 'PRE_REGISTERED'
     )
@@ -365,7 +383,7 @@ export async function updateOnboardingData(params: {
 
   // Construir SET dinamicamente (apenas campos permitidos)
   const allowedFields = [
-    'legal_name', 'trade_name_confirmed', 'cnpj', 'address_cep', 'address_street',
+    'trade_name', 'legal_name', 'trade_name_confirmed', 'cnpj', 'address_cep', 'address_street',
     'address_number', 'address_complement', 'address_neighborhood', 'address_city',
     'address_state', 'phone_secondary', 'email_admin', 'email_financial', 'website',
     'municipal_registration', 'state_registration',
@@ -384,24 +402,70 @@ export async function updateOnboardingData(params: {
   const updates = Object.entries(params.data).filter(([key]) => allowedFields.includes(key));
   if (updates.length === 0) return;
 
+  // Manter city e state sincronizados com address_city e address_state
+  const updateMap = new Map<string, unknown>(updates);
+  if (updateMap.has('address_city') && !updateMap.has('city') && updateMap.get('address_city')) {
+    updateMap.set('city', updateMap.get('address_city'));
+  }
+  if (updateMap.has('address_state') && !updateMap.has('state') && updateMap.get('address_state')) {
+    updateMap.set('state', updateMap.get('address_state'));
+  }
+
   // Verificar divergência bancária
-  const hasNewBankData = updates.some(([k]) => k.startsWith('bank_'));
+  const hasNewBankData = Array.from(updateMap.keys()).some(k => k.startsWith('bank_'));
   if (hasNewBankData) {
-    const bankHolder = updates.find(([k]) => k === 'bank_holder_document')?.[1];
-    const cnpj = updates.find(([k]) => k === 'cnpj')?.[1] || current.cnpj;
+    const bankHolder = updateMap.get('bank_holder_document');
+    const cnpj = updateMap.get('cnpj') || current.cnpj;
     if (bankHolder && cnpj && String(bankHolder).replace(/\D/g, '') !== String(cnpj).replace(/\D/g, '')) {
       await sql`
         UPDATE clinic_onboardings SET bank_titularity_divergence = TRUE WHERE id = ${params.id}
+      `;
+    } else if (bankHolder && cnpj) {
+      await sql`
+        UPDATE clinic_onboardings SET bank_titularity_divergence = FALSE WHERE id = ${params.id}
       `;
     }
   }
 
   // UPDATE com campos dinâmicos (field é restrito à lista allowedFields)
-  for (const [field, value] of updates) {
+  for (const [field, value] of updateMap.entries()) {
     await (sql as any)(
       `UPDATE clinic_onboardings SET ${field} = $1, updated_at = NOW() WHERE id = $2`,
-      [value as string | null, params.id]
+      [value === '' ? null : (value as string | boolean | null), params.id]
     );
+  }
+
+  // Sincronizar endereço e dados cadastrais/bancários com a tabela clinics se já houver clinic_id
+  if (current.clinic_id) {
+    try {
+      const merged = { ...current, ...Object.fromEntries(updateMap.entries()) } as Record<string, any>;
+      await sql`
+        UPDATE clinics
+        SET
+          nome_fantasia = COALESCE(${merged.trade_name || null}, nome_fantasia),
+          razao_social = COALESCE(${merged.legal_name || null}, razao_social),
+          cnpj = COALESCE(${merged.cnpj || null}, cnpj),
+          cep = COALESCE(${merged.address_cep || null}, cep),
+          logradouro = COALESCE(${merged.address_street || null}, logradouro),
+          numero = COALESCE(${merged.address_number || null}, numero),
+          complemento = COALESCE(${merged.address_complement || null}, complemento),
+          bairro = COALESCE(${merged.address_neighborhood || null}, bairro),
+          cidade = COALESCE(${merged.address_city || merged.city || null}, cidade),
+          estado = COALESCE(${merged.address_state || merged.state || null}, estado),
+          responsavel = COALESCE(${merged.legal_rep_name || merged.contact_name || null}, responsavel),
+          cpf_responsavel = COALESCE(${merged.legal_rep_cpf || merged.contact_cpf || null}, cpf_responsavel),
+          email_financeiro = COALESCE(${merged.email_financial || null}, email_financeiro),
+          site = COALESCE(${merged.website || null}, site),
+          banco = COALESCE(${merged.bank_name || null}, banco),
+          agencia = COALESCE(${merged.bank_agency || null}, agencia),
+          conta = COALESCE(${merged.bank_account || null}, conta),
+          chave_pix = COALESCE(${merged.bank_pix_key || null}, chave_pix),
+          updated_at = NOW()
+        WHERE id = ${current.clinic_id}
+      `;
+    } catch (syncErr) {
+      console.warn('[Sync Onboarding -> Clinics]', syncErr);
+    }
   }
 }
 
@@ -676,27 +740,75 @@ export async function recordAcceptance(params: {
 
 // ── Mapper ────────────────────────────────────────────────────────────────────
 function mapOnboardingRow(r: Record<string, unknown>): ClinicOnboarding {
+  const city = r.city ? String(r.city).trim() : '';
+  const state = r.state ? String(r.state).trim() : '';
+  const email = r.email ? String(r.email).trim() : '';
+  const phone = r.phone ? String(r.phone).trim() : '';
+  const contactName = r.contact_name ? String(r.contact_name).trim() : '';
+  const contactCpf = r.contact_cpf ? String(r.contact_cpf).trim() : null;
+
   return {
     id: String(r.id),
     trade_name: String(r.trade_name),
-    legal_name: r.legal_name ? String(r.legal_name) : null,
+    legal_name: r.legal_name ? String(r.legal_name) : String(r.trade_name || ''),
     cnpj: r.cnpj ? String(r.cnpj) : null,
-    contact_name: String(r.contact_name),
-    contact_cpf: r.contact_cpf ? String(r.contact_cpf) : null,
-    phone: String(r.phone),
-    email: String(r.email),
-    city: String(r.city),
-    state: String(r.state),
+    contact_name: contactName,
+    contact_cpf: contactCpf,
+    phone,
+    email,
+    city,
+    state,
     specialty: r.specialty ? String(r.specialty) : null,
     average_ticket: r.average_ticket ? String(r.average_ticket) : null,
     internal_notes: r.internal_notes ? String(r.internal_notes) : null,
+    trade_name_confirmed: r.trade_name_confirmed ? String(r.trade_name_confirmed) : null,
+    address_cep: r.address_cep ? String(r.address_cep) : null,
+    address_street: r.address_street ? String(r.address_street) : null,
+    address_number: r.address_number ? String(r.address_number) : null,
+    address_complement: r.address_complement ? String(r.address_complement) : null,
+    address_neighborhood: r.address_neighborhood ? String(r.address_neighborhood) : null,
+    address_city: r.address_city ? String(r.address_city) : (city || null),
+    address_state: r.address_state ? String(r.address_state) : (state || null),
+    phone_secondary: r.phone_secondary ? String(r.phone_secondary) : null,
+    email_admin: r.email_admin ? String(r.email_admin) : (email || null),
+    email_financial: r.email_financial ? String(r.email_financial) : (email || null),
+    website: r.website ? String(r.website) : null,
+    municipal_registration: r.municipal_registration ? String(r.municipal_registration) : null,
+    state_registration: r.state_registration ? String(r.state_registration) : null,
+    legal_rep_name: r.legal_rep_name ? String(r.legal_rep_name) : (contactName || null),
+    legal_rep_cpf: r.legal_rep_cpf ? String(r.legal_rep_cpf) : contactCpf,
+    legal_rep_role: r.legal_rep_role ? String(r.legal_rep_role) : null,
+    legal_rep_email: r.legal_rep_email ? String(r.legal_rep_email) : (email || null),
+    legal_rep_phone: r.legal_rep_phone ? String(r.legal_rep_phone) : (phone || null),
+    legal_rep_has_powers: r.legal_rep_has_powers !== null && r.legal_rep_has_powers !== undefined
+      ? Boolean(r.legal_rep_has_powers) : true,
+    authorized_rep_name: r.authorized_rep_name ? String(r.authorized_rep_name) : null,
+    authorized_rep_cpf: r.authorized_rep_cpf ? String(r.authorized_rep_cpf) : null,
+    authorized_rep_role: r.authorized_rep_role ? String(r.authorized_rep_role) : null,
+    tech_rep_name: r.tech_rep_name ? String(r.tech_rep_name) : (contactName || null),
+    tech_rep_cpf: r.tech_rep_cpf ? String(r.tech_rep_cpf) : contactCpf,
+    tech_rep_council: r.tech_rep_council ? String(r.tech_rep_council) : null,
+    tech_rep_council_number: r.tech_rep_council_number ? String(r.tech_rep_council_number) : null,
+    tech_rep_council_state: r.tech_rep_council_state ? String(r.tech_rep_council_state) : (state || null),
+    cnes: r.cnes ? String(r.cnes) : null,
+    sanitary_license_number: r.sanitary_license_number ? String(r.sanitary_license_number) : null,
+    sanitary_license_expiry: r.sanitary_license_expiry ? String(r.sanitary_license_expiry).slice(0, 10) : null,
+    operating_permit: r.operating_permit ? String(r.operating_permit) : null,
+    bank_name: r.bank_name ? String(r.bank_name) : null,
+    bank_code: r.bank_code ? String(r.bank_code) : null,
+    bank_agency: r.bank_agency ? String(r.bank_agency) : null,
+    bank_account: r.bank_account ? String(r.bank_account) : null,
+    bank_account_type: r.bank_account_type ? String(r.bank_account_type) : 'corrente',
+    bank_holder_name: r.bank_holder_name ? String(r.bank_holder_name) : (r.legal_name ? String(r.legal_name) : String(r.trade_name || '')),
+    bank_holder_document: r.bank_holder_document ? String(r.bank_holder_document) : (r.cnpj ? String(r.cnpj) : null),
+    bank_pix_key: r.bank_pix_key ? String(r.bank_pix_key) : (r.cnpj ? String(r.cnpj) : null),
     status: (r.status as OnboardingStatus) || 'DRAFT',
     progress_percent: Number(r.progress_percent || 0),
     assigned_to: r.assigned_to ? String(r.assigned_to) : null,
     created_by: String(r.created_by),
     clinic_id: r.clinic_id ? String(r.clinic_id) : null,
-    created_at: String(r.created_at),
-    updated_at: String(r.updated_at),
+    created_at: r.created_at ? String(r.created_at) : '',
+    updated_at: r.updated_at ? String(r.updated_at) : '',
     invite_sent_at: r.invite_sent_at ? String(r.invite_sent_at) : null,
     submitted_at: r.submitted_at ? String(r.submitted_at) : null,
     approved_at: r.approved_at ? String(r.approved_at) : null,
@@ -707,7 +819,5 @@ function mapOnboardingRow(r: Record<string, unknown>): ClinicOnboarding {
     created_by_name: r.created_by_name ? String(r.created_by_name) : undefined,
     active_invite_expires_at: r.active_invite_expires_at ? String(r.active_invite_expires_at) : null,
     bank_titularity_divergence: Boolean(r.bank_titularity_divergence),
-    legal_rep_has_powers: r.legal_rep_has_powers !== null && r.legal_rep_has_powers !== undefined
-      ? Boolean(r.legal_rep_has_powers) : null,
   } as ClinicOnboarding & Record<string, unknown>;
 }

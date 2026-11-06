@@ -103,11 +103,31 @@ export async function POST(
           AND review_status != 'VALIDATED'
       `;
 
-      // 2. Liberar clinic e usuários no banco de dados (ativo = TRUE)
+      // 2. Liberar clinic e usuários no banco de dados (ativo = TRUE) e sincronizar endereço/banco
       if (onboarding.clinic_id) {
         await sql`
           UPDATE clinics
-          SET ativo = TRUE, updated_at = NOW()
+          SET
+            ativo = TRUE,
+            nome_fantasia = COALESCE(${onboarding.trade_name || null}, nome_fantasia),
+            razao_social = COALESCE(${onboarding.legal_name || null}, razao_social),
+            cnpj = COALESCE(${onboarding.cnpj || null}, cnpj),
+            cep = COALESCE(${onboarding.address_cep || null}, cep),
+            logradouro = COALESCE(${onboarding.address_street || null}, logradouro),
+            numero = COALESCE(${onboarding.address_number || null}, numero),
+            complemento = COALESCE(${onboarding.address_complement || null}, complemento),
+            bairro = COALESCE(${onboarding.address_neighborhood || null}, bairro),
+            cidade = COALESCE(${onboarding.address_city || onboarding.city || null}, cidade),
+            estado = COALESCE(${onboarding.address_state || onboarding.state || null}, estado),
+            responsavel = COALESCE(${onboarding.legal_rep_name || onboarding.contact_name || null}, responsavel),
+            cpf_responsavel = COALESCE(${onboarding.legal_rep_cpf || onboarding.contact_cpf || null}, cpf_responsavel),
+            email_financeiro = COALESCE(${onboarding.email_financial || onboarding.email || null}, email_financeiro),
+            site = COALESCE(${onboarding.website || null}, site),
+            banco = COALESCE(${onboarding.bank_name || null}, banco),
+            agencia = COALESCE(${onboarding.bank_agency || null}, agencia),
+            conta = COALESCE(${onboarding.bank_account || null}, conta),
+            chave_pix = COALESCE(${onboarding.bank_pix_key || null}, chave_pix),
+            updated_at = NOW()
           WHERE id = ${onboarding.clinic_id}
         `;
         await sql`
@@ -118,18 +138,32 @@ export async function POST(
       } else {
         const clinicRows = await sql`
           INSERT INTO clinics (
-            nome_fantasia, razao_social, cnpj, email, telefone, whatsapp,
-            cidade, estado, especialidade, ativo
+            nome_fantasia, razao_social, cnpj, email, email_financeiro, telefone, whatsapp,
+            responsavel, cpf_responsavel, cep, logradouro, numero, complemento, bairro,
+            cidade, estado, especialidade, site, banco, agencia, conta, chave_pix, ativo
           ) VALUES (
             ${onboarding.trade_name},
             ${onboarding.legal_name || onboarding.trade_name},
             ${onboarding.cnpj || '00.000.000/0001-00'},
             ${onboarding.email},
+            ${onboarding.email_financial || onboarding.email},
             ${onboarding.phone},
             ${onboarding.phone},
-            ${onboarding.city},
-            ${onboarding.state},
+            ${onboarding.legal_rep_name || onboarding.contact_name || null},
+            ${onboarding.legal_rep_cpf || onboarding.contact_cpf || null},
+            ${onboarding.address_cep || null},
+            ${onboarding.address_street || null},
+            ${onboarding.address_number || null},
+            ${onboarding.address_complement || null},
+            ${onboarding.address_neighborhood || null},
+            ${onboarding.address_city || onboarding.city},
+            ${onboarding.address_state || onboarding.state},
             ${onboarding.specialty || 'Geral'},
+            ${onboarding.website || null},
+            ${onboarding.bank_name || null},
+            ${onboarding.bank_agency || null},
+            ${onboarding.bank_account || null},
+            ${onboarding.bank_pix_key || null},
             TRUE
           )
           RETURNING id

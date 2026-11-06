@@ -18,6 +18,9 @@ function getSql(): NeonQueryFunction<false, false> {
 
 export const sql: NeonQueryFunction<false, false> = ((...args: [any, ...any[]]) => {
   const client = getSql();
+  if (typeof args[0] === 'string') {
+    return (client as any).query(args[0], args[1]);
+  }
   return (client as any)(...args);
 }) as NeonQueryFunction<false, false>;
 

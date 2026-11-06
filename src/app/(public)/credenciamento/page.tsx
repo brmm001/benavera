@@ -37,6 +37,12 @@ function formatPhone(value: string): string {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
+function formatCEP(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+}
+
 export default function CredenciamentoPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -47,6 +53,11 @@ export default function CredenciamentoPage() {
   const [nomeClinica, setNomeClinica] = useState('');
   const [cnpj, setCnpj] = useState('');
   const [especialidade, setEspecialidade] = useState(especialidades[0]);
+  const [cep, setCep] = useState('');
+  const [rua, setRua] = useState('');
+  const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
+  const [bairro, setBairro] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('SP');
 
@@ -58,6 +69,28 @@ export default function CredenciamentoPage() {
 
   const [volumeMensal] = useState('R$ 50 mil a R$ 150 mil');
   const [ticketMedio] = useState('R$ 3.000 a R$ 8.000');
+
+  async function handleCepChange(raw: string) {
+    const formatted = formatCEP(raw);
+    setCep(formatted);
+    const digits = formatted.replace(/\D/g, '');
+    if (digits.length === 8) {
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!data.erro) {
+            if (data.logradouro) setRua(data.logradouro);
+            if (data.bairro) setBairro(data.bairro);
+            if (data.localidade) setCidade(data.localidade);
+            if (data.uf) setEstado(data.uf);
+          }
+        }
+      } catch {
+        // Silencioso
+      }
+    }
+  }
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -77,6 +110,11 @@ export default function CredenciamentoPage() {
           nomeClinica,
           cnpj,
           especialidade,
+          cep,
+          rua,
+          numero,
+          complemento,
+          bairro,
           cidade,
           estado,
           nomeResponsavel,
@@ -220,6 +258,61 @@ export default function CredenciamentoPage() {
                         <option key={esp} value={esp}>{esp}</option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="portal-form-label">CEP</label>
+                    <input
+                      type="text"
+                      placeholder="00000-000"
+                      value={cep}
+                      onChange={(e) => handleCepChange(e.target.value)}
+                      className="portal-form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="portal-form-label">Rua / Avenida</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Rua XV de Novembro"
+                      value={rua}
+                      onChange={(e) => setRua(e.target.value)}
+                      className="portal-form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="portal-form-label">Número</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: 1450"
+                      value={numero}
+                      onChange={(e) => setNumero(e.target.value)}
+                      className="portal-form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="portal-form-label">Complemento</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Sala 802"
+                      value={complemento}
+                      onChange={(e) => setComplemento(e.target.value)}
+                      className="portal-form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="portal-form-label">Bairro</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Centro"
+                      value={bairro}
+                      onChange={(e) => setBairro(e.target.value)}
+                      className="portal-form-input"
+                    />
                   </div>
 
                   <div>

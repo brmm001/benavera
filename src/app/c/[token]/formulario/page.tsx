@@ -120,8 +120,29 @@ export default function WizardPage() {
         if (res.ok) {
           const data = await res.json();
           if (data.data) {
-            setFormData(data.data as FormData);
-            setProgress(Number(data.data.progress_percent) || 0);
+            const d = data.data as Record<string, any>;
+            const normalized: FormData = {
+              ...d,
+              legal_name: d.legal_name || d.trade_name || '',
+              address_city: d.address_city || d.city || '',
+              address_state: d.address_state || d.state || '',
+              email_admin: d.email_admin || d.email || '',
+              email_financial: d.email_financial || d.email || '',
+              legal_rep_name: d.legal_rep_name || d.contact_name || '',
+              legal_rep_cpf: d.legal_rep_cpf || d.contact_cpf || '',
+              legal_rep_email: d.legal_rep_email || d.email || '',
+              legal_rep_phone: d.legal_rep_phone || d.phone || '',
+              legal_rep_has_powers: d.legal_rep_has_powers ?? true,
+              tech_rep_name: d.tech_rep_name || d.contact_name || '',
+              tech_rep_cpf: d.tech_rep_cpf || d.contact_cpf || '',
+              tech_rep_council_state: d.tech_rep_council_state || d.address_state || d.state || '',
+              bank_account_type: d.bank_account_type || 'corrente',
+              bank_holder_name: d.bank_holder_name || d.legal_name || d.trade_name || '',
+              bank_holder_document: d.bank_holder_document || d.cnpj || '',
+              bank_pix_key: d.bank_pix_key || d.cnpj || '',
+            };
+            setFormData(normalized);
+            setProgress(Number(d.progress_percent) || 0);
           }
           if (data.documents) {
             setDocuments(data.documents);
@@ -154,8 +175,35 @@ export default function WizardPage() {
   }, [token]);
 
   const updateField = useCallback((field: string, value: string | boolean | null) => {
+    let finalVal = value;
+    if (field === 'address_cep' && typeof value === 'string') {
+      const digits = value.replace(/\D/g, '').slice(0, 8);
+      finalVal = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+      if (digits.length === 8) {
+        fetch(`https://viacep.com.br/ws/${digits}/json/`)
+          .then(r => r.json())
+          .then(cepData => {
+            if (cepData && !cepData.erro) {
+              setFormData(prev => {
+                const updated: FormData = {
+                  ...prev,
+                  address_cep: finalVal,
+                  address_street: cepData.logradouro || prev.address_street || '',
+                  address_neighborhood: cepData.bairro || prev.address_neighborhood || '',
+                  address_city: cepData.localidade || prev.address_city || '',
+                  address_state: cepData.uf || prev.address_state || '',
+                };
+                scheduleAutosave(updated);
+                return updated;
+              });
+            }
+          })
+          .catch(() => {});
+      }
+    }
+
     setFormData(prev => {
-      const next = { ...prev, [field]: value };
+      const next = { ...prev, [field]: finalVal };
       scheduleAutosave(next);
       return next;
     });
@@ -205,7 +253,7 @@ export default function WizardPage() {
       const res = await fetch(`/api/c/${token}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acceptances: acceptanceList }),
+        body: JSON.stringify({ acceptances: acceptanceList, formData }),
       });
       const data = await res.json();
       if (res.ok) {

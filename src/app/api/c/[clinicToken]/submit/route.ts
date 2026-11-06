@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import { validateInviteToken } from '@/lib/onboarding-tokens';
-import { getOnboardingById, updateOnboardingStatus, recordAcceptance } from '@/lib/onboarding-db';
+import { getOnboardingById, updateOnboardingStatus, recordAcceptance, updateOnboardingData, calculateProgress } from '@/lib/onboarding-db';
 import { getOnboardingDocuments } from '@/lib/onboarding-db';
 import { logAuditEvent } from '@/lib/onboarding-audit';
 import { sendOnboardingSubmittedClinicEmail, sendOnboardingSubmittedAlert } from '@/lib/email';
@@ -108,6 +108,18 @@ export async function POST(
         error: 'Todas as declarações obrigatórias devem ser aceitas antes de enviar.',
         missing: missingAcceptances,
       }, { status: 422 });
+    }
+
+    // Salvar dados pendentes do formulário antes de submeter
+    if (body.formData && typeof body.formData === 'object') {
+      await updateOnboardingData({
+        id: onboardingId,
+        data: body.formData,
+        sessionToken: session.inviteId,
+        ip,
+        userAgent,
+      });
+      await calculateProgress(onboardingId);
     }
 
     // Verificar documentos obrigatórios
