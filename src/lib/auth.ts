@@ -7,10 +7,8 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { getAdminToken, COOKIE_NAME as BV_ADMIN_COOKIE_NAME } from './auth-config';
+import { getJwtKey, safeEqual } from './secrets';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'benavera-secret-dev-2026-change-in-production'
-);
 const COOKIE_NAME = 'benavera_session';
 const SESSION_DAYS = 7;
 
@@ -31,18 +29,62 @@ export async function signToken(payload: Omit<SessionPayload, 'iat' | 'exp'>): P
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)
-    .sign(JWT_SECRET);
+    .sign(await getJwtKey());
   return token;
 }
 
-// ── Verificar token JWT ──────────────────────────
+// ── Verificar token JWT (apenas assinatura/expiração) ──
 export async function verifyToken(token: string): Promise<SessionPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, await getJwtKey(), { algorithms: ['HS256'] });
     return payload as unknown as SessionPayload;
   } catch {
     return null;
   }
+}
+
+// ── Revalidar sessão no banco ─────────────────────
+// O JWT sozinho não basta: usuários/clínicas desativados, removidos ou com role alterada
+// precisam perder o acesso imediatamente, mesmo com um cookie ainda dentro da validade.
+async function revalidateSession(session: SessionPayload): Promise<SessionPayload | null> {
+  try {
+    if (!session?.userId) return null;
+    const rows = await sql`
+      SELECT u.id, u.email, u.name, u.role, u.ativo, u.clinic_id,
+             c.nome_fantasia AS clinic_name, c.ativo AS clinic_ativo
+      FROM users u
+      LEFT JOIN clinics c ON c.id = u.clinic_id
+      WHERE u.id = ${session.userId}
+      LIMIT 1
+    `;
+    const u = rows[0];
+    if (!u) return null;
+    if (!u.ativo) return null;
+    if (u.clinic_id && !u.clinic_ativo) return null;
+    if (String(u.role) !== String(session.role)) return null;
+    if (String(u.clinic_id || '') !== String(session.clinicId || '')) return null;
+
+    return {
+      ...session,
+      email: String(u.email),
+      name: String(u.name),
+      role: u.role as UserRole,
+      clinicId: u.clinic_id ? String(u.clinic_id) : null,
+      clinicName: u.clinic_name ? String(u.clinic_name) : null,
+    };
+  } catch (err) {
+    console.error('[Auth] Falha ao revalidar sessão:', err);
+    return null;
+  }
+}
+
+async function getValidatedJwtSession(): Promise<SessionPayload | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+  if (!token) return null;
+  const decoded = await verifyToken(token);
+  if (!decoded) return null;
+  return revalidateSession(decoded);
 }
 
 // ── Login ────────────────────────────────────────
@@ -135,24 +177,17 @@ export async function loginUser(email: string, password: string): Promise<{
 // ── Obter sessão atual (JWT benavera_session ou fallback admin via bv_admin) ────
 // Retorna null se não houver nenhum cookie válido.
 export async function getSession(): Promise<SessionPayload | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
-  if (token) {
-    const session = await verifyToken(token);
-    if (session) return session;
-  }
+  const session = await getValidatedJwtSession();
+  if (session) return session;
   // Fallback para admin logado via bv_admin
-  return getAdminSession();
+  return getLegacyAdminSession();
 }
 
 // ── Obter sessão apenas do JWT real (sem fallback de admin) ──────
 // Retorna null se não houver cookie JWT válido.
 // Use em APIs que precisam distinguir "não logado" vs "admin mock".
 export async function getJwtSession(): Promise<SessionPayload | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
-  if (!token) return null;
-  return verifyToken(token);
+  return getValidatedJwtSession();
 }
 
 // ── Obter sessão do admin existente (bv_admin) ───
@@ -162,21 +197,26 @@ export async function getJwtSession(): Promise<SessionPayload | null> {
 // APIs de credenciamento funcionem sem exigir um segundo sistema de login.
 // Retorna null se o cookie bv_admin estiver ausente ou inválido.
 export async function getAdminSession(): Promise<SessionPayload | null> {
+  // 1) JWT completo — SOMENTE se for staff Benavera (nunca devolve sessão de clínica)
+  const jwtSession = await getValidatedJwtSession();
+  if (jwtSession && isBenaveraStaff(jwtSession.role)) return jwtSession;
+
+  // 2) Cookie bv_admin (token estático do login admin)
+  return getLegacyAdminSession();
+}
+
+async function getLegacyAdminSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
-
-  // 1) Tentar primeiro o JWT completo se existir
-  const jwtToken = cookieStore.get(COOKIE_NAME)?.value;
-  if (jwtToken) {
-    const jwtSession = await verifyToken(jwtToken);
-    if (jwtSession) return jwtSession;
-  }
-
-  // 2) Verificar cookie bv_admin (token estático do login admin)
   const adminCookie = cookieStore.get(BV_ADMIN_COOKIE_NAME)?.value;
   if (!adminCookie) return null;
 
-  const expectedToken = getAdminToken();
-  if (adminCookie !== expectedToken) return null;
+  let expectedToken: string;
+  try {
+    expectedToken = getAdminToken();
+  } catch {
+    return null;
+  }
+  if (!safeEqual(adminCookie, expectedToken)) return null;
 
   // Cookie bv_admin válido — retorna sessão admin
   return {

@@ -8,11 +8,9 @@ import { getClientIP } from '@/lib/security';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { SignJWT } from 'jose';
 import { z } from 'zod';
+import { getClinicSessionKey } from '@/lib/secrets';
 
 // JWT separado para sessão da clínica (não é o JWT admin)
-const CLINIC_SESSION_SECRET = new TextEncoder().encode(
-  process.env.CLINIC_SESSION_SECRET || process.env.JWT_SECRET || 'clinic-session-secret-change-me'
-);
 const CLINIC_SESSION_TTL = '24h';
 const CLINIC_SESSION_COOKIE = 'benavera_clinic_session';
 
@@ -87,7 +85,7 @@ export async function POST(
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(CLINIC_SESSION_TTL)
-    .sign(CLINIC_SESSION_SECRET);
+    .sign((await getClinicSessionKey()));
 
   const response = NextResponse.json({ success: true, onboardingId });
 

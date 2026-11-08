@@ -1,3 +1,5 @@
+import { getAdminToken, getAdminPassword as getAdminPasswordCfg } from './auth-config';
+import { safeEqual } from './secrets';
 import type { NextRequest } from 'next/server';
 
 /**
@@ -55,14 +57,14 @@ export function maskPII(str: string | undefined): string {
 export function getAdminTokenString(): string {
   // Retorna um token estático (string) baseado no SECRET para ser usado no cookie.
   // Isso elimina qualquer complexidade de JWT, relógios fora de sincronia ou módulos incompatíveis com o Edge.
-  return process.env.ADMIN_SECRET || 'bv-admin-secret-fallback-2026';
+  return getAdminToken();
 }
 
 /**
  * Retorna a senha administrativa configurada em variável de ambiente.
  */
 export function getAdminPassword(): string {
-  return process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || 'benavera2026';
+  return getAdminPasswordCfg();
 }
 
 /**
@@ -77,7 +79,7 @@ export async function signAdminToken(): Promise<string> {
  */
 export async function verifyAdminToken(token: string | undefined): Promise<boolean> {
   if (!token) return false;
-  return token === getAdminTokenString();
+  return safeEqual(token, getAdminTokenString());
 }
 
 /**

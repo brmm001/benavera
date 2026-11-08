@@ -7,10 +7,8 @@ import { jwtVerify } from 'jose';
 import { getClientIP } from '@/lib/security';
 import { getOnboardingByToken, updateOnboardingData, calculateProgress, getOnboardingDocuments } from '@/lib/onboarding-db';
 import { validateInviteToken } from '@/lib/onboarding-tokens';
+import { getClinicSessionKey } from '@/lib/secrets';
 
-const CLINIC_SESSION_SECRET = new TextEncoder().encode(
-  process.env.CLINIC_SESSION_SECRET || process.env.JWT_SECRET || 'clinic-session-secret-change-me'
-);
 const CLINIC_SESSION_COOKIE = 'benavera_clinic_session';
 
 async function getClinicSession(
@@ -23,7 +21,7 @@ async function getClinicSession(
   const token = request.cookies.get(CLINIC_SESSION_COOKIE)?.value;
   if (token) {
     try {
-      const { payload } = await jwtVerify(token, CLINIC_SESSION_SECRET);
+      const { payload } = await jwtVerify(token, (await getClinicSessionKey()));
       if (payload.type === 'clinic_session') {
         return {
           onboardingId: String(payload.onboardingId),

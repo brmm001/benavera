@@ -5,10 +5,8 @@ import { sendClinicWelcomeEmail } from '@/lib/email';
 import { REQUIRED_DOCUMENTS } from '@/lib/onboarding-db';
 import { createInvite } from '@/lib/onboarding-tokens';
 import { SignJWT } from 'jose';
+import { getClinicSessionKey } from '@/lib/secrets';
 
-const CLINIC_SESSION_SECRET = new TextEncoder().encode(
-  process.env.CLINIC_SESSION_SECRET || process.env.JWT_SECRET || 'clinic-session-secret-change-me'
-);
 const CLINIC_SESSION_COOKIE = 'benavera_clinic_session';
 
 export async function POST(req: NextRequest) {
@@ -147,7 +145,7 @@ export async function POST(req: NextRequest) {
           .setProtectedHeader({ alg: 'HS256' })
           .setIssuedAt()
           .setExpirationTime('24h')
-          .sign(CLINIC_SESSION_SECRET);
+          .sign((await getClinicSessionKey()));
 
         const response = NextResponse.json({
           success: true,
@@ -282,7 +280,7 @@ export async function POST(req: NextRequest) {
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('24h')
-      .sign(CLINIC_SESSION_SECRET);
+      .sign((await getClinicSessionKey()));
 
     const redirectUrl = `/c/${invite.token}/formulario`;
 

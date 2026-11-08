@@ -1,13 +1,11 @@
 // src/middleware.ts
 // Middleware de autenticação e proteção de rotas privadas Benavera
 
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { getJwtKey, safeEqual } from '@/lib/secrets';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'benavera-secret-dev-2026-change-in-production'
-);
+// Chave resolvida sob demanda via getJwtKey() (sem fallback público).
 
 // Cookie do sistema JWT completo
 const JWT_COOKIE = 'benavera_session';
@@ -70,7 +68,7 @@ const BENAVERA_ALL_ROLES = new Set([
   'BENAVERA_COMERCIAL',
 ]);
 
-export async function middleware(request: NextRequest) {
+async function handle(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ── Sempre público: login/logout do atendente e toda a API de auth ────────
@@ -92,7 +90,7 @@ export async function middleware(request: NextRequest) {
     // 1) Tentar JWT
     if (token) {
       try {
-        const { payload } = await jwtVerify(token, JWT_SECRET);
+        const { payload } = await jwtVerify(token, await getJwtKey());
         const role = payload.role as string;
 
         // BENAVERA_COMERCIAL não pode acessar admin → redireciona pro atendente
@@ -122,8 +120,8 @@ export async function middleware(request: NextRequest) {
 
     // 2) Fallback: cookie bv_admin (senha única legada)
     const bvToken = request.cookies.get(BV_ADMIN_COOKIE)?.value;
-    const expectedToken = process.env.ADMIN_SECRET ?? 'bv-secure-token-9x2k7p4m8q1r';
-    if (bvToken && bvToken === expectedToken) {
+    const expectedToken = process.env.ADMIN_SECRET;
+    if (bvToken && expectedToken && safeEqual(bvToken, expectedToken)) {
       // Admin legado autenticado
       const requestHeaders = new Headers(request.headers);
       requestHeaders.set('x-user-id', 'a1000001-0001-4001-a001-000000000001');
@@ -158,7 +156,7 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, await getJwtKey());
     const role = payload.role as string;
 
     // Staff Benavera acessando rotas de clínica → redireciona pro admin
@@ -213,6 +211,16 @@ export async function middleware(request: NextRequest) {
     response.cookies.delete(JWT_COOKIE);
     return response;
   }
+}
+
+const SPOOFABLE_HEADERS = ['x-user-id', 'x-user-role', 'x-clinic-id', 'x-user-name'];
+
+export async function middleware(incoming: NextRequest) {
+  // Remove headers de identidade enviados pelo cliente (evita spoofing)
+  const clean = new Headers(incoming.headers);
+  SPOOFABLE_HEADERS.forEach(h => clean.delete(h));
+  const request = new NextRequest(incoming, { headers: clean });
+  return handle(request);
 }
 
 export const config = {

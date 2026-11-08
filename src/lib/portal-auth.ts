@@ -1,11 +1,9 @@
-﻿import { SignJWT, jwtVerify } from 'jose';
+import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { getNeonClient } from './neon';
+import { getPortalKey } from './secrets';
 
 const PORTAL_COOKIE = 'benavera_portal_session';
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.PORTAL_JWT_SECRET || 'benavera-portal-dev-secret-change-in-production'
-);
 
 export interface PortalSession {
   userId: string;
@@ -21,12 +19,12 @@ export async function signPortalToken(session: PortalSession): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('30d')
-    .sign(JWT_SECRET);
+    .sign(await getPortalKey());
 }
 
 export async function verifyPortalToken(token: string): Promise<PortalSession | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, await getPortalKey());
     return payload as unknown as PortalSession;
   } catch {
     return null;

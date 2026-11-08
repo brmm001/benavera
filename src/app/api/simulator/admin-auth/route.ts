@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { safeEqual } from "@/lib/secrets";
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     const { password } = await request.json();
-    if (password !== ADMIN_PASSWORD) {
+    if (typeof password !== "string" || !safeEqual(password, ADMIN_PASSWORD)) {
       return NextResponse.json({ error: "Senha incorreta" }, { status: 401 });
     }
 
