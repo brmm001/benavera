@@ -34,7 +34,8 @@ export type UserRole =
   | 'BENAVERA_COMPLIANCE'
   | 'BENAVERA_COMERCIAL'
   | 'BENAVERA_FINANCEIRO'
-  | 'BENAVERA_SUPORTE';
+  | 'BENAVERA_SUPORTE'
+  | 'REPRESENTANTE';
 
 export type OnboardingStatus =
   | 'DRAFT'

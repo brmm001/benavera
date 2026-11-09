@@ -5,6 +5,7 @@ import { sendClinicWelcomeEmail } from '@/lib/email';
 import { REQUIRED_DOCUMENTS } from '@/lib/onboarding-db';
 import { createInvite } from '@/lib/onboarding-tokens';
 import { SignJWT } from 'jose';
+import { getRepresentanteByCodigo, vincularClinica } from '@/lib/representantes-db';
 import { getClinicSessionKey } from '@/lib/secrets';
 
 const CLINIC_SESSION_COOKIE = 'benavera_clinic_session';
@@ -185,6 +186,24 @@ export async function POST(req: NextRequest) {
     `;
 
     const clinicId = clinicRows[0].id;
+
+    // Atribuição ao representante de vendas (código de indicação validado no servidor)
+    if (typeof body.ref === 'string' && body.ref) {
+      try {
+        const rep = await getRepresentanteByCodigo(body.ref);
+        if (rep) {
+          await vincularClinica({
+            representanteId: rep.id,
+            clinicId: String(clinicId),
+            origem: 'CODIGO',
+            porQuem: `codigo:${rep.codigo_indicacao}`,
+            motivo: 'Cadastro via link de indicação',
+          });
+        }
+      } catch (refErr) {
+        console.error('[Credenciamento] Falha ao atribuir representante:', refErr);
+      }
+    }
 
     // 3. Hash seguro de senha com bcrypt
     const passwordHash = await bcrypt.hash(password, 10);

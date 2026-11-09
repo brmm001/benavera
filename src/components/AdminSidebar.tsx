@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/admin/crm', label: 'CRM Pipeline', icon: '🎯' },
   { href: '/admin/crm/tarefas', label: 'Tarefas & SLA', icon: '✅' },
   { href: '/admin/atendentes', label: 'Atendentes', icon: '👥' },
+  { href: '/admin/representantes', label: 'Representantes', icon: '🤝' },
   { href: '/admin/parceiros', label: 'Parceiros', icon: '🏦' },
   { href: '/admin/repasses', label: 'Repasses', icon: '◈' },
   { href: '/admin/recuperacao', label: 'Recuperação', icon: '↩' },

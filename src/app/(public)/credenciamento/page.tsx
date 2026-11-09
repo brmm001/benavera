@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Award, Zap, DollarSign, Users
@@ -70,6 +70,29 @@ export default function CredenciamentoPage() {
   const [volumeMensal] = useState('R$ 50 mil a R$ 150 mil');
   const [ticketMedio] = useState('R$ 3.000 a R$ 8.000');
 
+  // Código de indicação do representante de vendas (?ref=CODIGO), lembrado por 30 dias
+  useEffect(() => {
+    try {
+      const fromUrl = new URLSearchParams(window.location.search).get('ref');
+      const code = (fromUrl || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
+      if (code.length >= 6) {
+        localStorage.setItem('bv_ref', JSON.stringify({ code, at: Date.now() }));
+      }
+    } catch { /* storage indisponível */ }
+  }, []);
+
+  function getRefCode(): string | null {
+    try {
+      const raw = localStorage.getItem('bv_ref');
+      if (!raw) return null;
+      const { code, at } = JSON.parse(raw);
+      if (typeof code !== 'string' || Date.now() - Number(at) > 30 * 24 * 60 * 60 * 1000) return null;
+      return code;
+    } catch {
+      return null;
+    }
+  }
+
   async function handleCepChange(raw: string) {
     const formatted = formatCEP(raw);
     setCep(formatted);
@@ -124,6 +147,7 @@ export default function CredenciamentoPage() {
           password,
           volumeMensal,
           ticketMedio,
+          ref: getRefCode(),
         }),
       });
 

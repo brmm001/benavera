@@ -31,11 +31,14 @@ const PROTECTED_PREFIXES = [
   '/api/partners',
   '/atendente',
   '/api/atendente',
+  '/representante',
+  '/api/representante',
 ];
 
 // Exceções públicas dentro dos prefixos protegidos
 const PUBLIC_EXCEPTIONS = [
   '/admin/login',
+  '/representante/login',
 ];
 
 function isProtectedRoute(pathname: string): boolean {
@@ -56,6 +59,10 @@ function isProtectedRoute(pathname: string): boolean {
     return false;
   }
   return PROTECTED_PREFIXES.some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'));
+}
+
+function isRepRoute(pathname: string): boolean {
+  return pathname === '/representante' || pathname.startsWith('/representante/') || pathname === '/api/representante' || pathname.startsWith('/api/representante/');
 }
 
 // Roles válidas do staff Benavera
@@ -140,6 +147,12 @@ async function handle(request: NextRequest) {
   // ── Rotas não-admin protegidas ────────────────────────────────────────────
   if (!token) {
     // Sem sessão → redireciona para o login correto por contexto
+    if (isRepRoute(pathname)) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Não autenticado.', loginUrl: '/representante/login' }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL('/representante/login', request.url));
+    }
     const isAtendenteRoute = pathname.startsWith('/atendente') || pathname.startsWith('/api/atendente');
     if (isAtendenteRoute) {
       if (pathname.startsWith('/api/')) {
@@ -158,6 +171,20 @@ async function handle(request: NextRequest) {
   try {
     const { payload } = await jwtVerify(token, await getJwtKey());
     const role = payload.role as string;
+
+    // Representante só acessa a própria área; ninguém além dele entra na área do representante
+    if (role === 'REPRESENTANTE' && !isRepRoute(pathname)) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
+      }
+      return NextResponse.redirect(new URL('/representante', request.url));
+    }
+    if (role !== 'REPRESENTANTE' && isRepRoute(pathname)) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
+      }
+      return NextResponse.redirect(new URL('/representante/login', request.url));
+    }
 
     // Staff Benavera acessando rotas de clínica → redireciona pro admin
     if (
@@ -194,6 +221,14 @@ async function handle(request: NextRequest) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   } catch {
     // Token inválido ou expirado
+    if (isRepRoute(pathname)) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Sessão expirada.', loginUrl: '/representante/login' }, { status: 401 });
+      }
+      const resp = NextResponse.redirect(new URL('/representante/login', request.url));
+      resp.cookies.delete(JWT_COOKIE);
+      return resp;
+    }
     const isAtendenteRoute = pathname.startsWith('/atendente') || pathname.startsWith('/api/atendente');
     if (isAtendenteRoute) {
       if (pathname.startsWith('/api/')) {

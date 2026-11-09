@@ -64,6 +64,12 @@ async function revalidateSession(session: SessionPayload): Promise<SessionPayloa
     if (String(u.role) !== String(session.role)) return null;
     if (String(u.clinic_id || '') !== String(session.clinicId || '')) return null;
 
+    // Representante de vendas: precisa ter cadastro ativo em `representantes`
+    if (String(u.role) === 'REPRESENTANTE') {
+      const rep = await sql`SELECT 1 FROM representantes WHERE user_id = ${session.userId} AND ativo = TRUE LIMIT 1`;
+      if (rep.length === 0) return null;
+    }
+
     return {
       ...session,
       email: String(u.email),
