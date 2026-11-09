@@ -144,25 +144,6 @@ export default function HomePage() {
           <div className="grid-lg-2" style={{ alignItems: 'center', gap: '3.5rem' }}>
             {/* Coluna da Esquerda: Proposta de Valor B2B */}
             <div>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.375rem 0.875rem',
-                  background: 'rgba(99,112,241,0.15)',
-                  border: '1px solid rgba(99,112,241,0.3)',
-                  borderRadius: '20px',
-                  fontSize: '0.8125rem',
-                  fontWeight: '700',
-                  color: '#a5b4fc',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                <Zap size={14} color="#818cf8" />
-                Infraestrutura Financeira & CRM para Clínicas
-              </div>
-
               <h1
                 style={{
                   fontSize: 'clamp(2.25rem, 4.8vw, 3.5rem)',
