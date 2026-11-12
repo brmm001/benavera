@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { ArticleCategory } from '@/types';
 import { CATEGORY_LABELS } from '@/types';
+import { isoDate } from '@/lib/seo';
 import { ArrowRight } from 'lucide-react';
 
 interface ArticleCardProps {
@@ -15,11 +16,10 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ title, slug, description, category, updatedAt, author }: ArticleCardProps) {
-  const date = new Date(updatedAt).toLocaleDateString('pt-BR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  const validDate = isoDate(updatedAt);
+  const date = validDate ? new Date(validDate).toLocaleDateString('pt-BR', {
+    day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
+  }) : null;
 
   return (
     <article style={{
@@ -83,9 +83,8 @@ export function ArticleCard({ title, slug, description, category, updatedAt, aut
         marginTop: 'auto',
       }}>
         <div style={{ fontSize: '0.8125rem', color: '#94a3b8' }}>
-          <span>{author}</span>
-          <span style={{ margin: '0 0.375rem' }}>·</span>
-          <time dateTime={updatedAt}>{date}</time>
+          <span>{author || 'Equipe Benavera'}</span>
+          {date && <><span style={{ margin: '0 0.375rem' }}>·</span><time dateTime={validDate}>{date}</time></>}
         </div>
         <Link
           href={`/conteudos/${slug}`}

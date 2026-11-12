@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async redirects() {
     return [
+      { source: '/para-clinicas', destination: '/clinicas', permanent: true },
+      { source: '/portal', destination: '/portal/login', permanent: true },
       // Redirecionamento permanente (301) de non-www para www
       {
         source: '/:path*',
@@ -21,6 +23,8 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      { source: '/:private(admin|login|portal|dashboard|atendente|representante|configuracoes|equipe|financiamentos|novo-financiamento|pacientes|repasses|p|c|proposta|api)/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
+      { source: '/simuladorclinicas/admin/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
       {
         source: '/(.*)',
         headers: [

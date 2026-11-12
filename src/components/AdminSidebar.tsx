@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { href: '/admin/repasses', label: 'Repasses', icon: '◈' },
   { href: '/admin/recuperacao', label: 'Recuperação', icon: '↩' },
   { href: '/admin/financeiro', label: 'Financeiro', icon: '◎' },
+  { href: '/admin/aquisicao', label: 'Aquisição e GEO', icon: '↗' },
   { href: '/admin/analytics', label: 'Analytics', icon: '📊' },
   { href: '/admin/auditoria', label: 'Auditoria', icon: '🔒' },
   { href: '/admin/configuracoes', label: 'Configurações', icon: '⚙' },

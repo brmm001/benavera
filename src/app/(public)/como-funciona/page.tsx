@@ -36,7 +36,7 @@ const stepsPatient = [
 const stepsClinic = [
   {
     step: '1',
-    title: 'A clínica cadastra-se no piloto',
+    title: 'A clínica solicita o credenciamento',
     desc: 'Processo simples, sem implementação técnica complexa.',
   },
   {
@@ -205,8 +205,8 @@ export default function ComoFuncionaPage() {
           </div>
 
           <div style={{ marginTop: '3rem', textAlign: 'center' }}>
-            <Link href="/clinicas#piloto" className="btn-primary">
-              Quero participar do piloto
+            <Link href="/credenciamento" className="btn-primary">
+              Quero credenciar minha clínica
               <ArrowRight size={16} />
             </Link>
           </div>

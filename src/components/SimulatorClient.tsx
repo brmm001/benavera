@@ -125,7 +125,7 @@ function SectionHeader({ icon, title, subtitle }: { icon: string; title: string;
 export default function SimulatorClient({ initialConfig }: { initialConfig: SimulatorConfig }) {
   const config = initialConfig;
   const parcelas_ativas = config.parcelas_ativas.length > 0 ? config.parcelas_ativas : [6, 12, 18, 24, 30, 36];
-  const TODOS_PRAZOS = [6, 12, 18, 24, 30, 36, 48, 60, 72];
+  const TODOS_PRAZOS = [6, 12, 18, 24, 30, 36];
 
   // Entradas principais
   const [valorTratamento, setValorTratamento] = useState(0);
@@ -232,7 +232,7 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
             <div className="sim-logo-badge">B</div>
             <span className="sim-logo-name">Benavera</span>
           </div>
-          <h1 className="sim-hero-title">Simulador Benavera</h1>
+          <h1 className="sim-hero-title">Simulador Benavera</h1><p className="sim-field-hint" style={{maxWidth: 760, margin: '1rem auto', lineHeight: 1.6}}>Estimativa educativa. Taxa comercial da clínica: 5% por operação; sem mensalidade ou adesão. Juros, valores, responsabilidade por inadimplência e prazo de repasse abaixo são hipóteses, não uma oferta de crédito. Até 36 parcelas conforme análise. Confira <a href="/condicoes">as condições vigentes</a> e o CET na proposta.</p>
           <p className="sim-hero-subtitle">
             Simule as condições de financiamento para seus pacientes
           </p>
@@ -282,7 +282,7 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
                 <label className="sim-label">Taxa de juros do paciente</label>
                 <span className="sim-field-hint">
                   {modalidade === "sem_juros"
-                    ? "Modalidade sem juros ativa (0,00% a.m.)"
+                    ? "Hipótese sem juros (0,00% a.m.)"
                     : "Simule a taxa de juros aplicada ao parcelamento do paciente"}
                 </span>
               </div>
@@ -296,7 +296,7 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
 
             {modalidade === "sem_juros" ? (
               <div className="sim-destaque-verde">
-                ✨ <strong>Parcelamento Sem Juros:</strong> O paciente não paga juros (0,00% a.m.). A taxa de operação é absorvida pela clínica.
+                ✨ <strong>Hipótese sem juros:</strong> O paciente não paga juros (0,00% a.m.). A taxa de operação é absorvida pela clínica.
               </div>
             ) : (
               <div className="sim-juros-selector-box">
@@ -309,7 +309,7 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
                       setJurosCustomizado(jurosPadraoPrazo);
                     }}
                   >
-                    ⚡ Padrão da faixa ({jurosPadraoPrazo.toFixed(2)}% a.m.)
+                    ⚡ Hipótese ilustrativa ({jurosPadraoPrazo.toFixed(2)}% a.m.)
                   </button>
                   {[1.49, 1.79, 1.99, 2.49].map((val) => (
                     <button

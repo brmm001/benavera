@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.benavera.com.br/solucoes-financeiras-para-clinicas' },
   robots: { index: true, follow: true },
   openGraph: {
+    images: ['https://www.benavera.com.br/og-image.png'],
     title: 'Soluções financeiras para clínicas',
     description: 'Apoio financeiro e alternativas de pagamento para pacientes em clínicas médicas e odontológicas.',
     url: 'https://www.benavera.com.br/solucoes-financeiras-para-clinicas',

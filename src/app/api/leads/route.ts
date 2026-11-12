@@ -1,3 +1,4 @@
+import { attachAttribution } from '@/lib/acquisition-db';
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { sanitizeString, maskPII, getClientIP } from '@/lib/security';
@@ -83,6 +84,7 @@ export async function POST(request: NextRequest) {
       };
 
       const result = await saveClinicLead(clinicData);
+      await attachAttribution('clinic_lead', result.id);
 
       // Distribuição automática ao atendente disponível (fire-and-forget)
       distributeLeadToAtendente(result.id, 'clinic').catch(e =>
@@ -138,6 +140,7 @@ export async function POST(request: NextRequest) {
       };
 
       const result = await savePatientLead(patientData);
+      await attachAttribution('patient_lead', result.id);
 
       // Distribuição automática ao atendente disponível (fire-and-forget)
       distributeLeadToAtendente(result.id, 'patient').catch(e =>

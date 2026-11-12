@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAdminSession } from '@/lib/auth';
 import {
   getBlogArticles,
@@ -71,7 +71,10 @@ export async function POST(req: NextRequest) {
     if (body.bulk === true && Array.isArray(body.articles)) {
       const result = await bulkCreateBlogArticles(body.articles);
       revalidatePath('/admin/blog');
-      revalidatePath('/conteudos');
+      revalidateTag('blog-articles', { expire: 0 });
+    revalidatePath('/conteudos', 'layout');
+    revalidatePath('/sitemap.xml');
+    revalidatePath('/llms.txt');
       return NextResponse.json({ success: true, ...result });
     }
 
@@ -81,7 +84,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Falha ao criar artigo.' }, { status: 500 });
     }
     revalidatePath('/admin/blog');
-    revalidatePath('/conteudos');
+    revalidateTag('blog-articles', { expire: 0 });
+    revalidatePath('/conteudos', 'layout');
+    revalidatePath('/sitemap.xml');
+    revalidatePath('/llms.txt');
     return NextResponse.json({ success: true, article }, { status: 201 });
   } catch (e) {
     console.error('[api/admin/blog] POST error:', e);

@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.benavera.com.br/financiamento-implante-dentario' },
   robots: { index: true, follow: true },
   openGraph: {
+    images: ['https://www.benavera.com.br/og-image.png'],
     title: 'Financiamento e parcelamento de implante dentário',
     description: 'Alternativas e prazos de parcelamento para implantes e prótese protocolo sobre implantes.',
     url: 'https://www.benavera.com.br/financiamento-implante-dentario',

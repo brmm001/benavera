@@ -3,12 +3,13 @@ import { SejaRepresentanteClient } from './SejaRepresentanteClient';
 import './seja-representante.css';
 
 export const metadata: Metadata = {
-  title: 'Seja um representante | Benavera',
+  title: 'Seja um representante',
   description:
     'Leve a Benavera a mais clínicas. Conheça a parceria comercial, simule comissões e converse com nossa equipe.',
+  alternates: { canonical: 'https://www.benavera.com.br/seja-representante' },
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
   },
 };
 

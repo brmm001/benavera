@@ -1,8 +1,11 @@
 'use client';
+import { ANALYTICS_EVENTS, safeToken } from '@/lib/acquisition';
+import { isPublicPath } from '@/lib/seo';
 
 // Declaração global de bibliotecas analíticas externas
 declare global {
   interface Window {
+    bvAnalyticsReady?: boolean;
     gtag?: (...args: unknown[]) => void;
     fbq?: (...args: unknown[]) => void;
     clarity?: (command: string, ...args: unknown[]) => void;
@@ -35,43 +38,32 @@ export interface TrackingEventObject {
   properties?: SafeEventProperties;
 }
 
-/**
- * Dispara eventos analíticos estritamente anônimos (sem PII) para GA4, Meta Pixel e Microsoft Clarity.
- */
-export function trackEvent(
-  event: string | TrackingEventObject,
-  properties?: SafeEventProperties
-): void {
-  if (typeof window === 'undefined') return;
+let pending: { event: string; path: string; target: string }[] = [];
+let lastEvent = ''; let lastEventAt = 0;
+export function pauseAnalytics() { window.bvAnalyticsReady = false; pending = []; }
+export function flushAnalytics() {
+  if (!window.bvAnalyticsReady) return;
+  const events = pending; pending = [];
+  for (const event of events) void fetch('/api/analytics/event', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(event), keepalive: true,
+  }).catch(() => {});
+}
 
-  const eventName = typeof event === 'object' && event !== null ? event.event : event;
-  const eventProps =
-    (typeof event === 'object' && event !== null ? event.properties : properties) || {};
-
-  // Log seguro em ambiente de desenvolvimento
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Analytics Safe Event]', eventName, eventProps);
-  }
-
-  try {
-    // 1. Google Analytics (GA4)
-    if (typeof window.gtag === 'function') {
-      window.gtag('event', eventName, eventProps);
-    }
-
-    // 2. Meta Pixel
-    if (typeof window.fbq === 'function') {
-      window.fbq('trackCustom', eventName, eventProps);
-    }
-
-    // 3. Microsoft Clarity Custom Event
-    if (typeof window.clarity === 'function') {
-      window.clarity('event', eventName);
-    }
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Analytics Error]', error);
-    }
+/** Send only predefined events and campaign labels; never form values or full URLs. */
+export function trackEvent(event: string | TrackingEventObject, properties?: SafeEventProperties): void {
+  if (typeof window === 'undefined' || !isPublicPath(location.pathname)) return;
+  if (!/(?:^|; )bv_consent=(analytics|all)(?:;|$)/.test(document.cookie)) return;
+  const name = typeof event === 'object' ? event.event : event;
+  if (!ANALYTICS_EVENTS.has(name) || name === 'page_view') return;
+  const props = (typeof event === 'object' ? event.properties : properties) || {};
+  if (lastEvent === name && Date.now() - lastEventAt < 500) return;
+  lastEvent = name; lastEventAt = Date.now();
+  pending.push({ event: name, path: location.pathname, target: safeToken(props.source || props.calculator_type) });
+  pending = pending.slice(-30);
+  flushAnalytics();
+  const gaId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+  if (gaId && /^G-[A-Z0-9]+$/.test(gaId) && ['/', '/clinicas', '/condicoes', '/benavera-ou-capim', '/sobre', '/contato', '/como-funciona', '/solucoes-financeiras-para-clinicas', '/seja-representante'].includes(location.pathname)) {
+    window.gtag?.('event', name, { send_to: gaId, page_location: 'https://www.benavera.com.br' + location.pathname, page_referrer: '' });
   }
 }
 

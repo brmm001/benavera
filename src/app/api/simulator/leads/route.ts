@@ -1,4 +1,5 @@
-﻿import { NextResponse } from "next/server";
+import { attachAttribution } from '@/lib/acquisition-db';
+import { NextResponse } from "next/server";
 import { saveSimulatorLead, listSimulatorLeads } from "@/lib/simulator-db";
 
 // POST /api/simulator/leads - registra lead de simulacao
@@ -14,6 +15,7 @@ export async function POST(request: Request) {
       user_agent: ua,
     });
 
+    await attachAttribution('simulator_lead', id);
     return NextResponse.json({ success: true, id });
   } catch (error) {
     console.error("[simulator/leads POST]", error);

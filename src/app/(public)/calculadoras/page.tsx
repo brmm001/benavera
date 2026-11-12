@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.benavera.com.br/calculadoras' },
   robots: { index: true, follow: true },
   openGraph: {
+    images: ['https://www.benavera.com.br/og-image.png'],
     title: 'Calculadoras de parcelamento de tratamentos',
     description:
       'Utilize nossas calculadoras financeiras gratuitas para estimar parcelas mensais e comparar cenários de pagamento.',

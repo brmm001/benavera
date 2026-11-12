@@ -181,7 +181,7 @@ export default function CredenciamentoPage() {
             Credencie sua clínica na Benavera
           </h1>
           <p style={{ fontSize: 'clamp(0.9375rem, 2vw, 1.0625rem)', color: '#64748b', maxWidth: '580px', margin: '0 auto', lineHeight: '1.6' }}>
-            Aumente o fechamento de tratamentos de alto valor com parcelamento em até 36x e repasse garantido em D+1.
+            Ofereça crédito em até 36x, conforme análise. Taxa de 5% por operação para a clínica, sem mensalidade ou adesão.
           </p>
         </div>
 
@@ -189,13 +189,13 @@ export default function CredenciamentoPage() {
         <div className="credenciamento-benefits-grid">
           <div style={{ background: 'white', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={20} color="#4f46e5" style={{ marginBottom: '0.25rem' }} />
-            <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: '#0f172a' }}>Repasse D+1</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Sem risco de inadimplência</div>
+            <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: '#0f172a' }}>Taxa de 5%</div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Por operação para a clínica</div>
           </div>
           <div style={{ background: 'white', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <DollarSign size={20} color="#10b981" style={{ marginBottom: '0.25rem' }} />
             <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: '#0f172a' }}>Até 36x</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Parcelas que cabem no bolso</div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Conforme análise e modalidade</div>
           </div>
           <div style={{ background: 'white', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <Users size={20} color="#3b82f6" style={{ marginBottom: '0.25rem' }} />
@@ -241,7 +241,7 @@ export default function CredenciamentoPage() {
             </div>
           )}
 
-          <form onSubmit={handleRegister}>
+          <form data-clarity-mask="true" onSubmit={handleRegister}>
             {step === 1 && (
               <div>
                 <h2 style={{ fontSize: 'clamp(1.125rem, 2.5vw, 1.25rem)', fontWeight: '800', color: '#0f172a', margin: '0 0 1.25rem' }}>

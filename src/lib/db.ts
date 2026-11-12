@@ -110,7 +110,10 @@ export async function savePatientLead(
           ${newLead.consentimento}, ${newLead.versaoTermos ?? 'v1.0'}
         )
       `;
+      await recordLeadEvent(id, 'patient', 'lead_created', 'Simulação recebida.');
+      return { id };
     } catch (e) {
+      if (process.env.VERCEL) throw new Error('Não foi possível salvar a solicitação. Tente novamente.');
       console.error('[Benavera Neon] Erro ao salvar paciente, gravando local:', e);
     }
   }
@@ -290,7 +293,10 @@ export async function saveClinicLead(
           ${newLead.consentimento}, ${newLead.versaoTermos ?? 'v1.0'}
         )
       `;
+      await recordLeadEvent(id, 'clinic', 'lead_created', 'Solicitação de clínica recebida.');
+      return { id };
     } catch (e) {
+      if (process.env.VERCEL) throw new Error('Não foi possível salvar a solicitação. Tente novamente.');
       console.error('[Benavera Neon] Erro ao salvar clínica, gravando local:', e);
     }
   }
@@ -451,8 +457,10 @@ export async function recordLeadEvent(
         VALUES (${id}, ${leadId}, ${leadType}, ${eventType},
           ${description ?? null}, ${payload ? JSON.stringify(payload) : null})
       `;
+      return;
     } catch (e) {
       console.error('[Benavera Neon] Erro ao registrar evento:', e);
+      if (process.env.VERCEL) return;
     }
   }
 

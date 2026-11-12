@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.benavera.com.br/parcelamento-tratamento-odontologico' },
   robots: { index: true, follow: true },
   openGraph: {
+    images: ['https://www.benavera.com.br/og-image.png'],
     title: 'Parcelamento de tratamento odontológico',
     description: 'Conheça alternativas de parcelamento para tratamentos odontológicos como implantes, próteses e ortodontia.',
     url: 'https://www.benavera.com.br/parcelamento-tratamento-odontologico',
