@@ -32,7 +32,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ d
       <li>A coleta depende de consentimento, cookies e disponibilidade do navegador. Não representa todos os visitantes.</li>
       <li>ChatGPT é identificado por referência ou UTM. Visitas sem esses sinais ficam em direto / não identificado. Uma citação sem clique não aparece nas visitas.</li>
       <li>WhatsApp mede o clique; conversa, orçamento fechado e pagamento exigem registro no sistema. Não contamos um clique como venda.</li>
-      <li>Financiamento liberado exige o status operacional PAYOUT_COMPLETED ou TREATMENT_RELEASED. O volume é de tratamentos, não receita líquida da Benavera.</li>
+      <li>Financiamento liberado exige que o sistema registre o repasse concluído ou o tratamento liberado. O volume é de tratamentos, não receita líquida da Benavera.</li>
       <li>As primeiras e últimas origens ficam vinculadas ao cadastro, sem enviar nomes, telefones, valores de tratamento ou documentos aos serviços de marketing.</li>
       <li>GA4: {process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ? 'identificador configurado; valide a recepção na propriedade Google.' : 'não há propriedade configurada. Este painel coleta diretamente no banco da Benavera.'} Search Console e Bing Webmaster Tools precisam de acesso às respectivas contas.</li>
     </ul></section>

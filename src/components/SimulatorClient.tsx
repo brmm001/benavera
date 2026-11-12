@@ -374,7 +374,7 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
 
           {/* Modalidade */}
           <div className="sim-field-group sim-field-group--full">
-            <label className="sim-label">Modalidade de operação</label>
+            <label className="sim-label">Hipótese de cálculo da taxa</label>
             <div className="sim-modalidade-grid">
               {(["clinica_absorve", "taxa_repassada", "sem_juros"] as Modalidade[]).map((m) => (
                 <button
@@ -401,7 +401,7 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
 
           {/* Risco */}
           <div className="sim-field-group sim-field-group--full">
-            <label className="sim-label">Quem assume o risco de inadimplência?</label>
+            <label className="sim-label">Hipótese de responsabilidade por inadimplência</label>
             <div className="sim-risco-grid">
               {(["financeira", "clinica"] as RiscoInadimplencia[]).map((r) => (
                 <button
@@ -418,11 +418,11 @@ export default function SimulatorClient({ initialConfig }: { initialConfig: Simu
                   </div>
                   <p className="sim-risco-desc">
                     {r === "financeira"
-                      ? "Após aprovação e liquidação, o risco fica com a estrutura financeira parceira. Maior proteção para a clínica."
-                      : "Pode proporcionar condições comerciais melhores conforme perfil e performance da clínica."}
+                      ? "Cenário em que a instituição assume o risco, se previsto no contrato. Confirme disponibilidade e exceções."
+                      : "Cenário em que há responsabilidade da clínica. A existência e as condições dependem da contratação."}
                   </p>
                   <Badge variant={r === "financeira" ? "green" : "amber"}>
-                    {r === "financeira" ? "Maior proteção" : "Pode ser mais acessível"}
+                    {r === "financeira" ? "Hipótese contratual" : "Hipótese compartilhada"}
                   </Badge>
                 </button>
               ))}

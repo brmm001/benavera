@@ -12,6 +12,10 @@ export function InformationPage({ title, intro, content, clinicCta = true }: {
         <Breadcrumb items={[{ label: title }]} />
         <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, lineHeight: 1.15, color: '#0f172a', margin: '1.25rem 0' }}>{title}</h1>
         <p style={{ fontSize: '1.2rem', lineHeight: 1.7, color: '#475569' }}>{intro}</p>
+        {clinicCta && <nav aria-label="Conheça a solução" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1.5rem' }}>
+          <Link href="/credenciamento" className="btn-primary">Cadastrar minha clínica</Link>
+          <Link href="/condicoes" className="btn-secondary">Ver taxas e condições</Link>
+        </nav>}
       </div>
     </section>
     <section className="container-benavera" style={{ maxWidth: 940, paddingTop: '2rem', paddingBottom: '4rem' }}>

@@ -7,7 +7,7 @@ import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 export const metadata: Metadata = {
   title: 'Soluções financeiras para clínicas',
   description:
-    'Apoio financeiro e alternativas de parcelamento para pacientes em clínicas médicas e odontológicas. Reduza a desistência de novos tratamentos.',
+    'Compare cartão, boleto próprio, financiamento e antecipação para clínicas: custos, fluxo de caixa, análise e responsabilidades de cada alternativa.',
   alternates: { canonical: 'https://www.benavera.com.br/solucoes-financeiras-para-clinicas' },
   robots: { index: true, follow: true },
   openGraph: {
@@ -23,12 +23,12 @@ const faqItems = [
   {
     question: 'A clínica precisa pagar mensalidade ou taxa de adesão?',
     answer:
-      'Não há custo fixo de adesão para clínicas participantes da fase inicial da Benavera. A proposta é apoiar a clínica no fechamento de procedimentos que seriam perdidos.',
+      'Na Benavera, a taxa da clínica é de 5% por operação, sem mensalidade ou adesão. Essa taxa não representa os juros do paciente. Confira as condições da proposta antes de contratar.',
   },
   {
     question: 'A clínica assume risco de inadimplência do paciente?',
     answer:
-      'Não. As soluções de parcelamento estruturado são viabilizadas diretamente por parceiros financeiros credenciados, sem que a clínica arque com risco de crédito ou cobrança.',
+      'A responsabilidade depende da modalidade e do contrato. Confira quem concede o crédito, quem cobra e se existe coobrigação, além das regras de cancelamento e contestação.',
   },
   {
     question: 'Como a equipe da clínica apresenta a Benavera ao paciente?',
@@ -38,7 +38,7 @@ const faqItems = [
   {
     question: 'Quanto tempo leva para começar a usar?',
     answer:
-      'O cadastro é simplificado e leva menos de 5 minutos. Uma vez cadastrada, a clínica recebe o material de orientação e o link para atendimento.',
+      'A clínica preenche o cadastro e envia os documentos no ambiente protegido. O uso depende da análise e da ativação. O cadastro inicial não equivale à aprovação ou à liberação imediata de crédito.',
   },
 ];
 
@@ -104,7 +104,7 @@ export default function SolucoesClinicasPage() {
                 marginBottom: '1.25rem',
               }}
             >
-              Soluções financeiras para clínicas não perderem orçamentos
+              Cartão, boleto ou financiamento: o que comparar na clínica
             </h1>
             <p
               style={{
@@ -121,7 +121,7 @@ export default function SolucoesClinicasPage() {
 
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Link
-                href="/clinicas#formulario"
+                href="/credenciamento"
                 className="btn-primary"
                 style={{ background: '#4f46e5', borderColor: '#4f46e5' }}
               >
@@ -168,7 +168,7 @@ export default function SolucoesClinicasPage() {
                 Como a Benavera transforma a conversão de orçamentos?
               </h2>
               <p style={{ fontSize: '1rem', color: '#334155', lineHeight: '1.75', margin: 0 }}>
-                Apresentar um orçamento odontológico ou médico de R$ 5.000 a R$ 30.000 e ouvir "vou pensar" é o maior ralo de receita das clínicas. A Benavera atua no exato momento da objeção financeira, oferecendo ao paciente um caminho simplificado de simulação de parcelas sem exigir burocracia ou risco financeiro da clínica.
+                Uma alternativa de pagamento pode ajudar quando o orçamento não cabe no limite do cartão ou na entrada disponível. Compare o valor líquido, o prazo de recebimento, o custo para o paciente e as obrigações da clínica. A Benavera intermedeia alternativas de crédito, sujeitas à análise e às condições da operação.
               </p>
             </div>
 
@@ -246,10 +246,10 @@ export default function SolucoesClinicasPage() {
                   <ShieldCheck size={20} />
                 </div>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.5rem' }}>
-                  Zero Risco de Crédito
+                  Responsabilidades definidas
                 </h3>
                 <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.6', margin: 0 }}>
-                  A clínica não vira banco, não emite carnê próprio e não assume risco de cobrança.
+                  Confira no contrato o responsável pelo crédito, pela cobrança e pelo risco, incluindo regras para cancelamento e contestação.
                 </p>
               </div>
 
@@ -277,13 +277,27 @@ export default function SolucoesClinicasPage() {
                   <Zap size={20} />
                 </div>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.5rem' }}>
-                  Implementação Imediata
+                  Cadastro digital
                 </h3>
                 <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.6', margin: 0 }}>
-                  Sem integrações de software pesadas. Link e material pronto para uso imediato no balcão e WhatsApp.
+                  Envie o cadastro e os documentos no portal. A utilização começa após análise, ativação e orientação da equipe.
                 </p>
               </div>
             </div>
+
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem' }}>Diferenças entre as alternativas de pagamento</h2>
+            <div style={{ overflowX: 'auto', marginBottom: '2rem' }}>
+              <table className="acquisition-table">
+                <thead><tr><th>Alternativa</th><th>Como funciona</th><th>O que conferir</th></tr></thead>
+                <tbody>
+                  <tr><td>Cartão</td><td>Usa o limite do paciente e a estrutura da adquirente.</td><td>Taxa, antecipação, prazo de recebimento e contestação.</td></tr>
+                  <tr><td>Boleto próprio</td><td>A clínica concede o prazo e recebe conforme os pagamentos.</td><td>Entrada, fluxo de caixa, cobrança e risco de inadimplência.</td></tr>
+                  <tr><td>Financiamento</td><td>A instituição analisa o paciente e apresenta uma proposta de crédito.</td><td>Juros, CET, valor líquido, repasse e responsabilidades contratuais.</td></tr>
+                  <tr><td>Antecipação de recebíveis</td><td>Antecipa valores de vendas já realizadas.</td><td>Desconto, recebíveis elegíveis, garantias e prazo. Não é uma nova aprovação de crédito ao paciente.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p style={{ lineHeight: 1.8, marginBottom: '3rem' }}>Na Benavera, a condição comercial da clínica é <strong>5% por operação, sem mensalidade ou adesão</strong>. O parcelamento pode chegar a 36 vezes, conforme análise e modalidade. <Link href="/condicoes" style={{ textDecoration: 'underline' }}>Consulte taxas e condições</Link> e <Link href="/benavera-ou-capim" style={{ textDecoration: 'underline' }}>os critérios para comparar Benavera e Capim</Link>.</p>
 
             {/* Artigos B2B */}
             <div
@@ -394,7 +408,7 @@ export default function SolucoesClinicasPage() {
                 Cadastre sua clínica na Benavera
               </h3>
               <Link
-                href="/clinicas#formulario"
+                href="/credenciamento"
                 className="btn-primary"
                 style={{ display: 'inline-flex' }}
               >

@@ -190,7 +190,7 @@ export function Footer() {
                   { href: '/solucoes-financeiras-para-clinicas', label: 'Soluções para Orçamentos' },
                   { href: '/credenciamento', label: 'Credenciar minha clínica' },
                   { href: '/portal/login', label: 'Portal da clínica' },
-                  { href: '/clinicas#formulario', label: 'Quero conhecer' },
+                  { href: '/credenciamento', label: 'Quero conhecer' },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link

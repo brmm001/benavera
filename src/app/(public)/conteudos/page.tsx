@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
@@ -9,12 +10,7 @@ import type { ArticleCategory } from '@/types';
 // Revalidar a cada 1 hora (ISR)
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: 'Conteúdos e guias sobre tratamentos',
-  description:
-    'Artigos e guias práticos sobre planejamento financeiro e formas de pagamento para tratamentos de saúde. Informação clara para sua decisão.',
-  alternates: { canonical: 'https://www.benavera.com.br/conteudos' },
-};
+export const metadata: Metadata = pageMetadata('Conteúdos e guias sobre tratamentos', 'Artigos e guias práticos sobre planejamento financeiro e formas de pagamento para tratamentos de saúde. Informação clara para sua decisão.', '/conteudos');
 
 const collectionSchema = {
   '@context': 'https://schema.org',

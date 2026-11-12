@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 import { ArticleCard } from '@/components/ArticleCard';
-import { articles } from '@/content/articles';
+import { getPublicArticles } from '@/lib/published-content';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: {
@@ -103,8 +104,9 @@ const faqSchema = {
   })),
 };
 
-export default function HomePage() {
-  const featuredArticles = articles.slice(0, 3);
+export default async function HomePage() {
+  const priority = ['como-parcelar-tratamento-odontologico', 'financiamento-odontologico-como-funciona', 'como-parcelar-implante-dentario'];
+  const featuredArticles = [...await getPublicArticles()].sort((a, b) => (priority.includes(b.slug) ? 1 : 0) - (priority.includes(a.slug) ? 1 : 0)).slice(0, 3);
 
   return (
     <>

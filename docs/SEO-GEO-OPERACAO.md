@@ -68,3 +68,31 @@ Perguntas de referência:
 ## Verificação
 
 `npm test` testa origem, canais, proteção de dados, datas e serialização JSON-LD. `npm run build` verifica compilação e renderização. A revisão de lint compara os arquivos alterados com o commit anterior para separar problemas existentes de regressões. A revisão pública deve conferir sitemap, canonical, noindex, redirects, links, artigo de teste, eventos e consentimento.
+
+## Situação das entregas
+
+| Frente | Entrega | Situação |
+| --- | --- | --- |
+| Recuperação | Backup Git, backup Neon e restauração de ensaio | Concluída antes das alterações |
+| Renderização | Markdown seguro, links, listas, tabelas, remoção de rótulos editoriais de CTA | Implementada |
+| Artigos relacionados | Datas completas e seleção por relação editorial/tema | Implementada |
+| Publicação | Mesma regra para home, lista, artigo, sitemap e llms.txt | Implementada |
+| Indexação | Canonical www, sitemap só com páginas públicas, artigo de teste removido da publicação | Implementada |
+| Áreas privadas | Noindex e preservação da autenticação | Implementada |
+| Navegação | /portal, /para-clinicas e links para cadastro corrigidos | Implementada |
+| Metadados | Títulos, descrições, imagens de compartilhamento e identificação da organização | Implementada |
+| Oferta | Condições 5%, sem mensalidade/adesão e até 36x; simulador educacional identificado | Implementada |
+| Páginas de decisão | Clínicas, condições, comparação Benavera/Capim, alternativas de pagamento, contato e autoria | Implementada |
+| Aquisição | Canais, UTMs, primeiro/último contato, eventos, cadastros e funil comercial | Implementada |
+| Administração | Painel protegido, períodos, CSV, gerador de links e registro manual de GEO | Implementada |
+| Privacidade | Consentimento, restrição de scripts externos e exclusão de dados dos formulários | Implementada |
+| Testes de integração | Visita ChatGPT, clique, lead, credenciamento, painel, CSV e revogação em banco isolado | Aprovados |
+| GA4 | Suporte no código | Depende do ID real e da propriedade Google; painel interno já funciona |
+| Search Console / Bing | Sitemap público e campos de verificação preparados | Validação e envio nas contas dependem de acesso |
+| Conversões Google Ads | Identificador Ads existente preservado | Metas e importação offline dependem da conta e das ações de conversão |
+| Autoridade externa | Casos de sucesso, parceiros, especialistas, imprensa e perfis oficiais | Dependem de provas, autorização e publicação real |
+| Conteúdo aprofundado | Revisão especializada, dados próprios e consolidação de artigos | Dependem de especialistas e dados de consultas/desempenho |
+| Performance | Scripts opcionais adiados e conteúdo em servidor | Core Web Vitals de campo e medição mobile ainda precisam de dados válidos |
+| Presença em IA | Registro de observações e protocolo definido | Não é um monitor automático nem comprovação de preferência no ChatGPT |
+
+O cadastro sintético e os testes comerciais ocorreram apenas no ambiente de validação. O relatório de atribuição confirmou que uma entrada identificada como ChatGPT permaneceu vinculada ao lead e ao credenciamento; o identificador publicitário não foi persistido sem consentimento de marketing. O CSV é agregado e exige sessão administrativa. A verificação de lint não equivale a eliminar todos os avisos preexistentes do projeto.

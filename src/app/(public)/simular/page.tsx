@@ -1,13 +1,8 @@
+import { pageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 import { SimulationWizard } from '@/components/SimulationWizard';
 
-export const metadata: Metadata = {
-  title: 'Simular alternativas de pagamento',
-  description:
-    'Faça uma simulação gratuita e confidencial para verificar prazos e estimativas de parcelas para o seu tratamento médico ou odontológico.',
-  alternates: { canonical: 'https://www.benavera.com.br/simular' },
-  robots: { index: true, follow: true },
-};
+export const metadata: Metadata = pageMetadata('Simular alternativas de pagamento', 'Faça uma simulação gratuita e confidencial para verificar prazos e estimativas de parcelas para o seu tratamento médico ou odontológico.', '/simular');
 
 export default function SimularPage() {
   return (

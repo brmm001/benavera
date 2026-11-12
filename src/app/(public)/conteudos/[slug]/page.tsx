@@ -63,9 +63,15 @@ export default async function ArticlePage({ params }: Props) {
 
   const allArticles = await getPublicArticles();
   const explicit = article.relatedArticles || [];
+  const terms = (title: string) => new Set(title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/odontologic\w*|odontologia|dentari\w*|dental|dentista\w*/g, 'odontologia')
+    .split(/[^a-z]+/).filter(t => t.length > 4 && !['financiamento','parcelamento','parcelado','parcelada','parcelar','tratamento','tratamentos','particular','particulares','funciona','cuidados','planejar','custos','orcamento','orcamentos'].includes(t)));
+  const topic = terms(article.title);
+  const relevance = (candidate: typeof article) => (explicit.includes(candidate.slug) ? 1000 : 0)
+    + [...terms(candidate.title)].filter(term => topic.has(term)).length;
   const related = allArticles
     .filter(a => a.slug !== article.slug && (explicit.includes(a.slug) || a.category === article.category))
-    .sort((a, b) => Number(explicit.includes(b.slug)) - Number(explicit.includes(a.slug)))
+    .sort((a, b) => relevance(b) - relevance(a))
     .slice(0, 3);
 
   const categoryLabel = CATEGORY_LABELS[article.category] || 'Conteúdo';
@@ -121,14 +127,14 @@ export default async function ArticlePage({ params }: Props) {
       continue;
     }
     if (inFaqSection) {
-      if (line.startsWith('## ') || line.startsWith('### ')) {
+      if (line.startsWith('## ')) {
         inFaqSection = false; // Next section started
-      } else if (line.startsWith('**') && line.endsWith('?**')) {
+      } else if ((line.startsWith('**') && line.endsWith('?**')) || (line.startsWith('### ') && line.endsWith('?'))) {
         if (currentQ && currentA) {
           faqs.push({ question: currentQ, answer: currentA.trim() });
           currentA = '';
         }
-        currentQ = line.replace(/\*\*/g, '');
+        currentQ = line.replace(/^###\s+/, '').replace(/\*\*/g, '');
       } else if (currentQ && line) {
         currentA += line + ' ';
       }

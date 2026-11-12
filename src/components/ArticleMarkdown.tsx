@@ -7,5 +7,5 @@ export function ArticleMarkdown({ content }: { content: string }) {
     h1: ({ children }) => <h2>{children}</h2>,
     a: ({ href, children }) => <a href={href === '/para-clinicas' ? '/clinicas' : href}>{children}</a>,
     table: ({ children }) => <div className="article-table"><table>{children}</table></div>,
-  }}>{content}</Markdown></div>;
+  }}>{content.replace(/^\*\*CTA:\*\*\s*/gm, '')}</Markdown></div>;
 }

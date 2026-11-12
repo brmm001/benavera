@@ -1,11 +1,7 @@
+import { pageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Política de privacidade',
-  description:
-    'Saiba como a Benavera protege seus dados pessoais em conformidade com a LGPD. Transparência e segurança no tratamento das suas informações.',
-  alternates: { canonical: 'https://www.benavera.com.br/privacidade' },
-};
+export const metadata: Metadata = pageMetadata('Política de privacidade', 'Saiba como a Benavera protege seus dados pessoais em conformidade com a LGPD. Transparência e segurança no tratamento das suas informações.', '/privacidade');
 
 const sections = [
   {
