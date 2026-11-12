@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.benavera.com.br/parcelamento-cirurgia-oftalmologica' },
   robots: { index: true, follow: true },
   openGraph: {
+    images: ['https://www.benavera.com.br/og-image.png'],
     title: 'Parcelamento de cirurgia oftalmológica',
     description: 'Entenda como parcelar cirurgias oftalmológicas como catarata e correção refrativa a laser.',
     url: 'https://www.benavera.com.br/parcelamento-cirurgia-oftalmologica',

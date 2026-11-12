@@ -1,15 +1,19 @@
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
-import { ClarityScript } from '@/components/ClarityScript';
+import type { Metadata } from 'next';
+import { COMMERCIAL, ORGANIZATION_ID } from '@/lib/seo';
+
+export const metadata: Metadata = { robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } } };
 
 const SITE_URL = 'https://www.benavera.com.br';
 const SITE_DESCRIPTION =
-  'A Benavera conecta você a opções viáveis de parcelamento para tratamentos odontológicos, cirurgias e estética particular. Simule sem compromisso.';
+  'Crédito para tratamentos particulares de saúde. Taxa de 5% por operação para clínicas, sem mensalidade ou adesão; até 36x conforme análise.';
 
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
+  '@id': ORGANIZATION_ID,
   name: 'Benavera',
   legalName: 'Benavera Correspondentes Bancários LTDA',
   taxID: '69.952.939/0001-52',
@@ -21,20 +25,21 @@ const organizationSchema = {
     height: 200,
   },
   image: `${SITE_URL}/og-image.png`,
-  description:
-    'A Benavera conecta pacientes a alternativas de pagamento para tratamentos de saúde particulares e apoia clínicas na viabilização de orçamentos.',
+  description: COMMERCIAL.description,
   contactPoint: {
     '@type': 'ContactPoint',
     contactType: 'customer support',
     email: 'contato@benavera.com.br',
     availableLanguage: 'Portuguese',
   },
-  sameAs: [],
+  knowsAbout: ['Financiamento para tratamentos de saúde', 'Pagamento para clínicas'],
 };
 
 const webSiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
+  '@id': `${SITE_URL}/#website`,
+  publisher: { '@id': ORGANIZATION_ID },
   name: 'Benavera',
   url: SITE_URL,
   description: SITE_DESCRIPTION,
@@ -60,9 +65,8 @@ export default function PublicLayout({
           __html: JSON.stringify(webSiteSchema),
         }}
       />
-      <ClarityScript />
       <Header />
-      <main id="main-content">{children}</main>
+      <main id="main-content" data-clarity-mask="true">{children}</main>
       <Footer />
       <WhatsAppButton />
     </>

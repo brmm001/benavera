@@ -1,11 +1,7 @@
+import { pageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Política de privacidade',
-  description:
-    'Saiba como a Benavera protege seus dados pessoais em conformidade com a LGPD. Transparência e segurança no tratamento das suas informações.',
-  alternates: { canonical: 'https://www.benavera.com.br/privacidade' },
-};
+export const metadata: Metadata = pageMetadata('Política de privacidade', 'Saiba como a Benavera protege seus dados pessoais em conformidade com a LGPD. Transparência e segurança no tratamento das suas informações.', '/privacidade');
 
 const sections = [
   {
@@ -19,7 +15,7 @@ const sections = [
   {
     title: '3. Como usamos seus dados',
     content: `Usamos seus dados para:
-- Entrar em contato após uma simulação ou solicitação de cadastro no piloto
+- Entrar em contato após uma simulação ou solicitação de credenciamento
 - Avaliar aderência ao perfil de atendimento da Benavera
 - Melhorar nossos serviços e comunicações
 - Cumprir obrigações legais
@@ -51,7 +47,7 @@ Para exercer esses direitos, entre em contato conosco pelo e-mail indicado nesta
   },
   {
     title: '8. Cookies',
-    content: `Utilizamos cookies para melhorar a experiência de navegação e entender como os usuários chegam até o nosso site (por meio de parâmetros UTM). Você pode desativar cookies nas configurações do seu navegador, mas isso pode afetar algumas funcionalidades.`,
+    content: `Cookies essenciais mantêm sessões de acesso e sua escolha de privacidade. Métricas opcionais só começam após a opção “Permitir métricas” ou “Métricas e marketing”. O cookie bv_consent registra a escolha por até 180 dias; bv_sid identifica uma sessão por 30 minutos; bv_vid permite reconhecer primeiras e últimas origens por até 90 dias. Registramos páginas públicas sem parâmetros pessoais, origem por domínio, campanhas UTM, cliques e eventos predefinidos. Com consentimento, a origem pode ser vinculada a um cadastro para medir resultados comerciais. Não coletamos campos de formulário na análise de navegação. A opção marketing habilita o Google Ads e o Microsoft Clarity em páginas institucionais selecionadas, com mascaramento. Formulários, conteúdo de tratamentos e áreas privadas ficam fora desses rastreadores. O GA4, quando configurado, recebe apenas eventos permitidos nas páginas institucionais. Não enviamos nomes, telefones, CPF, documentos ou valores de tratamento a essas ferramentas. Use “Preferências de privacidade” no rodapé para mudar sua escolha. Recusar métricas não impede o uso dos formulários.`,
   },
   {
     title: '9. Alterações nesta política',
@@ -88,7 +84,7 @@ export default function PrivacidadePage() {
               Política de Privacidade
             </h1>
             <p style={{ fontSize: '0.9375rem', color: '#64748b' }}>
-              Última atualização: agosto de 2026
+              Última atualização: 12 de novembro de 2026
             </p>
           </div>
         </div>

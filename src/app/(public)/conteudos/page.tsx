@@ -1,8 +1,8 @@
+import { pageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { getBlogArticles } from '@/lib/blog-db';
-import { articles as staticArticles } from '@/content/articles';
+import { getPublicArticles } from '@/lib/published-content';
 import { ArticleCard } from '@/components/ArticleCard';
 import { CATEGORY_LABELS } from '@/types';
 import type { ArticleCategory } from '@/types';
@@ -10,12 +10,7 @@ import type { ArticleCategory } from '@/types';
 // Revalidar a cada 1 hora (ISR)
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: 'Conteúdos e guias sobre tratamentos',
-  description:
-    'Artigos e guias práticos sobre planejamento financeiro e formas de pagamento para tratamentos de saúde. Informação clara para sua decisão.',
-  alternates: { canonical: 'https://www.benavera.com.br/conteudos' },
-};
+export const metadata: Metadata = pageMetadata('Conteúdos e guias sobre tratamentos', 'Artigos e guias práticos sobre planejamento financeiro e formas de pagamento para tratamentos de saúde. Informação clara para sua decisão.', '/conteudos');
 
 const collectionSchema = {
   '@context': 'https://schema.org',
@@ -34,34 +29,7 @@ const CATEGORIES: ArticleCategory[] = [
 ];
 
 export default async function ConteudosPage() {
-  // Buscar artigos do BD
-  const dbArticles = await getBlogArticles({ status: 'published' });
-
-  // Merge estáticos com BD (evitando duplicação de slug)
-  const allArticles = [...dbArticles];
-  const dbSlugs = new Set(dbArticles.map(a => a.slug));
-  for (const st of staticArticles) {
-    if (!dbSlugs.has(st.slug)) {
-      allArticles.push({
-        ...st,
-        id: `static_${st.slug}`,
-        content: '',
-        status: 'published',
-        createdAt: st.publishedAt,
-        updatedAt: st.updatedAt || st.publishedAt,
-        relatedArticles: st.relatedArticles || [],
-        keywords: st.keywords || [],
-        sources: st.sources || [],
-      });
-    }
-  }
-
-  // Ordenar por data mais recente
-  allArticles.sort((a, b) => {
-    const dA = new Date(a.publishedAt || a.createdAt).getTime();
-    const dB = new Date(b.publishedAt || b.createdAt).getTime();
-    return dB - dA;
-  });
+  const allArticles = await getPublicArticles();
 
   return (
     <>

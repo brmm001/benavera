@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.benavera.com.br/parcelamento-procedimento-estetico' },
   robots: { index: true, follow: true },
   openGraph: {
+    images: ['https://www.benavera.com.br/og-image.png'],
     title: 'Parcelamento de procedimentos estéticos',
     description: 'Descubra opções viáveis para parcelar procedimentos dermatológicos e estéticos particulares.',
     url: 'https://www.benavera.com.br/parcelamento-procedimento-estetico',

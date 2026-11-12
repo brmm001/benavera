@@ -1,3 +1,4 @@
+import { attachAttribution } from '@/lib/acquisition-db';
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/benavera-db';
 import bcrypt from 'bcryptjs';
@@ -282,6 +283,9 @@ export async function POST(req: NextRequest) {
     } catch (leadErr) {
       console.warn('Erro ao salvar clinic_lead histórico:', leadErr);
     }
+
+    await attachAttribution('clinic', String(clinicId));
+    await attachAttribution('clinic_lead', leadId);
 
     // 9. Email de boas-vindas / início de credenciamento (não bloqueia o fluxo)
     sendClinicWelcomeEmail({

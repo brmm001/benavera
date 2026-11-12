@@ -1,0 +1,7 @@
+import { InformationPage } from '@/components/InformationPage';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata = pageMetadata("Fale com a Benavera", "Atendimento para clínicas, pacientes e parceiros comerciais.", '/contato');
+export default function Page() {
+  return <InformationPage title="Fale com a Benavera" intro="Atendimento para clínicas, pacientes e parceiros comerciais." content={"## Canais oficiais\n- **E-mail:** [contato@benavera.com.br](mailto:contato@benavera.com.br)\n- **WhatsApp:** [iniciar uma conversa com a equipe](https://wa.me/5547992080926)\n- **Clínicas:** [iniciar credenciamento](/credenciamento)\n- **Pacientes:** [solicitar simulação](/simular)\n\nNão envie senhas, documentos pessoais ou informações clínicas em comentários públicos. Quando necessário, a equipe orientará o envio pelo ambiente protegido.\n\n## Identificação da empresa\n**Benavera Correspondentes Bancários LTDA**  \n**CNPJ: 69.952.939/0001-52**\n\nA Benavera conecta pacientes a opções de crédito para tratamentos particulares de saúde. Não é um banco nem concede crédito diretamente. Saiba mais [sobre a empresa](/sobre) e consulte a [política de privacidade](/privacidade).\n\n## Correções de conteúdo\nEncontrou informação desatualizada? Envie o endereço da página e o ponto que precisa de correção para o e-mail acima. Consulte nossa [política editorial](/politica-editorial).\n"} />;
+}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAdminSession } from '@/lib/auth';
 import {
   getBlogArticleById,
@@ -33,7 +33,10 @@ export async function PATCH(req: NextRequest, { params }: Props) {
     const updated = await updateBlogArticle(id, body);
     if (!updated) return NextResponse.json({ success: false, error: 'Artigo não encontrado.' }, { status: 404 });
     revalidatePath('/admin/blog');
-    revalidatePath('/conteudos');
+    revalidateTag('blog-articles', { expire: 0 });
+    revalidatePath('/conteudos', 'layout');
+    revalidatePath('/sitemap.xml');
+    revalidatePath('/llms.txt');
     return NextResponse.json({ success: true, article: updated });
   } catch (e) {
     return NextResponse.json({ success: false, error: 'Dados inválidos.' }, { status: 400 });
@@ -50,6 +53,9 @@ export async function DELETE(_req: NextRequest, { params }: Props) {
   const ok = await deleteBlogArticle(id);
   if (!ok) return NextResponse.json({ success: false, error: 'Artigo não encontrado.' }, { status: 404 });
   revalidatePath('/admin/blog');
-  revalidatePath('/conteudos');
+  revalidateTag('blog-articles', { expire: 0 });
+    revalidatePath('/conteudos', 'layout');
+    revalidatePath('/sitemap.xml');
+    revalidatePath('/llms.txt');
   return NextResponse.json({ success: true });
 }

@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.benavera.com.br/politica-editorial' },
   robots: { index: true, follow: true },
   openGraph: {
+    images: ['https://www.benavera.com.br/og-image.png'],
     title: 'Política editorial',
     description: 'Diretrizes éticas, critérios de fontes e processo de revisão dos conteúdos da Benavera.',
     url: 'https://www.benavera.com.br/politica-editorial',
@@ -43,7 +44,7 @@ const pillars = [
     icon: ShieldCheck,
     title: '2. Processo de Revisão Editorial e Checagem',
     content:
-      'Todos os guias e artigos passam por um fluxo de revisão interna que checa a veracidade dos conceitos financeiros abordados (como Custo Efetivo Total, prazos, taxas e amortização) e a clareza para o leitor leigo, evitando jargões técnicos excessivos.',
+      'A autoria Equipe Benavera identifica a publicação institucional. As fontes e os responsáveis por eventual revisão especializada devem estar identificados no artigo. A existência de uma data de atualização não significa revisão por médico, dentista ou consultor financeiro. Correções podem ser solicitadas pelo canal de contato.',
   },
   {
     icon: Clock,
@@ -55,7 +56,7 @@ const pillars = [
     icon: FileText,
     title: '4. Independência e Transparência Comercial',
     content:
-      'Nossos conteúdos educativos têm o objetivo de empoderar o paciente para tomar decisões conscientes. Não fazemos anúncios disfarçados de conteúdo nem recomendamos decisões financeiras que prejudiquem a estabilidade do leitor.',
+      'Este site é publicado por uma empresa que comercializa intermediação de crédito. Comparações com concorrentes devem informar esse vínculo, a data da consulta e as fontes. Não publicamos avaliações, depoimentos ou estatísticas de resultados sem comprovação e autorização.',
   },
   {
     icon: AlertTriangle,

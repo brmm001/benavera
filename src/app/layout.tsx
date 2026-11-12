@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Script from 'next/script';
 import './globals.css';
+import { PublicAnalytics } from '@/components/PublicAnalytics';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -12,7 +12,7 @@ const inter = Inter({
 const SITE_URL = 'https://www.benavera.com.br';
 const SITE_NAME = 'Benavera';
 const SITE_DESCRIPTION =
-  'A Benavera conecta você a opções viáveis de parcelamento para tratamentos odontológicos, cirurgias e estética particular. Simule sem compromisso.';
+  'Crédito para tratamentos particulares de saúde. Taxa de 5% por operação para clínicas, sem mensalidade ou adesão; até 36x conforme análise.';
 
 export const viewport = {
   themeColor: '#1e1b4b',
@@ -23,7 +23,7 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Benavera | Pagamento para tratamentos particulares',
+    default: 'Benavera | Financiamento para clínicas de saúde',
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: 'Benavera | Pagamento para tratamentos particulares',
+    title: 'Benavera | Financiamento para clínicas de saúde',
     description: SITE_DESCRIPTION,
     images: [
       {
@@ -61,15 +61,15 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Benavera | Pagamento para tratamentos particulares',
+    title: 'Benavera | Financiamento para clínicas de saúde',
     description: SITE_DESCRIPTION,
     images: [`${SITE_URL}/og-image.png`],
   },
   robots: {
-    index: true,
+    index: false,
     follow: true,
     googleBot: {
-      index: true,
+      index: false,
       follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',
@@ -77,6 +77,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } : undefined,
     google:
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
       process.env.GOOGLE_SITE_VERIFICATION ||
@@ -110,9 +111,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-  alternates: {
-    canonical: SITE_URL,
-  },
 };
 
 export default function RootLayout({
@@ -124,20 +122,8 @@ export default function RootLayout({
     <html lang="pt-BR" className={inter.variable}>
       <body className="antialiased bg-white text-slate-900 font-sans">
         {children}
+        <PublicAnalytics />
 
-        {/* Google tag (gtag.js) */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-625816226"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-625816226');
-          `}
-        </Script>
       </body>
     </html>
   );

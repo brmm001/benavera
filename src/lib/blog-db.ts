@@ -66,6 +66,7 @@ export async function getBlogArticles(options?: {
   category?: string;
   search?: string;
   limit?: number;
+  strict?: boolean;
 }): Promise<BlogArticle[]> {
   const db = await getDb();
   if (!db) return [];
@@ -109,6 +110,7 @@ export async function getBlogArticles(options?: {
     return rows.map(rowToArticle);
   } catch (e) {
     console.error('[blog-db] getBlogArticles error:', e);
+    if (options?.strict) throw new Error('Conteúdos temporariamente indisponíveis.');
     return [];
   }
 }

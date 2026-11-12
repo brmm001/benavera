@@ -1,23 +1,8 @@
 import type { MetadataRoute } from 'next';
-
+import { SITE_URL } from '@/lib/seo';
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://benavera.com.br';
-
   return {
-    rules: [
-      {
-        userAgent: '*',
-        allow: '/',
-        disallow: [
-          '/admin/',
-          '/portal/',
-          '/p/',
-          '/obrigado',
-          '/obrigado-clinica',
-          '/api/',
-        ],
-      },
-    ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    rules: [{ userAgent: '*', allow: '/', disallow: ['/api/', '/p/', '/c/', '/proposta/'] }],
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

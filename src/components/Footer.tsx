@@ -18,6 +18,7 @@ export function Footer() {
       }}
     >
       <div className="container-benavera">
+        <button type="button" onClick={() => window.dispatchEvent(new Event('bv:privacy'))} style={{ color: '#c7d2fe', textDecoration: 'underline', marginBottom: '1.5rem', cursor: 'pointer' }}>Preferências de privacidade</button>
         {/* Grid */}
         <div
           style={{
@@ -182,11 +183,14 @@ export function Footer() {
                 }}
               >
                 {[
+                  { href: '/condicoes', label: 'Taxas e condições' },
+                  { href: '/benavera-ou-capim', label: 'Benavera ou Capim' },
+                  { href: '/contato', label: 'Contato' },
                   { href: '/clinicas', label: 'Benavera para Clínicas' },
                   { href: '/solucoes-financeiras-para-clinicas', label: 'Soluções para Orçamentos' },
                   { href: '/credenciamento', label: 'Credenciar minha clínica' },
-                  { href: '/portal', label: 'Portal da clínica' },
-                  { href: '/clinicas#formulario', label: 'Quero conhecer' },
+                  { href: '/portal/login', label: 'Portal da clínica' },
+                  { href: '/credenciamento', label: 'Quero conhecer' },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link

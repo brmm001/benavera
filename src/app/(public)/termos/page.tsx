@@ -1,11 +1,7 @@
+import { pageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Termos de uso',
-  description:
-    'Leia as condições e termos de utilização dos serviços e simulações da Benavera. Informações detalhadas sobre direitos e responsabilidades.',
-  alternates: { canonical: 'https://www.benavera.com.br/termos' },
-};
+export const metadata: Metadata = pageMetadata('Termos de uso', 'Leia as condições e termos de utilização dos serviços e simulações da Benavera. Informações detalhadas sobre direitos e responsabilidades.', '/termos');
 
 const sections = [
   {

@@ -1,14 +1,10 @@
+import { pageMetadata } from '@/lib/seo';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Link2, BarChart3, Users, Zap } from 'lucide-react';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 
-export const metadata: Metadata = {
-  title: 'Como funciona',
-  description:
-    'Entenda passo a passo como a Benavera conecta pacientes a opções viáveis de parcelamento e auxilia clínicas a viabilizarem tratamentos.',
-  alternates: { canonical: 'https://www.benavera.com.br/como-funciona' },
-};
+export const metadata: Metadata = pageMetadata('Como funciona', 'Entenda passo a passo como a Benavera conecta pacientes a opções viáveis de parcelamento e auxilia clínicas a viabilizarem tratamentos.', '/como-funciona');
 
 const stepsPatient = [
   {
@@ -36,7 +32,7 @@ const stepsPatient = [
 const stepsClinic = [
   {
     step: '1',
-    title: 'A clínica cadastra-se no piloto',
+    title: 'A clínica solicita o credenciamento',
     desc: 'Processo simples, sem implementação técnica complexa.',
   },
   {
@@ -205,8 +201,8 @@ export default function ComoFuncionaPage() {
           </div>
 
           <div style={{ marginTop: '3rem', textAlign: 'center' }}>
-            <Link href="/clinicas#piloto" className="btn-primary">
-              Quero participar do piloto
+            <Link href="/credenciamento" className="btn-primary">
+              Quero credenciar minha clínica
               <ArrowRight size={16} />
             </Link>
           </div>

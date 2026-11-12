@@ -61,7 +61,7 @@ export default function ObrigadoClinicaPage() {
             marginBottom: '2.5rem',
           }}>
             Nossa equipe vai analisar as informações que você enviou e,
-            se houver aderência ao perfil do piloto, entraremos em contato
+            entraremos em contato para orientar os próximos passos
             pelo WhatsApp ou e-mail que você informou.
           </p>
 
@@ -90,7 +90,7 @@ export default function ObrigadoClinicaPage() {
               {
                 icon: Calendar,
                 title: 'Análise da solicitação',
-                desc: 'Nossa equipe vai avaliar as informações enviadas e verificar a aderência ao piloto.',
+                desc: 'Nossa equipe vai avaliar as informações enviadas e verificar a elegibilidade da clínica.',
               },
               {
                 icon: MessageCircle,

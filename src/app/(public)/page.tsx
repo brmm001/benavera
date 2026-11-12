@@ -7,28 +7,29 @@ import {
 } from 'lucide-react';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 import { ArticleCard } from '@/components/ArticleCard';
-import { articles } from '@/content/articles';
+import { getPublicArticles } from '@/lib/published-content';
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Benavera | Plataforma Clinic-First de Financiamento & CRM para Clínicas',
+    absolute: 'Benavera | Financiamento para clínicas de saúde',
   },
   description:
-    'Aumente a conversão de orçamentos particulares da sua clínica com parcelamento em até 36x, repasse em D+1 sem risco de inadimplência e CRM completo. Para pacientes: simule seu tratamento.',
+    'Financiamento para tratamentos de saúde em até 36x, conforme análise. Taxa de 5% para a clínica, sem mensalidade ou adesão. Conheça a Benavera.',
   alternates: { canonical: 'https://www.benavera.com.br' },
 };
 
 const clinicStats = [
-  { value: '+40%', label: 'Aumento na conversão de orçamentos de alto valor' },
-  { value: 'D+1', label: 'Repasse integral na conta da clínica' },
+  { value: '5%', label: 'Taxa por operação para a clínica' },
+  { value: 'Sem adesão', label: 'Cadastro sem taxa de adesão' },
   { value: 'Até 36x', label: 'Parcelas que cabem no bolso do paciente' },
-  { value: '0 Risco', label: 'Inadimplência 100% assumida pelo parceiro financeiro' },
+  { value: 'Sem mensalidade', label: 'Sem cobrança mensal para a clínica' },
 ];
 
 const howItWorksClinic = [
   {
     step: '01',
-    title: 'Gere a proposta no balcão em 1 minuto',
+    title: 'Prepare a proposta no portal',
     desc: 'Durante ou após a consulta, sua equipe insere o valor do tratamento no Portal Benavera e gera opções personalizadas de parcelamento.',
   },
   {
@@ -39,12 +40,12 @@ const howItWorksClinic = [
   {
     step: '03',
     title: 'Aprovação de crédito e aceite digital',
-    desc: 'Análise ágil com validação simplificada. O paciente assina digitalmente sem burocracia nem papéis.',
+    desc: 'A instituição parceira analisa os dados. O paciente confere juros, CET e contrato antes do aceite.',
   },
   {
     step: '04',
-    title: 'Repasse D+1 e início do tratamento',
-    desc: 'Sua clínica recebe o valor líquido diretamente via Pix/TED no dia útil seguinte e inicia o procedimento com total segurança.',
+    title: 'Repasse conforme a contratação',
+    desc: 'Confira na proposta o valor líquido, o prazo de repasse e as condições necessárias para liberação.',
   },
 ];
 
@@ -61,12 +62,12 @@ const faqItems = [
   {
     question: 'Como a Benavera ajuda minha clínica a faturar mais?',
     answer:
-      'A maior causa de perda de orçamentos em clínicas privadas é a falta de limite no cartão ou a impossibilidade de pagar à vista. A Benavera oferece parcelamento facilitado em até 36x via boleto/crédito direto, permitindo que pacientes que não fechariam aprovem o tratamento imediatamente.',
+      'A Benavera oferece uma alternativa quando a forma de pagamento dificulta o fechamento do orçamento. O paciente pode avaliar crédito convencional ou consignado em até 36x, conforme análise e modalidade.',
   },
   {
     question: 'A clínica assume risco de inadimplência caso o paciente atrase?',
     answer:
-      'Não. O risco de crédito é 100% absorvido pelo parceiro financeiro. A clínica recebe o repasse integral (descontada a taxa de intermediação) em D+1 após a aprovação.',
+      'A responsabilidade por inadimplência, eventual coobrigação e prazo de repasse devem ser verificados na proposta e no contrato da modalidade. Confirme essas condições antes de contratar.',
   },
   {
     question: 'Como a clínica acessa o sistema e envia propostas?',
@@ -76,7 +77,7 @@ const faqItems = [
   {
     question: 'Quanto custa para a clínica se credenciar?',
     answer:
-      'Nesta fase de expansão com clínicas parceiras, não cobramos taxa de adesão, mensalidade ou custo de implantação. A clínica só paga a taxa percentual sobre os tratamentos efetivamente aprovados e liquidados.',
+      'A condição comercial é de 5% por operação para a clínica, sem mensalidade ou taxa de adesão. A taxa da clínica não corresponde aos juros do paciente.',
   },
   {
     question: 'Como funciona para o paciente que quer parcelar?',
@@ -103,8 +104,9 @@ const faqSchema = {
   })),
 };
 
-export default function HomePage() {
-  const featuredArticles = articles.slice(0, 3);
+export default async function HomePage() {
+  const priority = ['como-parcelar-tratamento-odontologico', 'financiamento-odontologico-como-funciona', 'como-parcelar-implante-dentario'];
+  const featuredArticles = [...await getPublicArticles()].sort((a, b) => (priority.includes(b.slug) ? 1 : 0) - (priority.includes(a.slug) ? 1 : 0)).slice(0, 3);
 
   return (
     <>
@@ -175,7 +177,7 @@ export default function HomePage() {
                   maxWidth: '540px',
                 }}
               >
-                Ofereça parcelamento em <strong>até 36x</strong> para seus pacientes sem comprometer o limite do cartão, receba o repasse <strong>integral em D+1</strong> sem risco de inadimplência e gerencie todo o funil em um portal moderno com CRM.
+                Ofereça uma alternativa de crédito em <strong>até 36x</strong>, conforme análise e modalidade. Sua clínica paga <strong>5% por operação</strong>, sem mensalidade ou adesão, e acompanha as propostas no portal Benavera.
               </p>
 
               {/* Botões de Ação B2B */}
@@ -218,8 +220,8 @@ export default function HomePage() {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center' }}>
                 {[
                   'Sem mensalidade fixa',
-                  'Repasse garantido em D+1',
-                  'Zero risco de crédito',
+                  'Taxa de 5% por operação',
+                  'Crédito sujeito à análise',
                 ].map((item) => (
                   <span
                     key={item}
@@ -282,7 +284,7 @@ export default function HomePage() {
                     </span>
                   </div>
                   <span style={{ fontSize: '0.6875rem', color: '#34d399', background: 'rgba(52,211,153,0.15)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontWeight: '700' }}>
-                    D+1 Ativo
+                    Exemplo ilustrativo
                   </span>
                 </div>
 
@@ -309,7 +311,7 @@ export default function HomePage() {
                       <div style={{ fontSize: '0.9375rem', fontWeight: '800', color: 'white' }}>24x R$ 560,00</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.6875rem', color: '#94a3b8' }}>Repasse Líquido D+1:</div>
+                      <div style={{ fontSize: '0.6875rem', color: '#94a3b8' }}>Líquido ilustrativo:</div>
                       <div style={{ fontSize: '0.9375rem', fontWeight: '800', color: '#34d399' }}>R$ 11.400,00</div>
                     </div>
                   </div>
@@ -471,11 +473,11 @@ export default function HomePage() {
                 </li>
                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                   <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span>Repasse integral D+1 na conta da clínica, mantendo o fluxo de caixa saudável.</span>
+                  <span>Repasse com valor líquido e prazo informados na proposta da operação.</span>
                 </li>
                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                   <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span>Zero risco de inadimplência para a clínica.</span>
+                  <span>Responsabilidades contratuais apresentadas antes da contratação.</span>
                 </li>
                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                   <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />

@@ -1,3 +1,4 @@
+import { safeToken } from '@/lib/acquisition';
 import type { PatientLead, ClinicLead, TrackingEvent } from '@/types';
 export { trackEvent } from '@/lib/analytics';
 
@@ -57,20 +58,21 @@ export async function submitLead(
 // ============================================================
 
 export function captureUTMParams(): Record<string, string> {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined' || !/(?:^|; )bv_consent=(analytics|all)(?:;|$)/.test(document.cookie)) return {};
 
   const params = new URLSearchParams(window.location.search);
   const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
   const result: Record<string, string> = {};
 
   utmKeys.forEach((key) => {
-    const value = params.get(key);
+    const value = safeToken(params.get(key));
     if (value) {
       const camelKey = key.replace(/_([a-z])/g, (_, l: string) => l.toUpperCase());
       result[camelKey] = value;
-      sessionStorage.setItem(key, value);
+      try { sessionStorage.setItem(key, value); } catch { /* Storage blocked */ }
     } else {
-      const stored = sessionStorage.getItem(key);
+      let stored = '';
+      try { stored = safeToken(sessionStorage.getItem(key)); } catch { /* Storage blocked */ }
       if (stored) {
         const camelKey = key.replace(/_([a-z])/g, (_, l: string) => l.toUpperCase());
         result[camelKey] = stored;
@@ -82,13 +84,14 @@ export function captureUTMParams(): Record<string, string> {
 }
 
 export function getStoredUTMs(): Record<string, string> {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined' || !/(?:^|; )bv_consent=(analytics|all)(?:;|$)/.test(document.cookie)) return {};
 
   const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
   const result: Record<string, string> = {};
 
   utmKeys.forEach((key) => {
-    const value = sessionStorage.getItem(key);
+    let value = '';
+    try { value = safeToken(sessionStorage.getItem(key)); } catch { /* Storage blocked */ }
     if (value) {
       const camelKey = key.replace(/_([a-z])/g, (_, l: string) => l.toUpperCase());
       result[camelKey] = value;
