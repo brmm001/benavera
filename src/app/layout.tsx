@@ -61,8 +61,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Benavera | Financiamento para clínicas de saúde',
-    description: SITE_DESCRIPTION,
     images: [`${SITE_URL}/og-image.png`],
   },
   robots: {
