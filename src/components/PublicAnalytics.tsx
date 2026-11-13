@@ -6,6 +6,7 @@ import Script from 'next/script';
 import Link from 'next/link';
 import { isPublicPath, SITE_URL } from '@/lib/seo';
 import { flushAnalytics, trackEvent, pauseAnalytics } from '@/lib/analytics';
+import { createSerialTaskQueue } from '@/lib/serial-task-queue';
 
 type Consent = 'essential' | 'analytics' | 'all';
 const GOOGLE_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || '';
@@ -38,6 +39,7 @@ export function PublicAnalytics() {
   const lastPage = useRef('');
   const externalLoaded = useRef(false);
   const entry = useRef<Record<string, string> | null>(null);
+  const sessionQueue = useRef(createSerialTaskQueue());
   const isPublic = isPublicPath(pathname);
   const externalAllowed = EXTERNAL_PATHS.includes(pathname);
   const gaId = /^G-[A-Z0-9]+$/.test(GOOGLE_ID) ? GOOGLE_ID : '';
@@ -60,9 +62,16 @@ export function PublicAnalytics() {
     lastPage.current = key;
     window.bvAnalyticsReady = false;
     const body = firstPage ? entry.current : { path: pathname, referrer: '', ...campaignParams() };
-    fetch('/api/analytics/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), keepalive: true })
-      .then(response => { if (response.ok) { window.bvAnalyticsReady = true; flushAnalytics(); } })
-      .catch(() => { lastPage.current = ''; });
+    // A fast navigation must wait until the first response installs its HttpOnly cookies.
+    // Otherwise two concurrent requests create two visitors and can lose the first source.
+    void sessionQueue.current(async () => {
+      if (!['analytics', 'all'].includes(readConsent() || '')) return;
+      const response = await fetch('/api/analytics/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), keepalive: true });
+      if (!response.ok) throw new Error('Analytics session unavailable');
+      if (['analytics', 'all'].includes(readConsent() || '')) {
+        window.bvAnalyticsReady = true; flushAnalytics();
+      }
+    }).catch(() => { lastPage.current = ''; });
   }, [pathname, consent, isPublic]);
 
   useEffect(() => {
@@ -107,10 +116,16 @@ export function PublicAnalytics() {
   }, [pathname, isPublic]);
 
   async function choose(value: Consent) {
+    if (consent === 'essential' && value !== 'essential') {
+      entry.current = { path: pathname, referrer: document.referrer, ...campaignParams() };
+      lastPage.current = '';
+    }
     writeConsent(value);
     if (value === 'essential') {
       pauseAnalytics();
-      await fetch('/api/analytics/session', { method: 'DELETE' }).catch(() => {});
+      lastPage.current = '';
+      // Delete after any in-flight session response, so revocation cannot be undone by it.
+      await sessionQueue.current(async () => { await fetch('/api/analytics/session', { method: 'DELETE' }); }).catch(() => {});
     }
     if (externalLoaded.current && value !== consent) { location.reload(); return; }
     setShow(false);
