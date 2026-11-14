@@ -75,13 +75,14 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } : undefined,
     google:
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
       process.env.GOOGLE_SITE_VERIFICATION ||
       undefined,
     other: {
-      'msvalidate.01': 'EACCA67171B0E64F4A05CA3D97560DAE',
+      'msvalidate.01':
+        process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ||
+        'EACCA67171B0E64F4A05CA3D97560DAE',
     },
   },
   manifest: '/manifest.webmanifest',
