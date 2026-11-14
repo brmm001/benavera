@@ -80,6 +80,9 @@ export const metadata: Metadata = {
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
       process.env.GOOGLE_SITE_VERIFICATION ||
       undefined,
+    other: {
+      'msvalidate.01': 'EACCA67171B0E64F4A05CA3D97560DAE',
+    },
   },
   manifest: '/manifest.webmanifest',
   icons: {
