@@ -1,7 +1,60 @@
 import { InformationPage } from '@/components/InformationPage';
+import { COMMERCIAL, CLINIC_FINANCING_PATH, IMPLANT_FINANCING_PATH } from '@/lib/commercial';
 import { pageMetadata } from '@/lib/seo';
 
-export const metadata = pageMetadata("Financiamento para clínicas de saúde", "Ofereça uma alternativa de pagamento para tratamentos particulares. A Benavera conecta o paciente a crédito convencional e consignado, conforme elegibilidade, e apoia sua clínica no acompanhamento das propostas.", '/clinicas');
+const title = 'Financiamento para clínicas de saúde';
+const intro = `Ofereça aos pacientes uma alternativa de crédito para tratamentos particulares. ${COMMERCIAL.clinicCost}. ${COMMERCIAL.installmentCondition}.`;
+export const metadata = pageMetadata(title, intro, '/clinicas');
+const content = `
+## Escolha a solução para sua clínica
+A Benavera intermedeia crédito para tratamentos particulares e apoia o acompanhamento das propostas. O paciente avalia as condições da instituição responsável antes de contratar.
+
+- **Clínica odontológica:** conheça o [financiamento odontológico para clínicas](${CLINIC_FINANCING_PATH}), com custo da operação, credenciamento e perguntas sobre repasse.
+- **Implantes, prótese protocolo e reabilitação oral:** veja [como organizar orçamento, proposta e recebimento](${IMPLANT_FINANCING_PATH}) em tratamentos com várias etapas.
+- **Outras especialidades de saúde:** fale com a equipe para confirmar a modalidade disponível para seu estabelecimento. Há guias para pacientes sobre [estética](/parcelamento-procedimento-estetico), [oftalmologia](/parcelamento-cirurgia-oftalmologica) e [cirurgias particulares](/parcelamento-cirurgia-particular).
+
+## Quanto custa para a clínica?
+**${COMMERCIAL.clinicCost}.** A taxa comercial da clínica não corresponde aos juros do financiamento do paciente.
+
+| Item | Condição Benavera |
+| --- | --- |
+| Taxa da clínica | ${COMMERCIAL.clinicFeePercent}% por operação |
+| Mensalidade e adesão | Sem cobrança |
+| Parcelamento | ${COMMERCIAL.installmentCondition} |
+| Modalidades | Crédito convencional e consignado, conforme elegibilidade e disponibilidade |
+| Juros e CET do paciente | Informados na proposta da instituição responsável |
+| Repasse e inadimplência | Prazo, condições e responsabilidades definidos no contrato |
+
+Confira o exemplo da taxa e as [condições comerciais completas](/condicoes).
+
+## Como sua equipe utiliza a Benavera
+1. Preencha o [credenciamento](/credenciamento) com os dados do estabelecimento e do responsável.
+2. Envie os documentos pelo ambiente protegido e acompanhe a validação.
+3. Após a liberação, apresente a alternativa ao paciente e encaminhe a proposta para análise.
+4. O paciente confere parcelas, juros, CET e contrato antes de decidir.
+5. A clínica acompanha a proposta e confere o repasse conforme as condições contratadas.
+
+## Preciso trocar meu sistema de gestão?
+Não é necessário substituir a agenda ou o prontuário para iniciar o credenciamento. O Portal Benavera é utilizado para a jornada das propostas. Sua clínica pode manter o software atual; isso não significa que exista integração automática entre os sistemas. Veja [o passo a passo](/como-funciona).
+
+## Como decidir se o financiamento vale a pena?
+Compare o valor líquido recebido com os custos do tratamento e a margem necessária. Para o paciente, compare o total a pagar e a parcela com o orçamento mensal. Financiamento pode ampliar as alternativas de pagamento, mas não garante fechamento nem aprovação de crédito.
+
+Leia [como medir o resultado do financiamento](/conteudos/financiamento-pacientes-aumenta-conversao-clinica) e [como calcular rentabilidade por tratamento](/conteudos/rentabilidade-por-tratamento-clinica).
+
+## Perguntas frequentes
+### A clínica recebe à vista ou parcelado?
+A proposta deve indicar como ocorre o repasse, o valor líquido, as condições de liberação e o prazo. O parcelamento do paciente e o recebimento da clínica são informações diferentes.
+
+### Quem assume o risco se o paciente não pagar?
+Confira a responsabilidade por inadimplência e eventual coobrigação no contrato da modalidade. Confira também cancelamento e contestação do tratamento.
+
+### O paciente precisa ter cartão?
+Crédito convencional e consignado são modalidades diferentes do parcelamento no cartão. A disponibilidade depende da análise e das regras da instituição responsável.
+
+### Como comparar com a Capim?
+Compare requisitos para contratar, mensalidades, taxa da operação, funções do software, repasse e custo total do paciente. A página [Benavera ou Capim](/benavera-ou-capim) reúne condições divulgadas e fontes da comparação.
+`;
 export default function Page() {
-  return <InformationPage title="Financiamento para clínicas de saúde" intro="Ofereça uma alternativa de pagamento para tratamentos particulares. A Benavera conecta o paciente a crédito convencional e consignado, conforme elegibilidade, e apoia sua clínica no acompanhamento das propostas." content={"## Quanto custa para a clínica?\n**Taxa de 5% por operação, sem mensalidade e sem taxa de adesão.** Essa taxa é da clínica: não representa os juros do financiamento do paciente.\n\n| Item | Condição Benavera |\n| --- | --- |\n| Taxa da clínica | 5% por operação |\n| Mensalidade e adesão | Sem cobrança |\n| Parcelamento | Até 36 vezes, conforme análise e modalidade |\n| Modalidades | Crédito convencional e consignado, conforme elegibilidade |\n| Juros e CET do paciente | Informados na proposta da instituição parceira |\n| Repasse e responsabilidade por inadimplência | Confirmados no contrato de cada operação |\n\nEm uma operação ilustrativa de R$ 10.000, a taxa de 5% corresponde a R$ 500. O valor líquido seria R$ 9.500 se não houver outros descontos previstos no contrato. O exemplo não calcula os juros do paciente. Veja as [condições comerciais completas](/condicoes).\n\n## Como sua equipe utiliza a Benavera\n1. Preencha o [credenciamento da clínica](/credenciamento) com os dados do estabelecimento e do responsável.\n2. Envie os documentos solicitados no ambiente protegido. A equipe verifica a elegibilidade da clínica.\n3. Apresente a alternativa ao paciente e encaminhe a proposta para análise.\n4. O paciente confere parcelas, juros, CET e contrato antes de decidir.\n5. A clínica acompanha a proposta e o repasse, conforme as condições contratadas.\n\n## Para quais tratamentos?\nA solução atende tratamentos particulares de saúde, conforme a especialidade da clínica e a disponibilidade das instituições parceiras. Conheça as páginas de [odontologia](/parcelamento-tratamento-odontologico), [implantes dentários](/financiamento-implante-dentario), [estética](/parcelamento-procedimento-estetico) e [cirurgias particulares](/parcelamento-cirurgia-particular).\n\n## A clínica precisa de um sistema novo?\nO portal Benavera permite acompanhar propostas e a jornada comercial. Verifique na demonstração quais funções atendem à sua rotina. O financiamento não substitui o prontuário ou a avaliação clínica. Veja [como funciona](/como-funciona).\n\n## Perguntas frequentes\n### Aprovação é garantida?\nNão. A instituição parceira faz a análise cadastral e de crédito. Uma simulação não equivale a aprovação.\n\n### O paciente precisa ter cartão de crédito?\nO crédito convencional e o consignado são modalidades diferentes do parcelamento no cartão. A disponibilidade depende da análise e das regras da instituição responsável.\n\n### Em quanto tempo a clínica recebe?\nO prazo e o evento que inicia a contagem precisam constar da proposta e do contrato. Não prometemos um prazo universal de D+1 para todas as modalidades.\n\n### Quem assume o risco se o paciente não pagar?\nA responsabilidade deve ser conferida no contrato da modalidade, incluindo eventual coobrigação. Não presuma isenção de risco apenas porque existe uma simulação aprovada.\n\n### Como comparar com outras empresas?\nCompare taxa da clínica, custo total para o paciente, prazos, elegibilidade, repasse e obrigações contratuais. Veja [Benavera ou Capim: critérios para comparar](/benavera-ou-capim).\n"} />;
+  return <InformationPage title={title} intro={intro} content={content} />;
 }

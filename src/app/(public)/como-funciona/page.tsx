@@ -1,4 +1,5 @@
 import { pageMetadata } from '@/lib/seo';
+import { ClinicFinancingLinks } from '@/components/ClinicFinancingLinks';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Link2, BarChart3, Users, Zap } from 'lucide-react';
@@ -33,22 +34,22 @@ const stepsClinic = [
   {
     step: '1',
     title: 'A clínica solicita o credenciamento',
-    desc: 'Processo simples, sem implementação técnica complexa.',
+    desc: 'Preencha os dados da clínica e do responsável e envie os documentos no ambiente protegido. A liberação depende da validação.',
   },
   {
     step: '2',
-    title: 'Recebe um link personalizado',
-    desc: 'Utilizado na recepção, WhatsApp ou após a apresentação do orçamento.',
+    title: 'Apresenta o orçamento e encaminha a proposta',
+    desc: 'Após a liberação, a equipe apresenta a alternativa de pagamento. O paciente informa os dados necessários à análise da modalidade disponível.',
   },
   {
     step: '3',
-    title: 'O paciente acessa e simula',
-    desc: 'Ele informa as preferências financeiras diretamente na plataforma.',
+    title: 'Análise de crédito e decisão do paciente',
+    desc: 'A instituição responsável faz a análise. O paciente confere parcelas, juros, CET e total a pagar antes de assinar o contrato.',
   },
   {
     step: '4',
-    title: 'A clínica acompanha resultados',
-    desc: 'Visualize quantas oportunidades foram redirecionadas para a Benavera.',
+    title: 'Contratação e acompanhamento do repasse',
+    desc: 'Confira o valor líquido, o prazo e as condições de liberação. Simulação, aprovação, contrato e repasse confirmado são etapas diferentes.',
   },
 ];
 
@@ -84,10 +85,10 @@ export default function ComoFuncionaPage() {
               marginBottom: '2.5rem',
               maxWidth: '520px',
             }}>
-              A Benavera é uma plataforma que organiza a jornada financeira relacionada
-              ao pagamento de tratamentos. Ela atua para dois públicos: pacientes que
-              precisam de alternativas de pagamento e clínicas que querem reduzir a
-              perda de orçamentos por causa da forma de pagamento.
+              A Benavera intermedeia crédito para tratamentos particulares. A clínica
+              apresenta o orçamento, o paciente solicita uma análise e a instituição
+              responsável define a proposta. Antes da contratação, paciente e clínica
+              conferem seus custos e suas obrigações.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.875rem' }}>
               <Link href="/simular" id="como-funciona-cta-simular" className="btn-primary">
@@ -101,6 +102,8 @@ export default function ComoFuncionaPage() {
           </div>
         </div>
       </section>
+
+      <section className="container-benavera" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}><ClinicFinancingLinks /></section>
 
       {/* ===== PARA PACIENTES ===== */}
       <section style={{ padding: '5rem 0', background: 'white' }}>
@@ -236,7 +239,7 @@ export default function ComoFuncionaPage() {
               {
                 icon: Link2,
                 title: 'Sem implementação técnica',
-                desc: 'Para clínicas, basta um link. Não é necessário integração ou software.',
+                desc: 'Não é necessário substituir agenda ou prontuário. O Portal Benavera acompanha a jornada das propostas; integrações automáticas não são presumidas.',
               },
               {
                 icon: BarChart3,

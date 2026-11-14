@@ -1,7 +1,56 @@
 import { InformationPage } from '@/components/InformationPage';
+import { COMMERCIAL, CLINIC_FINANCING_PATH } from '@/lib/commercial';
 import { pageMetadata } from '@/lib/seo';
 
-export const metadata = pageMetadata("Benavera ou Capim: como comparar para sua clínica", "As duas marcas oferecem alternativas relacionadas ao pagamento de tratamentos. A escolha depende das condições da proposta e das funções que sua clínica precisa.", '/benavera-ou-capim');
+const title = 'Benavera ou Capim: financiamento para sua clínica';
+const intro = 'Compare a necessidade de assinar um sistema, o custo da clínica, o parcelamento do paciente e as condições de repasse. A escolha depende da proposta e da rotina da sua equipe.';
+export const metadata = pageMetadata(title, intro, '/benavera-ou-capim');
+const content = `
+## Quem publica esta comparação?
+Esta página é publicada pela **Benavera** e não é uma avaliação independente. Comparamos condições públicas dos produtos, sem pontuação de superioridade. A fonte da Capim é a [página oficial de financiamento odontológico](https://capim.com.br/site/financiamento-odontologico), consultada em **14 de novembro de 2026**. As informações da Benavera estão nas [condições comerciais](/condicoes).
+
+## A diferença no modelo de contratação
+Na Benavera, a oferta divulgada tem custo por operação, sem mensalidade ou adesão, e não exige substituir sua agenda ou prontuário. Na página consultada, a Capim condiciona o financiamento à assinatura do seu software e ao credenciamento da clínica. Portanto, inclua a contratação do sistema ao comparar as duas opções.
+
+## Condições divulgadas
+| Critério | Benavera | Financiamento Capim — fonte oficial consultada |
+| --- | --- | --- |
+| Acesso da clínica | Credenciamento e validação; sem assinatura obrigatória de suíte odontológica | Assinatura do sistema e credenciamento |
+| Custo da clínica | ${COMMERCIAL.clinicFeePercent}% por operação; sem mensalidade ou adesão | Solicitar preços do software e condições da operação |
+| Parcelamento | ${COMMERCIAL.installmentCondition} | Até 36 parcelas por boleto, sujeito à análise |
+| Valor financiável | Definido na análise individual | Faixa divulgada de R$ 1 mil a R$ 30 mil |
+| Repasse | Prazo, valor líquido e condições na contratação | Divulga pagamento à clínica em até 72 horas após a assinatura |
+| Inadimplência | Conferir responsabilidade e coobrigação no contrato | Divulga assumir cobrança e risco no financiamento |
+| Juros do paciente | Conforme proposta da instituição responsável | Conforme análise de crédito |
+| Gestão | Portal para acompanhamento de propostas; preserve seu software atual | Financiamento integrado ao sistema da empresa |
+
+As condições da Capim acima se referem ao **financiamento**, não ao carnê próprio da clínica ou à maquininha. Para ambas as empresas, peça a proposta e confira o contrato antes de decidir.
+
+## Quando avaliar a Benavera
+Considere a Benavera se sua clínica busca crédito para pacientes, quer conhecer uma taxa por operação explícita e pretende manter o sistema de gestão atual. O próximo passo é confirmar a modalidade disponível, o custo total do paciente e o repasse aplicável ao seu caso. Conheça a [oferta para clínicas odontológicas](${CLINIC_FINANCING_PATH}).
+
+## Quando avaliar a Capim
+Se você pretende contratar o sistema odontológico da Capim e integrar o financiamento à rotina dessa plataforma, avalie os recursos e o preço do conjunto em uma demonstração. A necessidade de um software deve entrar na decisão, além das condições financeiras.
+
+## Compare propostas para o mesmo orçamento
+Preencha estes campos com os valores recebidos de cada empresa. Não é possível concluir qual opção custa menos usando apenas a taxa anunciada ou o número máximo de parcelas.
+
+| Informação para preencher | Por que comparar |
+| --- | --- |
+| Orçamento e procedimentos incluídos | Garante que as propostas tratem do mesmo tratamento |
+| Entrada e valor financiado | Evita comparar saldos diferentes |
+| Parcelas, juros, CET e total a pagar | Mostra o custo completo para o paciente |
+| Taxa da clínica, mensalidades e outros descontos | Mostra o custo total para a clínica |
+| Valor líquido, data e condições de liberação | Permite planejar o caixa |
+| Atraso, cancelamento e coobrigação | Mostra quem responde por cada situação |
+| Software e rotina operacional | Permite avaliar custo de adoção e funções necessárias |
+
+## A Benavera aprova mais ou é sempre mais barata?
+Não temos uma comparação independente de aprovação ou de custo para o mesmo conjunto de pacientes. Não fazemos essa afirmação. Uma alternativa pode ser mais adequada em um caso e não estar disponível em outro. Compare as condições efetivamente oferecidas.
+
+## Como pedir uma análise para minha clínica?
+Inicie o [credenciamento na Benavera](/credenciamento) e esclareça suas necessidades pelo [atendimento](/contato). Se já utiliza outra solução, leve os mesmos critérios para comparar. O objetivo é decidir com base em preço, disponibilidade e operação, não apenas no nome da empresa.
+`;
 export default function Page() {
-  return <InformationPage title="Benavera ou Capim: como comparar para sua clínica" intro="As duas marcas oferecem alternativas relacionadas ao pagamento de tratamentos. A escolha depende das condições da proposta e das funções que sua clínica precisa." content={"## Comparação por critérios verificáveis\nEsta página é publicada pela Benavera. Não é uma avaliação independente. As informações sobre a Capim foram consultadas no [site oficial da empresa](https://capim.com.br/) em **12 de novembro de 2026** e podem mudar.\n\n| Critério | Benavera | Capim |\n| --- | --- | --- |\n| Foco divulgado | Intermediação de crédito para tratamentos particulares de saúde | Software e soluções financeiras para clínicas odontológicas |\n| Parcelamento divulgado | Até 36x, conforme análise e modalidade | Financiamento em até 36x, conforme o site oficial |\n| Taxa para a clínica | 5% por operação, sem mensalidade ou adesão | Solicite as condições atuais do produto de financiamento; não confunda com preço do software |\n| Modalidades e produtos | Crédito convencional e consignado, conforme elegibilidade | O site apresenta financiamento, carnê, maquininha e software |\n| Gestão comercial | Portal para acompanhamento de propostas e jornada comercial | O site apresenta agenda, gestão financeira e gestão de pacientes |\n| Repasse e risco | Confirmar prazo e responsabilidades no contrato de cada operação | A empresa divulga recebimento à vista e assunção de risco no financiamento; conferir o contrato |\n| Juros, CET e aprovação | Definidos pela instituição parceira e pela análise individual | Solicitar proposta e conferir os critérios da modalidade |\n\nNão presumimos que produtos diferentes tenham o mesmo preço ou as mesmas regras. Não temos evidência suficiente para afirmar que uma empresa aprova mais, é sempre mais barata ou atende melhor do que a outra.\n\n## Quando considerar a Benavera\nA Benavera pode fazer sentido para clínicas que buscam uma alternativa de crédito com taxa comercial explícita de 5%, sem mensalidade ou adesão, e desejam avaliar crédito convencional ou consignado para tratamentos de saúde. Confira [todas as condições](/condicoes) e solicite uma proposta.\n\n## Quando analisar a solução da Capim\nSe a prioridade inclui gestão odontológica com agenda, prontuário e diferentes meios de pagamento, avalie os recursos e preços apresentados pela Capim. Peça uma demonstração e confira quais produtos estão incluídos na contratação.\n\n## Compare duas propostas para o mesmo caso\n1. Use o mesmo orçamento, entrada e número de parcelas.\n2. Compare o valor líquido e a data de recebimento da clínica.\n3. Compare o total pago pelo paciente e o CET.\n4. Confira responsabilidade por atraso, cancelamento e contestação.\n5. Confira mensalidades, adesão e custos de outros produtos.\n6. Teste o atendimento e os recursos que sua equipe realmente usará.\n\n## Qual é a melhor?\nNão há uma resposta única sem conhecer a proposta e a necessidade da clínica. Para uma decisão responsável, compare condições escritas e funções disponíveis. O objetivo é encontrar uma opção viável para o paciente e para a operação da clínica.\n"} />;
+  return <InformationPage title={title} intro={intro} content={content} />;
 }

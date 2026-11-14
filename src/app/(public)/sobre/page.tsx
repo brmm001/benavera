@@ -1,4 +1,6 @@
 import { pageMetadata } from '@/lib/seo';
+import { COMMERCIAL } from '@/lib/commercial';
+import { ClinicFinancingLinks } from '@/components/ClinicFinancingLinks';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Target, Eye, Heart } from 'lucide-react';
@@ -36,10 +38,10 @@ export default function SobrePage() {
               lineHeight: '1.8',
               maxWidth: '540px',
             }}>
-              A Benavera é uma plataforma que organiza a jornada financeira relacionada
-              ao pagamento de tratamentos. Atuamos entre pacientes que precisam de
-              alternativas de pagamento e clínicas que perdem oportunidades por causa
-              de objeções financeiras.
+              A Benavera é uma plataforma de intermediação de crédito para tratamentos
+              particulares de saúde, incluindo odontologia, implantes e prótese protocolo.
+              Conectamos a jornada do paciente, da clínica e da instituição responsável
+              pela análise e concessão do crédito.
             </p>
           </div>
         </div>
@@ -198,8 +200,9 @@ export default function SobrePage() {
 
       <section className="container-benavera" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
         <h2 className="section-heading">Identificação e atendimento</h2>
+        <div style={{ marginBottom: '1.5rem' }}><ClinicFinancingLinks /></div>
         <p style={{ lineHeight: 1.8 }}>Benavera Correspondentes Bancários LTDA — CNPJ 69.952.939/0001-52. A Benavera intermedeia a jornada de crédito; a instituição responsável e as condições da operação devem ser identificadas na proposta e no contrato.</p>
-        <p style={{ lineHeight: 1.8 }}>Para clínicas, a condição comercial é de 5% por operação, sem mensalidade ou adesão. O parcelamento pode chegar a 36 vezes, conforme análise e modalidade. Consulte as <Link href="/condicoes" style={{ textDecoration: 'underline' }}>condições comerciais</Link>.</p>
+        <p style={{ lineHeight: 1.8 }}>{COMMERCIAL.description} Consulte as <Link href="/condicoes" style={{ textDecoration: 'underline' }}>condições comerciais</Link>.</p>
         <p style={{ lineHeight: 1.8 }}>Dúvidas, atendimento e pedidos de correção: <Link href="/contato" style={{ textDecoration: 'underline' }}>canais oficiais da Benavera</Link>. Conheça também a <Link href="/equipe-editorial" style={{ textDecoration: 'underline' }}>autoria institucional dos conteúdos</Link>.</p>
       </section>
 

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { COMMERCIAL, CLINIC_FINANCING_PATH } from '@/lib/commercial';
 import {
   Award, Zap, DollarSign, Users
 } from 'lucide-react';
@@ -162,8 +164,8 @@ export default function CredenciamentoPage() {
       } else {
         router.push('/login?pending_approval=1');
       }
-    } catch (err: any) {
-      setError(err.message || 'Erro inesperado.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro inesperado.');
     } finally {
       setLoading(false);
     }
@@ -181,7 +183,7 @@ export default function CredenciamentoPage() {
             Credencie sua clínica na Benavera
           </h1>
           <p style={{ fontSize: 'clamp(0.9375rem, 2vw, 1.0625rem)', color: '#64748b', maxWidth: '580px', margin: '0 auto', lineHeight: '1.6' }}>
-            Ofereça crédito em até 36x, conforme análise. Taxa de 5% por operação para a clínica, sem mensalidade ou adesão.
+            {COMMERCIAL.description}
           </p>
         </div>
 
@@ -189,12 +191,12 @@ export default function CredenciamentoPage() {
         <div className="credenciamento-benefits-grid">
           <div style={{ background: 'white', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <Zap size={20} color="#4f46e5" style={{ marginBottom: '0.25rem' }} />
-            <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: '#0f172a' }}>Taxa de 5%</div>
+            <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: '#0f172a' }}>Taxa de {COMMERCIAL.clinicFeePercent}%</div>
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Por operação para a clínica</div>
           </div>
           <div style={{ background: 'white', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <DollarSign size={20} color="#10b981" style={{ marginBottom: '0.25rem' }} />
-            <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: '#0f172a' }}>Até 36x</div>
+            <div style={{ fontSize: '0.8125rem', fontWeight: '700', color: '#0f172a' }}>Até {COMMERCIAL.maxInstallments}x</div>
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Conforme análise e modalidade</div>
           </div>
           <div style={{ background: 'white', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -203,6 +205,22 @@ export default function CredenciamentoPage() {
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Gestão completa de propostas</div>
           </div>
         </div>
+
+        <section aria-labelledby="antes-do-cadastro" style={{ margin: '1.5rem 0', padding: '1.5rem', background: '#eef2ff', borderRadius: 16, color: '#334155', lineHeight: 1.75 }}>
+          <h2 id="antes-do-cadastro" style={{ fontSize: '1.15rem', fontWeight: 750, color: '#2f3181', marginBottom: '0.5rem' }}>O que acontece após o cadastro?</h2>
+          <p>Você preenche os dados da clínica e do responsável e cria seu acesso. Depois, envia os documentos no ambiente protegido. A liberação do portal depende da validação pela Benavera.</p>
+          <details style={{ marginTop: '0.75rem' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 650 }}>Quais documentos preparar?</summary>
+            <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', marginTop: '0.5rem' }}>
+              <li>Contrato social ou ato constitutivo.</li>
+              <li>Documento do representante legal (CNH ou RG).</li>
+              <li>Documento ou registro do responsável técnico.</li>
+              <li>Comprovante de titularidade bancária.</li>
+            </ul>
+            <p>O CNPJ é opcional nesta primeira tela; a validação posterior exige o preenchimento cadastral e a documentação aplicável. Outros documentos podem ser solicitados conforme a situação.</p>
+          </details>
+          <p style={{ marginTop: '0.75rem' }}>O cadastro não garante aprovação de crédito para pacientes. Consulte as <Link href="/condicoes" style={{ textDecoration: 'underline' }}>condições comerciais</Link> e o <Link href={CLINIC_FINANCING_PATH} style={{ textDecoration: 'underline' }}>financiamento odontológico para clínicas</Link>.</p>
+        </section>
 
         {/* Form Container */}
         <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0', padding: 'clamp(1.25rem, 4vw, 2.5rem)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>

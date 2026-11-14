@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Calendar, User, CheckCircle, ExternalLink } from 'lucide-react';
 import { getPublicArticle as fetchArticle, getPublicArticles } from '@/lib/published-content';
 import { ArticleMarkdown } from '@/components/ArticleMarkdown';
+import { ArticleCommercialCta } from '@/components/ArticleCommercialCta';
+import { selectRelatedArticles } from '@/lib/article-discovery';
 import { SITE_URL, ORGANIZATION_ID, jsonLd as serializeJsonLd, isoDate } from '@/lib/seo';
 import { ArticleCard } from '@/components/ArticleCard';
 import { CATEGORY_LABELS } from '@/types';
@@ -62,17 +64,7 @@ export default async function ArticlePage({ params }: Props) {
   }
 
   const allArticles = await getPublicArticles();
-  const explicit = article.relatedArticles || [];
-  const terms = (title: string) => new Set(title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-    .replace(/odontologic\w*|odontologia|dentari\w*|dental|dentista\w*/g, 'odontologia')
-    .split(/[^a-z]+/).filter(t => t.length > 4 && !['financiamento','parcelamento','parcelado','parcelada','parcelar','tratamento','tratamentos','particular','particulares','funciona','cuidados','planejar','custos','orcamento','orcamentos'].includes(t)));
-  const topic = terms(article.title);
-  const relevance = (candidate: typeof article) => (explicit.includes(candidate.slug) ? 1000 : 0)
-    + [...terms(candidate.title)].filter(term => topic.has(term)).length;
-  const related = allArticles
-    .filter(a => a.slug !== article.slug && (explicit.includes(a.slug) || a.category === article.category))
-    .sort((a, b) => relevance(b) - relevance(a))
-    .slice(0, 3);
+  const related = selectRelatedArticles(article, allArticles);
 
   const categoryLabel = CATEGORY_LABELS[article.category] || 'Conteúdo';
   
@@ -275,11 +267,7 @@ export default async function ArticlePage({ params }: Props) {
                 <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>Conteúdo em elaboração.</p>
               )}
 
-              <aside style={{ marginTop: '2rem', padding: '1.25rem', background: '#eef2ff', borderRadius: 12 }}>
-                <strong>Condições atuais da Benavera</strong>
-                <p style={{ margin: '0.5rem 0', lineHeight: 1.6 }}>Para clínicas: taxa de 5% por operação, sem mensalidade ou adesão. Até 36 parcelas, conforme análise e modalidade. Exemplos educativos deste artigo não substituem uma proposta.</p>
-                <Link href="/condicoes" style={{ color: '#3730a3', textDecoration: 'underline' }}>Consultar taxas, repasse e condições</Link>
-              </aside>
+              <ArticleCommercialCta article={{ slug: article.slug, title: article.title, category: article.category }} />
               {/* Fontes */}
               {article.sources && article.sources.length > 0 && (
                 <div
