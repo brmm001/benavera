@@ -121,6 +121,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={inter.variable}>
+      <head>
+        <meta name="msvalidate.01" content="EACCA67171B0E64F4A05CA3D97560DAE" />
+      </head>
       <body className="antialiased bg-white text-slate-900 font-sans">
         {children}
         <PublicAnalytics />
