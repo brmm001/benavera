@@ -1,28 +1,25 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  ArrowRight, CheckCircle2, ShieldCheck, Zap, TrendingUp, DollarSign,
-  Users, Building2, CreditCard, ChevronRight, Clock, Star, Phone, FileText,
-  MessageCircle
-} from 'lucide-react';
+import { ArrowRight, CheckCircle2, MessageCircle } from 'lucide-react';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 import { ArticleCard } from '@/components/ArticleCard';
 import { getPublicArticles } from '@/lib/published-content';
+import { COMMERCIAL, CLINIC_FINANCING_PATH, IMPLANT_FINANCING_PATH } from '@/lib/commercial';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Benavera | Financiamento para clínicas de saúde',
+    absolute: 'Benavera | Financiamento odontológico e para clínicas',
   },
   description:
-    'Financiamento para tratamentos de saúde em até 36x, conforme análise. Taxa de 5% para a clínica, sem mensalidade ou adesão. Conheça a Benavera.',
+    COMMERCIAL.description,
   alternates: { canonical: 'https://www.benavera.com.br' },
 };
 
 const clinicStats = [
-  { value: '5%', label: 'Taxa por operação para a clínica' },
+  { value: `${COMMERCIAL.clinicFeePercent}%`, label: 'Taxa por operação para a clínica' },
   { value: 'Sem adesão', label: 'Cadastro sem taxa de adesão' },
-  { value: 'Até 36x', label: 'Parcelas que cabem no bolso do paciente' },
+  { value: `Até ${COMMERCIAL.maxInstallments}x`, label: 'Conforme análise e modalidade' },
   { value: 'Sem mensalidade', label: 'Sem cobrança mensal para a clínica' },
 ];
 
@@ -35,7 +32,7 @@ const howItWorksClinic = [
   {
     step: '02',
     title: 'Envie o link direto no WhatsApp do paciente',
-    desc: 'O paciente abre a proposta no próprio smartphone, visualiza o valor planejado e escolhe o número de parcelas ideal (6x a 36x).',
+    desc: 'O paciente acessa a proposta pelo celular e avalia as opções de prazo e pagamento efetivamente disponíveis para seu caso.',
   },
   {
     step: '03',
@@ -62,7 +59,7 @@ const faqItems = [
   {
     question: 'Como a Benavera ajuda minha clínica a faturar mais?',
     answer:
-      'A Benavera oferece uma alternativa quando a forma de pagamento dificulta o fechamento do orçamento. O paciente pode avaliar crédito convencional ou consignado em até 36x, conforme análise e modalidade.',
+      `A Benavera oferece uma alternativa quando a forma de pagamento dificulta o fechamento do orçamento. O paciente pode avaliar crédito convencional ou consignado em até ${COMMERCIAL.maxInstallments}x, conforme análise, elegibilidade e disponibilidade.`,
   },
   {
     question: 'A clínica assume risco de inadimplência caso o paciente atrase?',
@@ -77,7 +74,7 @@ const faqItems = [
   {
     question: 'Quanto custa para a clínica se credenciar?',
     answer:
-      'A condição comercial é de 5% por operação para a clínica, sem mensalidade ou taxa de adesão. A taxa da clínica não corresponde aos juros do paciente.',
+      `${COMMERCIAL.clinicCost}. A taxa da clínica não corresponde aos juros do paciente.`,
   },
   {
     question: 'Como funciona para o paciente que quer parcelar?',
@@ -156,7 +153,7 @@ export default async function HomePage() {
                   marginBottom: '1.25rem',
                 }}
               >
-                A infraestrutura financeira que faz sua clínica{' '}
+                Financiamento para clínicas odontológicas{' '}
                 <span
                   style={{
                     background: 'linear-gradient(135deg, #818cf8 0%, #34d399 100%)',
@@ -164,7 +161,7 @@ export default async function HomePage() {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  aprovar mais orçamentos.
+                  e de saúde.
                 </span>
               </h1>
 
@@ -177,7 +174,7 @@ export default async function HomePage() {
                   maxWidth: '540px',
                 }}
               >
-                Ofereça uma alternativa de crédito em <strong>até 36x</strong>, conforme análise e modalidade. Sua clínica paga <strong>5% por operação</strong>, sem mensalidade ou adesão, e acompanha as propostas no portal Benavera.
+                A Benavera intermedeia crédito para seus pacientes em <strong>até {COMMERCIAL.maxInstallments}x</strong>, conforme análise e modalidade. Sua clínica paga <strong>{COMMERCIAL.clinicFeePercent}% por operação</strong>, sem mensalidade ou adesão, e acompanha as propostas no portal.
               </p>
 
               {/* Botões de Ação B2B */}
@@ -216,11 +213,16 @@ export default async function HomePage() {
                 </a>
               </div>
 
+              <nav aria-label="Soluções para odontologia" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem 1.5rem', marginBottom: '1.75rem', lineHeight: 1.7 }}>
+                <Link href={CLINIC_FINANCING_PATH} style={{ color: '#c7d2fe', textDecoration: 'underline' }}>Financiamento odontológico para clínicas</Link>
+                <Link href={IMPLANT_FINANCING_PATH} style={{ color: '#c7d2fe', textDecoration: 'underline' }}>Implantes e prótese protocolo</Link>
+              </nav>
+
               {/* Trust Badges */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center' }}>
                 {[
                   'Sem mensalidade fixa',
-                  'Taxa de 5% por operação',
+                  `Taxa de ${COMMERCIAL.clinicFeePercent}% por operação`,
                   'Crédito sujeito à análise',
                 ].map((item) => (
                   <span
@@ -469,7 +471,7 @@ export default async function HomePage() {
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.875rem', color: '#1e293b' }}>
                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                   <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span>Parcelamento em até 36x que viabiliza tratamentos de alto valor.</span>
+                  <span>Até {COMMERCIAL.maxInstallments} parcelas, conforme análise e modalidade.</span>
                 </li>
                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                   <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />

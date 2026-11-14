@@ -183,6 +183,8 @@ export function Footer() {
                 }}
               >
                 {[
+                  { href: '/financiamento-odontologico-para-clinicas', label: 'Financiamento odontológico' },
+                  { href: '/financiamento-implantes-para-clinicas', label: 'Implantes e protocolo' },
                   { href: '/condicoes', label: 'Taxas e condições' },
                   { href: '/benavera-ou-capim', label: 'Benavera ou Capim' },
                   { href: '/contato', label: 'Contato' },
@@ -190,7 +192,6 @@ export function Footer() {
                   { href: '/solucoes-financeiras-para-clinicas', label: 'Soluções para Orçamentos' },
                   { href: '/credenciamento', label: 'Credenciar minha clínica' },
                   { href: '/portal/login', label: 'Portal da clínica' },
-                  { href: '/credenciamento', label: 'Quero conhecer' },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link

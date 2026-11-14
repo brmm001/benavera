@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, TrendingUp, Users, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, TrendingUp, ShieldCheck, Zap } from 'lucide-react';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
+import { COMMERCIAL } from '@/lib/commercial';
+import { ClinicFinancingLinks } from '@/components/ClinicFinancingLinks';
 
 export const metadata: Metadata = {
   title: 'Soluções financeiras para clínicas',
@@ -23,7 +25,7 @@ const faqItems = [
   {
     question: 'A clínica precisa pagar mensalidade ou taxa de adesão?',
     answer:
-      'Na Benavera, a taxa da clínica é de 5% por operação, sem mensalidade ou adesão. Essa taxa não representa os juros do paciente. Confira as condições da proposta antes de contratar.',
+      `${COMMERCIAL.clinicCost}. Essa taxa não representa os juros do paciente. Confira as condições da proposta antes de contratar.`,
   },
   {
     question: 'A clínica assume risco de inadimplência do paciente?',
@@ -297,7 +299,8 @@ export default function SolucoesClinicasPage() {
                 </tbody>
               </table>
             </div>
-            <p style={{ lineHeight: 1.8, marginBottom: '3rem' }}>Na Benavera, a condição comercial da clínica é <strong>5% por operação, sem mensalidade ou adesão</strong>. O parcelamento pode chegar a 36 vezes, conforme análise e modalidade. <Link href="/condicoes" style={{ textDecoration: 'underline' }}>Consulte taxas e condições</Link> e <Link href="/benavera-ou-capim" style={{ textDecoration: 'underline' }}>os critérios para comparar Benavera e Capim</Link>.</p>
+            <div style={{ marginBottom: '1.5rem' }}><ClinicFinancingLinks /></div>
+            <p style={{ lineHeight: 1.8, marginBottom: '3rem' }}><strong>{COMMERCIAL.clinicCost}.</strong> {COMMERCIAL.installmentCondition}. <Link href="/condicoes" style={{ textDecoration: 'underline' }}>Consulte taxas e condições</Link> e <Link href="/benavera-ou-capim" style={{ textDecoration: 'underline' }}>os critérios para comparar Benavera e Capim</Link>.</p>
 
             {/* Artigos B2B */}
             <div

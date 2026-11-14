@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, ChevronDown, CheckCircle2, Shield, AlertCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { FinancialDisclaimer } from '@/components/FinancialDisclaimer';
 
@@ -109,6 +109,7 @@ export default function ParcelamentoOdontologicoPage() {
               estabilidade.
             </p>
 
+            <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '1.25rem' }}>Você é dentista ou gestor? <Link href="/financiamento-odontologico-para-clinicas" style={{ color: '#3730a3', textDecoration: 'underline' }}>Financiamento odontológico para clínicas</Link>.</p>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Link href="/simular" className="btn-primary">
                 Simular parcelamento

@@ -108,6 +108,7 @@ export default function FinanciamentoImplantePage() {
               parcelar implantes individuais e próteses protocolo no Brasil.
             </p>
 
+            <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '1.25rem' }}>Você é dentista ou gestor? <Link href="/financiamento-implantes-para-clinicas" style={{ color: '#3730a3', textDecoration: 'underline' }}>Financiamento de implantes e prótese protocolo para clínicas</Link>.</p>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Link href="/simular" className="btn-primary">
                 Simular implante

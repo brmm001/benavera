@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Menu, X, Building2, User } from 'lucide-react';
 
 const navLinks = [
-  { href: '/como-funciona', label: 'Como funciona' },
+  { href: '/financiamento-odontologico-para-clinicas', label: 'Financiamento' },
   { href: '/clinicas', label: 'Para clínicas' },
   { href: '/conteudos', label: 'Conteúdos' },
   { href: '/sobre', label: 'Sobre' },
@@ -138,7 +138,7 @@ export function Header() {
 
             {/* CTA B2B principal */}
             <Link
-              href="/clinicas"
+              href="/credenciamento"
               id="header-clinic-cta"
               className="btn-secondary"
               style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', gap: '0.375rem' }}

@@ -20,7 +20,7 @@ export function InformationPage({ title, intro, content, clinicCta = true }: {
     </section>
     <section className="container-benavera" style={{ maxWidth: 940, paddingTop: '2rem', paddingBottom: '4rem' }}>
       <ArticleMarkdown content={content} />
-      <div style={{ marginTop: '2rem' }}><FinancialDisclaimer compact /></div>
+      <div style={{ marginTop: '2rem' }}><FinancialDisclaimer /></div>
       <nav aria-label="Próximos passos" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '2rem' }}>
         {clinicCta && <Link href="/credenciamento" className="btn-primary">Cadastrar minha clínica</Link>}
         <Link href="/contato" className="btn-secondary">Falar com a Benavera</Link>

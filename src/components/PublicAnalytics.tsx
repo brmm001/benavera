@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 import Link from 'next/link';
 import { isPublicPath, SITE_URL } from '@/lib/seo';
+import { CLINIC_FINANCING_PATH, IMPLANT_FINANCING_PATH } from '@/lib/commercial';
 import { flushAnalytics, trackEvent, pauseAnalytics } from '@/lib/analytics';
 import { createSerialTaskQueue } from '@/lib/serial-task-queue';
 
@@ -97,7 +98,7 @@ export function PublicAnalytics() {
       if (!anchor) return;
       const url = new URL(anchor.href, location.origin);
       if (url.hostname === 'wa.me' || url.hostname === 'api.whatsapp.com') trackEvent('whatsapp_clicked');
-      else if (url.origin === location.origin && ['/credenciamento', '/simular', '/simuladorclinicas'].includes(url.pathname)) trackEvent('cta_clicked', { source: url.pathname.slice(1) });
+      else if (url.origin === location.origin && ['/credenciamento', '/simular', '/simuladorclinicas', CLINIC_FINANCING_PATH, IMPLANT_FINANCING_PATH].includes(url.pathname)) trackEvent('cta_clicked', { source: url.pathname.slice(1) });
       if (externalLoaded.current && url.origin === location.origin && !EXTERNAL_PATHS.includes(url.pathname) && !event.ctrlKey && !event.metaKey && anchor.target !== '_blank') {
         event.preventDefault(); event.stopImmediatePropagation(); window.location.assign(anchor.href);
       }
