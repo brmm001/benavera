@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAdminSession } from '@/lib/auth';
 import {
@@ -6,6 +6,7 @@ import {
   createBlogArticle,
   bulkCreateBlogArticles,
 } from '@/lib/blog-db';
+import { submitToIndexNow } from '@/lib/indexnow';
 import { articles as staticArticles, articleContent } from '@/content/articles';
 
 export async function GET(req: NextRequest) {
@@ -88,6 +89,7 @@ export async function POST(req: NextRequest) {
     revalidatePath('/conteudos', 'layout');
     revalidatePath('/sitemap.xml');
     revalidatePath('/llms.txt');
+    if (article.status === 'published') after(() => submitToIndexNow([`/conteudos/${article.slug}`, '/conteudos']));
     return NextResponse.json({ success: true, article }, { status: 201 });
   } catch (e) {
     console.error('[api/admin/blog] POST error:', e);
