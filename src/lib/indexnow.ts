@@ -4,7 +4,7 @@
 
 import { SITE_URL } from './seo';
 
-export const INDEXNOW_KEY = process.env.INDEXNOW_KEY || '3519424c3a2047c1badd3a5146d38ffa';
+export const INDEXNOW_KEY = process.env.INDEXNOW_KEY || 'b001e61b2ee847ebbde6101056527954';
 const ENDPOINT = 'https://api.indexnow.org/indexnow';
 const MAX_URLS_PER_REQUEST = 10000;
 
