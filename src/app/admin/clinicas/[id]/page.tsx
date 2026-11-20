@@ -1,0 +1,171 @@
+'use client';
+// src/app/admin/clinicas/[id]/page.tsx — Controle individual da clínica pelo administrador Benavera
+import { useEffect, useState, use } from 'react';
+import Link from 'next/link';
+import '@/app/painel/clinic-panel.css';
+import type { ResolvedModule } from '@/lib/clinic-modules';
+
+interface ClinicControlResponse {
+  clinic: { id: string; nome_fantasia: string; razao_social: string; responsavel: string | null; email: string | null; cnpj: string; ativo: boolean };
+  subscription: { plan_id: string | null; status: string; billing_cycle: string; custom_price: number | null; discount_percent: number; is_exempt: boolean; notes: string | null } | null;
+  plans: { id: string; name: string }[];
+  users: { id: string; name: string; email: string; role: string; ativo: boolean }[];
+  auditLogs: { id: string; actor_name: string | null; scope: string; target_id: string; action: string; created_at: string }[];
+  entitlements: { planName: string; subscriptionStatus: string; modules: ResolvedModule[] };
+}
+
+export default function AdminClinicaControlePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [data, setData] = useState<ClinicControlResponse | null>(null);
+  const [msg, setMsg] = useState('');
+  const [sub, setSub] = useState({ plan_id: '', status: 'EXEMPT', billing_cycle: 'LIFETIME_FREE', custom_price: '', discount_percent: '0', is_exempt: true, notes: '' });
+
+  async function load() {
+    const res = await fetch(`/api/admin/clinicas/${id}/controle`);
+    const d = await res.json();
+    if (res.ok) {
+      setData(d);
+      if (d.subscription) {
+        setSub({
+          plan_id: d.subscription.plan_id || '',
+          status: d.subscription.status || 'EXEMPT',
+          billing_cycle: d.subscription.billing_cycle || 'LIFETIME_FREE',
+          custom_price: d.subscription.custom_price ?? '',
+          discount_percent: String(d.subscription.discount_percent ?? 0),
+          is_exempt: Boolean(d.subscription.is_exempt),
+          notes: d.subscription.notes || '',
+        });
+      }
+    }
+  }
+  useEffect(() => { load(); }, [id]);
+
+  async function setModuleState(moduleId: string, adminState: string) {
+    const res = await fetch(`/api/admin/clinicas/${id}/controle`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: 'override', module_id: moduleId, admin_state: adminState }),
+    });
+    if (res.ok) {
+      setMsg(`Módulo ${moduleId} alterado para ${adminState}.`);
+      load();
+    }
+  }
+
+  async function saveSubscription(e: React.FormEvent) {
+    e.preventDefault();
+    const res = await fetch(`/api/admin/clinicas/${id}/controle`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: 'subscription', ...sub }),
+    });
+    if (res.ok) {
+      setMsg('Assinatura e condições comerciais da clínica atualizadas.');
+      load();
+    }
+  }
+
+  if (!data) return <div className="bv-page"><div className="bv-card">Carregando controle da clínica…</div></div>;
+
+  return (
+    <div className="bv-page">
+      <div style={{ marginBottom: '12px' }}>
+        <Link href="/admin/clinicas" style={{ fontSize: '13px', color: '#64748b', textDecoration: 'none' }}>← Voltar às clínicas</Link>
+      </div>
+      <div className="bv-header">
+        <div>
+          <h1 className="bv-title">{data.clinic.nome_fantasia || data.clinic.razao_social}</h1>
+          <p className="bv-subtitle">Responsável: {data.clinic.responsavel || '—'} · CNPJ {data.clinic.cnpj} · Plano efetivo: <strong>{data.entitlements.planName}</strong></p>
+        </div>
+      </div>
+
+      {msg && <div className="bv-card" style={{ marginBottom: '16px', background: '#ecfdf5', borderColor: '#a7f3d0', color: '#065f46', fontSize: '13px', fontWeight: '600' }}>{msg}</div>}
+
+      {/* Assinatura individual */}
+      <form onSubmit={saveSubscription} className="bv-card" style={{ marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: '800' }}>Plano e Condições Comerciais</h3>
+        <div className="bv-grid bv-cols-3" style={{ marginBottom: '12px' }}>
+          <div>
+            <label className="bv-label">Plano</label>
+            <select className="bv-select" value={sub.plan_id} onChange={(e) => setSub({ ...sub, plan_id: e.target.value })}>
+              <option value="">Padrão gratuito</option>
+              {data.plans.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="bv-label">Situação</label>
+            <select className="bv-select" value={sub.status} onChange={(e) => setSub({ ...sub, status: e.target.value })}>
+              <option value="EXEMPT">Isenta / Gratuita</option>
+              <option value="ACTIVE">Ativa</option>
+              <option value="TRIAL">Período de teste (Trial)</option>
+              <option value="GRACE">Cortesia</option>
+              <option value="SUSPENDED">Suspensa</option>
+              <option value="CANCELLED">Cancelada</option>
+            </select>
+          </div>
+          <div>
+            <label className="bv-label">Ciclo</label>
+            <select className="bv-select" value={sub.billing_cycle} onChange={(e) => setSub({ ...sub, billing_cycle: e.target.value })}>
+              <option value="LIFETIME_FREE">Gratuito vitalício</option>
+              <option value="MONTHLY">Mensal</option>
+              <option value="ANNUAL">Anual</option>
+              <option value="CUSTOM">Personalizado</option>
+            </select>
+          </div>
+          <div><label className="bv-label">Preço especial (R$)</label><input className="bv-input" type="number" step="0.01" placeholder="Usar do plano" value={sub.custom_price} onChange={(e) => setSub({ ...sub, custom_price: e.target.value })} /></div>
+          <div><label className="bv-label">Desconto (%)</label><input className="bv-input" type="number" step="1" value={sub.discount_percent} onChange={(e) => setSub({ ...sub, discount_percent: e.target.value })} /></div>
+          <div><label className="bv-label">Observações comerciais</label><input className="bv-input" value={sub.notes} onChange={(e) => setSub({ ...sub, notes: e.target.value })} /></div>
+        </div>
+        <button className="bv-btn">Salvar assinatura da clínica</button>
+      </form>
+
+      {/* Controle de Módulos */}
+      <div className="bv-card" style={{ marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: '800' }}>Controle Individual de Módulos</h3>
+        <div className="bv-table-wrap">
+          <table className="bv-table">
+            <thead><tr><th>Módulo</th><th>Regra atual</th><th>Estado efetivo</th><th>Alterar regra</th></tr></thead>
+            <tbody>
+              {data.entitlements.modules.map((m) => (
+                <tr key={m.id}>
+                  <td><strong>{m.name}</strong><div style={{ fontSize: '11px', color: '#64748b' }}>{m.reason}</div></td>
+                  <td><span className="bv-badge" style={{ background: '#f1f5f9', color: '#334155' }}>{m.adminState}</span></td>
+                  <td><span className="bv-badge" style={m.effectiveEnabled ? { background: '#d1fae5', color: '#047857' } : { background: '#fef2f2', color: '#dc2626' }}>{m.effectiveEnabled ? 'Habilitado' : 'Inativo'}</span></td>
+                  <td>
+                    <select className="bv-select" style={{ width: '210px', padding: '6px 8px' }} value={m.adminState} onChange={(e) => setModuleState(m.id, e.target.value)}>
+                      <option value="AVAILABLE">Disponível (clínica escolhe)</option>
+                      <option value="REQUIRED">Obrigatório</option>
+                      <option value="EXCEPTION_FREE">Liberado como exceção</option>
+                      <option value="BLOCKED">Bloqueado pela Benavera</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Usuários + Auditoria */}
+      <div className="bv-grid bv-cols-2">
+        <div className="bv-card">
+          <h3 style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: '800' }}>Usuários ({data.users.length})</h3>
+          {data.users.map((u) => (
+            <div key={u.id} style={{ padding: '8px 0', borderBottom: '1px solid #f1f5f9', fontSize: '13px', display: 'flex', justifyContent: 'space-between' }}>
+              <div><strong>{u.name}</strong><div style={{ fontSize: '11px', color: '#64748b' }}>{u.email} · {u.role}</div></div>
+              <span className="bv-badge" style={u.ativo ? { background: '#d1fae5', color: '#047857' } : { background: '#f1f5f9', color: '#64748b' }}>{u.ativo ? 'Ativo' : 'Inativo'}</span>
+            </div>
+          ))}
+        </div>
+        <div className="bv-card">
+          <h3 style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: '800' }}>Histórico de auditoria</h3>
+          {data.auditLogs.length === 0 ? <p style={{ fontSize: '13px', color: '#94a3b8' }}>Nenhuma alteração registrada ainda.</p> : data.auditLogs.map((a) => (
+            <div key={a.id} style={{ padding: '8px 0', borderBottom: '1px solid #f1f5f9', fontSize: '12px' }}>
+              <strong>{a.action}</strong> ({a.target_id}) · <span style={{ color: '#64748b' }}>{a.actor_name || 'Sistema'} · {new Date(a.created_at).toLocaleString('pt-BR')}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

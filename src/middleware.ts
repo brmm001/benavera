@@ -22,6 +22,8 @@ const PROTECTED_PREFIXES = [
   '/repasses',
   '/equipe',
   '/configuracoes',
+  '/painel',
+  '/api/painel',
   '/admin',
   '/api/admin',
   '/api/applications',

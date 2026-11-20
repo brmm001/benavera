@@ -1,27 +1,82 @@
 'use client';
 // components/ClinicSidebar.tsx
+// Navegação modular, agrupada por categoria e responsiva (desktop sidebar + mobile drawer).
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import {
+  LayoutDashboard,
+  FileText,
+  Wallet,
+  Calculator,
+  Link2,
+  RotateCcw,
+  Kanban,
+  FileCheck,
+  Users,
+  Sparkles,
+  Percent,
+  Megaphone,
+  Calendar,
+  BarChart3,
+  Trophy,
+  Heart,
+  Sliders,
+  Settings,
+  UserCog,
+  Plus,
+  LogOut,
+  Menu,
+  X,
+} from 'lucide-react';
+import type { ModuleCategory, ResolvedModule } from '@/lib/clinic-modules';
 
-const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Início', icon: '⊞' },
-  { href: '/financiamentos', label: 'Financiamentos', icon: '◉' },
-  { href: '/pacientes', label: 'Pacientes', icon: '♥' },
-  { href: '/repasses', label: 'Repasses', icon: '◈' },
-  { href: '/equipe', label: 'Equipe', icon: '◎' },
-  { href: '/configuracoes', label: 'Configurações', icon: '⚙' },
-];
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
+  FileText,
+  Wallet,
+  Calculator,
+  Link2,
+  RotateCcw,
+  Kanban,
+  FileCheck,
+  Users,
+  Sparkles,
+  Percent,
+  Megaphone,
+  Calendar,
+  BarChart3,
+  Trophy,
+};
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+  moduleId?: string;
+}
 
 interface ClinicSidebarProps {
   userName: string;
   clinicName: string;
+  modules?: ResolvedModule[];
+  uiMode?: 'simple' | 'complete';
+  planName?: string;
 }
 
-export function ClinicSidebar({ userName, clinicName }: ClinicSidebarProps) {
+const CATEGORY_ORDER: { key: ModuleCategory; label: string }[] = [
+  { key: 'inicio', label: 'Início' },
+  { key: 'financiamentos', label: 'Financiamentos' },
+  { key: 'pacientes_orcamentos', label: 'Pacientes e Orçamentos' },
+  { key: 'ferramentas_comerciais', label: 'Ferramentas Comerciais' },
+  { key: 'relatorios', label: 'Relatórios' },
+  { key: 'configuracoes', label: 'Configurações' },
+];
+
+export function ClinicSidebar({ userName, clinicName, modules, uiMode = 'simple', planName }: ClinicSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -29,132 +84,225 @@ export function ClinicSidebar({ userName, clinicName }: ClinicSidebarProps) {
     router.push('/login');
   }
 
-  function handleNewFinancing() {
-    router.push('/novo-financiamento');
+  const activeModules = (modules || []).filter((m) => m.effectiveEnabled);
+  const hasDynamic = Array.isArray(modules);
+
+  const grouped: Record<ModuleCategory, NavItem[]> = {
+    inicio: [{ href: '/dashboard', label: 'Visão Geral', icon: LayoutDashboard }],
+    financiamentos: hasDynamic
+      ? []
+      : [
+          { href: '/financiamentos', label: 'Financiamentos', icon: FileText },
+          { href: '/repasses', label: 'Repasses', icon: Wallet },
+        ],
+    pacientes_orcamentos: [{ href: '/pacientes', label: 'Pacientes', icon: Heart }],
+    ferramentas_comerciais: [],
+    relatorios: [],
+    configuracoes: [
+      { href: '/painel/modulos', label: 'Módulos e Layout', icon: Sliders },
+      { href: '/equipe', label: 'Equipe', icon: UserCog },
+      { href: '/configuracoes', label: 'Configurações', icon: Settings },
+    ],
+  };
+
+  if (hasDynamic) {
+    for (const m of activeModules) {
+      const IconComp = ICON_MAP[m.icon] || FileText;
+      const cat = grouped[m.category] ? m.category : 'ferramentas_comerciais';
+      grouped[cat].push({
+        href: m.href,
+        label: m.name,
+        icon: IconComp,
+        moduleId: m.id,
+      });
+    }
   }
 
-  return (
-    <aside style={{
-      width: '240px',
-      minHeight: '100vh',
-      background: 'white',
-      borderRight: '1px solid #e2e8f0',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '0',
-      flexShrink: 0,
-    }}>
-      {/* Logo */}
-      <div style={{ padding: '28px 24px 20px', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-          <div style={{
-            width: '32px', height: '32px',
-            background: 'linear-gradient(135deg, #6370f1, #4040ca)',
-            borderRadius: '8px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontWeight: '800', fontSize: '15px', flexShrink: 0,
-          }}>B</div>
-          <span style={{ fontSize: '18px', fontWeight: '800', color: '#1c1d4c', letterSpacing: '-0.3px' }}>
-            Benavera
-          </span>
+  const sidebarContent = (
+    <>
+      <div style={{ padding: '22px 20px 16px', borderBottom: '1px solid #f1f5f9' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                background: 'linear-gradient(135deg, #6370f1, #4040ca)',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: '800',
+                fontSize: '16px',
+                flexShrink: 0,
+              }}
+            >
+              B
+            </div>
+            <span style={{ fontSize: '18px', fontWeight: '800', color: '#1c1d4c', letterSpacing: '-0.3px' }}>
+              Benavera
+            </span>
+          </div>
+          {mobileOpen && (
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Fechar menu"
+              style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
-        <div style={{
-          background: '#f8fafc', borderRadius: '8px', padding: '8px 10px',
-        }}>
-          <p style={{ margin: 0, fontSize: '12px', fontWeight: '600', color: '#334155' }}>{clinicName}</p>
-          <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>{userName}</p>
+
+        <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '10px 12px', border: '1px solid #f1f5f9' }}>
+          <p style={{ margin: 0, fontSize: '12px', fontWeight: '700', color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {clinicName}
+          </p>
+          <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>{userName}</p>
+          {planName && (
+            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+              <span style={{ fontSize: '10px', fontWeight: '700', color: '#4040ca', background: '#eef2ff', padding: '2px 7px', borderRadius: '99px' }}>
+                {planName}
+              </span>
+              <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                {uiMode === 'simple' ? 'Modo simples' : 'Modo completo'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* CTA Principal */}
-      <div style={{ padding: '16px 16px 8px' }}>
+      <div style={{ padding: '14px 16px 6px' }}>
         <button
-          onClick={handleNewFinancing}
-          style={{
-            width: '100%', padding: '12px',
-            background: 'linear-gradient(135deg, #6370f1, #4040ca)',
-            color: 'white', border: 'none', borderRadius: '10px',
-            fontSize: '13px', fontWeight: '700', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            boxShadow: '0 4px 12px rgba(99,112,241,0.35)',
-            transition: 'all 0.2s',
-            fontFamily: 'inherit',
+          type="button"
+          onClick={() => {
+            setMobileOpen(false);
+            router.push('/novo-financiamento');
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-1px)';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(99,112,241,0.45)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(99,112,241,0.35)';
-          }}
+          className="bv-btn"
+          style={{ width: '100%', padding: '11px 14px', fontSize: '13px', boxShadow: '0 4px 14px rgba(64,64,202,0.28)' }}
         >
-          <span style={{ fontSize: '16px' }}>+</span> Novo financiamento
+          <Plus size={16} /> Novo financiamento
         </button>
       </div>
 
-      {/* Nav */}
-      <nav style={{ padding: '8px 12px', flex: 1 }}>
-        {NAV_ITEMS.map(item => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+      <nav style={{ padding: '10px 12px 16px', flex: 1 }}>
+        {CATEGORY_ORDER.map((cat) => {
+          const items = grouped[cat.key];
+          if (!items || items.length === 0) return null;
           return (
-            <a
-              key={item.href}
-              href={item.href}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '10px 12px', borderRadius: '8px', marginBottom: '2px',
-                textDecoration: 'none',
-                background: isActive ? '#f0f4ff' : 'transparent',
-                color: isActive ? '#4040ca' : '#64748b',
-                fontSize: '14px', fontWeight: isActive ? '600' : '500',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => {
-                if (!isActive) {
-                  e.currentTarget.style.background = '#f8fafc';
-                  e.currentTarget.style.color = '#334155';
-                }
-              }}
-              onMouseLeave={e => {
-                if (!isActive) {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#64748b';
-                }
-              }}
-            >
-              <span style={{ fontSize: '16px', width: '20px', textAlign: 'center' }}>{item.icon}</span>
-              {item.label}
-            </a>
+            <div key={cat.key} style={{ marginBottom: '14px' }}>
+              <div
+                style={{
+                  padding: '0 10px 6px',
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color: '#94a3b8',
+                }}
+              >
+                {cat.label}
+              </div>
+              {items.map((item) => {
+                const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
+                const Icon = item.icon;
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '9px 12px',
+                      borderRadius: '10px',
+                      marginBottom: '2px',
+                      textDecoration: 'none',
+                      background: isActive ? '#eef2ff' : 'transparent',
+                      color: isActive ? '#4040ca' : '#475569',
+                      fontSize: '13px',
+                      fontWeight: isActive ? '700' : '500',
+                      transition: 'all 0.14s ease',
+                    }}
+                  >
+                    <Icon size={16} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.label}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
           );
         })}
       </nav>
 
-      {/* Logout */}
-      <div style={{ padding: '16px 12px', borderTop: '1px solid #f1f5f9' }}>
+      <div style={{ padding: '12px', borderTop: '1px solid #f1f5f9' }}>
         <button
+          type="button"
           onClick={handleLogout}
           disabled={loggingOut}
           style={{
-            width: '100%', padding: '10px 12px',
-            background: 'none', border: '1px solid #e2e8f0',
-            borderRadius: '8px', cursor: 'pointer',
-            color: '#94a3b8', fontSize: '13px', fontWeight: '500',
-            display: 'flex', alignItems: 'center', gap: '8px',
-            transition: 'all 0.15s', fontFamily: 'inherit',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.borderColor = '#fecaca';
-            e.currentTarget.style.color = '#dc2626';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.borderColor = '#e2e8f0';
-            e.currentTarget.style.color = '#94a3b8';
+            width: '100%',
+            padding: '9px 12px',
+            background: 'none',
+            border: '1px solid #e2e8f0',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            color: '#64748b',
+            fontSize: '13px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            fontFamily: 'inherit',
           }}
         >
-          <span>⟵</span> {loggingOut ? 'Saindo…' : 'Sair'}
+          <LogOut size={15} />
+          {loggingOut ? 'Saindo…' : 'Sair da conta'}
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      <div className="bv-mobile-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Abrir menu"
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              padding: '7px 9px',
+              color: '#1c1d4c',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <Menu size={18} />
+          </button>
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: '800', color: '#1c1d4c', lineHeight: 1.1 }}>Benavera</div>
+            <div style={{ fontSize: '11px', color: '#64748b' }}>{clinicName}</div>
+          </div>
+        </div>
+        <button type="button" onClick={() => router.push('/novo-financiamento')} className="bv-btn sm">
+          <Plus size={14} /> Novo
+        </button>
+      </div>
+
+      <div className={`bv-drawer-backdrop ${mobileOpen ? 'open' : ''}`} onClick={() => setMobileOpen(false)} />
+      <aside className={`bv-sidebar ${mobileOpen ? 'open' : ''}`}>{sidebarContent}</aside>
+    </>
   );
 }

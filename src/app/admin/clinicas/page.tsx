@@ -153,6 +153,7 @@ export default function AdminClinicasPage() {
                 <th style={{ padding: '14px 20px', textAlign: 'center' }}>Solicitações</th>
                 <th style={{ padding: '14px 20px', textAlign: 'right' }}>Total Financiado</th>
                 <th style={{ padding: '14px 20px', textAlign: 'center' }}>Status</th>
+                <th style={{ padding: '14px 20px', textAlign: 'right' }}>Controle</th>
               </tr>
             </thead>
             <tbody>
@@ -191,6 +192,14 @@ export default function AdminClinicasPage() {
                     >
                       {c.ativo !== false ? 'ATIVA' : 'INATIVA'}
                     </span>
+                  </td>
+                  <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                    <a
+                      href={`/admin/clinicas/${c.id}`}
+                      style={{ color: '#4040ca', fontWeight: '700', fontSize: '13px', textDecoration: 'none' }}
+                    >
+                      Módulos &amp; Plano →
+                    </a>
                   </td>
                 </tr>
               ))}

@@ -1,0 +1,299 @@
+/* src/app/painel/clinic-panel.css — Design system moderno e responsivo do Painel da Clínica Benavera */
+.bv-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.bv-sidebar {
+  width: 264px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 30;
+}
+
+.bv-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.bv-mobile-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 25;
+}
+
+.bv-drawer-backdrop {
+  display: none;
+}
+
+.bv-page {
+  padding: 32px 36px 56px;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.bv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.bv-title {
+  margin: 0 0 4px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1c1d4c;
+  letter-spacing: -0.025em;
+}
+
+.bv-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.bv-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.bv-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  margin-bottom: 22px;
+}
+
+.bv-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 22px;
+}
+
+.bv-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 22px;
+}
+
+.bv-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  min-width: 0;
+}
+
+.bv-card-hover {
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.bv-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(64, 64, 202, 0.08);
+  border-color: #c7d2fe;
+}
+
+.bv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #6370f1, #4040ca);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  font-family: inherit;
+}
+
+.bv-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(64, 64, 202, 0.28);
+}
+
+.bv-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bv-btn.ghost {
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  box-shadow: none;
+}
+
+.bv-btn.ghost:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  box-shadow: none;
+}
+
+.bv-btn.soft {
+  background: #eef2ff;
+  color: #4040ca;
+  box-shadow: none;
+}
+
+.bv-btn.danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  box-shadow: none;
+}
+
+.bv-btn.sm {
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.bv-input,
+.bv-select,
+.bv-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.bv-input:focus,
+.bv-select:focus,
+.bv-textarea:focus {
+  border-color: #6370f1;
+  box-shadow: 0 0 0 3px rgba(99, 112, 241, 0.12);
+}
+
+.bv-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 5px;
+}
+
+.bv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bv-table-wrap {
+  overflow-x: auto;
+}
+
+.bv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.bv-table th {
+  text-align: left;
+  padding: 11px 14px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.bv-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.bv-table tr:last-child td {
+  border-bottom: none;
+}
+
+.bv-empty {
+  text-align: center;
+  padding: 44px 20px;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+@media (max-width: 960px) {
+  .bv-cols-2,
+  .bv-cols-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .bv-shell {
+    flex-direction: column;
+  }
+  .bv-mobile-bar {
+    display: flex;
+  }
+  .bv-sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    transition: left 0.22s ease;
+    box-shadow: 12px 0 36px rgba(15, 23, 42, 0.16);
+  }
+  .bv-sidebar.open {
+    left: 0;
+  }
+  .bv-drawer-backdrop.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 28;
+  }
+  .bv-page {
+    padding: 20px 16px 48px;
+  }
+  .bv-title {
+    font-size: 22px;
+  }
+}
