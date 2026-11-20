@@ -88,11 +88,41 @@ export default function CrmPipelinePage() {
   }, [fetchActivities]);
 
   const handleStageChange = useCallback(async (cardId: string, newStage: string) => {
-    await fetch(`/api/admin/crm/pipeline/${cardId}`, {
+    setError(null);
+    const res = await fetch(`/api/admin/crm/pipeline/${cardId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stage: newStage }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      const msg = data.error || 'Erro ao mover lead de etapa.';
+      setError(msg);
+      throw new Error(msg);
+    }
+
+    setCards((prev) => {
+      let moved: ClinicCard | undefined;
+      const next: Record<string, ClinicCard[]> = {};
+      for (const [stageId, list] of Object.entries(prev)) {
+        const filtered = list.filter((c) => {
+          if (c.id === cardId) {
+            moved = { ...c, pipeline_stage: newStage };
+            return false;
+          }
+          return true;
+        });
+        next[stageId] = filtered;
+      }
+      if (moved) {
+        next[newStage] = [moved, ...(next[newStage] || [])];
+      }
+      return next;
+    });
+
+    setSelectedCard((prev) =>
+      prev && prev.id === cardId ? { ...prev, pipeline_stage: newStage } : prev
+    );
   }, []);
 
   const totalByStage = stages.reduce((acc, s) => {
@@ -286,29 +316,35 @@ export default function CrmPipelinePage() {
               ))}
             </div>
 
-            {/* Stage badge */}
+            {/* Stage selector */}
             <div style={{ marginBottom: '24px' }}>
               <div style={{ fontSize: '10px', fontWeight: '600', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
                 Etapa atual
               </div>
-              {(() => {
-                const stage = stages.find((s) => s.id === selectedCard.pipeline_stage);
-                if (!stage) return null;
-                return (
-                  <span
-                    style={{
-                      padding: '4px 14px',
-                      borderRadius: '99px',
-                      backgroundColor: stage.color + '15',
-                      color: stage.color,
-                      fontSize: '12px',
-                      fontWeight: '700',
-                    }}
-                  >
-                    ● {stage.label}
-                  </span>
-                );
-              })()}
+              <select
+                value={selectedCard.pipeline_stage}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  handleStageChange(selectedCard.id, next).catch(() => {});
+                }}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#0f172a',
+                  backgroundColor: '#fff',
+                  width: '100%',
+                  cursor: 'pointer',
+                }}
+              >
+                {stages.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Timeline */}

@@ -9,7 +9,10 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
+  pointerWithin,
   closestCorners,
+  type CollisionDetection,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
@@ -60,10 +63,11 @@ function KanbanCard({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: card.id });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
+    touchAction: 'none',
   };
 
   const initials = card.nome_clinica
@@ -221,18 +225,22 @@ function KanbanColumn({
   onCardClick: (card: ClinicCard) => void;
 }) {
   const cardIds = cards.map((c) => c.id);
+  const { setNodeRef, isOver } = useDroppable({ id: stage.id });
 
   return (
     <div
+      ref={setNodeRef}
       style={{
         display: 'flex',
         flexDirection: 'column',
         width: '280px',
         flexShrink: 0,
-        backgroundColor: '#f8fafc',
+        backgroundColor: isOver ? '#f1f5f9' : '#f8fafc',
         borderRadius: '12px',
-        border: '1px solid #e2e8f0',
+        border: `2px solid ${isOver ? stage.color : '#e2e8f0'}`,
         overflow: 'hidden',
+        transition: 'border-color 0.15s, background-color 0.15s',
+        minHeight: '220px',
       }}
     >
       {/* Column header */}
@@ -373,10 +381,16 @@ export default function KanbanBoard({ stages, cards, onStageChange, onCardClick 
     }
   };
 
+  const collisionDetection: CollisionDetection = useCallback((args) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) return pointerCollisions;
+    return closestCorners(args);
+  }, []);
+
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={collisionDetection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
