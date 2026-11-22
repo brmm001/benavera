@@ -23,8 +23,8 @@ const VALID_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
   LENDER_ANALYSIS: ['PRE_APPROVED', 'OFFERS_AVAILABLE', 'DECLINED', 'INTERNAL_REVIEW'],
   PRE_APPROVED: ['OFFERS_AVAILABLE', 'DECLINED'],
   OFFERS_AVAILABLE: ['OFFER_SELECTED', 'EXPIRED', 'CANCELLED'],
-  OFFER_SELECTED: ['CONTRACT_PENDING'],
-  CONTRACT_PENDING: ['CONTRACT_SENT', 'CANCELLED'],
+  OFFER_SELECTED: ['CONTRACT_PENDING', 'OFFERS_AVAILABLE'],
+  CONTRACT_PENDING: ['CONTRACT_SENT', 'CONTRACT_SIGNED', 'OFFERS_AVAILABLE', 'DECLINED', 'EXPIRED', 'CANCELLED'],
   CONTRACT_SENT: ['CONTRACT_SIGNED', 'CANCELLED'],
   CONTRACT_SIGNED: ['APPROVED'],
   APPROVED: ['PAYOUT_SCHEDULED'],
@@ -444,7 +444,7 @@ export async function generateProposalToken(
 export async function selectProposal(
   token: string,
   proposalId: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; applicationId?: string; error?: string }> {
   // Validar token
   const tokenRows = await sql`
     SELECT * FROM proposal_tokens
@@ -480,7 +480,7 @@ export async function selectProposal(
     metadata: { proposalId, token: token.substring(0, 8) + '...' },
   });
 
-  return { success: true };
+  return { success: true, applicationId };
 }
 
 // ── Log de evento de auditoria ───────────────────────────────────────────────

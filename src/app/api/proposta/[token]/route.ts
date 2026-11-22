@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/benavera-db';
 import { selectProposal } from '@/lib/application-service';
+import { authorizeProposal } from '@/lib/partners/hub';
 
 export async function GET(
   request: NextRequest,
@@ -95,7 +96,16 @@ export async function POST(
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, message: 'Proposta selecionada com sucesso.' });
+    const authResult = result.applicationId
+      ? await authorizeProposal(result.applicationId, proposalId)
+      : { redirectUrl: null };
+
+    return NextResponse.json({
+      success: true,
+      message: 'Proposta selecionada com sucesso.',
+      redirectUrl: authResult.redirectUrl,
+      ...(authResult.error ? { authorizeError: authResult.error } : {}),
+    });
   } catch (err) {
     console.error('[Proposta Token POST]', err);
     return NextResponse.json({ error: 'Erro ao selecionar proposta.' }, { status: 500 });

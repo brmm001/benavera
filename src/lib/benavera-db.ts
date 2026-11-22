@@ -348,6 +348,7 @@ export interface FinancialPartner {
   comissao_benavera_percent: number;
   modo: string;
   integration_active: boolean;
+  api_slug: string | null;
   created_at: string;
 }
 

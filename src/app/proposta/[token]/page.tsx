@@ -44,6 +44,7 @@ export default function PropostaPublicaPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [externalRedirectUrl, setExternalRedirectUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -85,13 +86,25 @@ export default function PropostaPublicaPage() {
         body: JSON.stringify({ proposalId: confirmModal.id }),
       });
 
+      const json = await res.json();
       if (!res.ok) {
-        const errJson = await res.json();
-        throw new Error(errJson.error || 'Erro ao selecionar proposta.');
+        throw new Error(json.error || 'Erro ao selecionar proposta.');
       }
 
-      setSuccessMessage('Proposta aceita com sucesso!');
       setConfirmModal(null);
+      if (json.redirectUrl) {
+        setExternalRedirectUrl(json.redirectUrl);
+        setSuccessMessage('Proposta aceita! Redirecionando para concluir na financeira...');
+        await fetchProposal();
+        window.location.href = json.redirectUrl;
+        return;
+      }
+
+      setSuccessMessage(
+        json.authorizeError
+          ? `Proposta aceita! ${json.authorizeError}`
+          : 'Proposta aceita com sucesso!'
+      );
       await fetchProposal();
     } catch (err: any) {
       alert(err.message || 'Erro ao confirmar proposta.');
@@ -136,8 +149,25 @@ export default function PropostaPublicaPage() {
     );
   }
 
-  const isAlreadyChosen = data.proposals.some(p => p.selecionada) || ['PROPOSTA_ACEITA', 'CONTRATO_EMITIDO', 'CONTRATO_ASSINADO', 'REPASSE_SOLICITADO', 'CONCLUIDA'].includes(data.status);
+  const isAlreadyChosen =
+    data.proposals.some(p => p.selecionada) ||
+    [
+      'OFFER_SELECTED',
+      'CONTRACT_PENDING',
+      'CONTRACT_SENT',
+      'CONTRACT_SIGNED',
+      'APPROVED',
+      'PAYOUT_SCHEDULED',
+      'PAYOUT_COMPLETED',
+      'TREATMENT_RELEASED',
+      'PROPOSTA_ACEITA',
+      'CONTRATO_EMITIDO',
+      'CONTRATO_ASSINADO',
+      'REPASSE_SOLICITADO',
+      'CONCLUIDA',
+    ].includes(data.status);
   const selectedProposal = data.proposals.find(p => p.selecionada || p.id === selectedProposalId);
+  const continueUrl = externalRedirectUrl || selectedProposal?.url_externa || null;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1e293b' }}>
@@ -247,8 +277,35 @@ export default function PropostaPublicaPage() {
               </div>
             </div>
             <div style={{ backgroundColor: '#f0fdfa', borderRadius: 8, padding: 14, fontSize: '0.9rem', color: '#047857' }}>
-              ℹ️ <strong>Próximos passos:</strong> O contrato digital está sendo processado. Você receberá o link para assinatura eletrônica no seu WhatsApp ou e-mail cadastrado.
+              ℹ️ <strong>Próximos passos:</strong>{' '}
+              {continueUrl
+                ? 'Finalize a validação cadastral e assinatura digital diretamente no ambiente seguro da financeira.'
+                : 'O contrato digital está sendo processado. Você receberá o link para assinatura eletrônica no seu WhatsApp ou e-mail cadastrado.'}
             </div>
+            {continueUrl && (
+              <div style={{ marginTop: 16 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = continueUrl;
+                  }}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#0d9488',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                    padding: '14px 20px',
+                    borderRadius: 10,
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(13,148,136,0.2)',
+                  }}
+                >
+                  Continuar na financeira →
+                </button>
+              </div>
+            )}
           </div>
         )}
 

@@ -11,6 +11,7 @@ import {
   generateProposalToken,
   transitionStatus,
 } from '@/lib/application-service';
+import { quoteAllPartners } from '@/lib/partners/hub';
 import type { InternalDecision, ApplicationStatus } from '@/lib/benavera-db';
 
 export async function POST(
@@ -33,6 +34,15 @@ export async function POST(
         }
         const { decision, note } = body as { decision: InternalDecision; note?: string };
         const result = await setInternalDecision(id, decision, session, note);
+        return NextResponse.json(result);
+      }
+
+      // ── Consultar todas as financeiras integradas (fan-out) ───────────────
+      case 'quote_all_partners': {
+        if (!hasPermission(session.role, 'APPROVE_REJECT_INTERNAL')) {
+          return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
+        }
+        const result = await quoteAllPartners(id, session);
         return NextResponse.json(result);
       }
 

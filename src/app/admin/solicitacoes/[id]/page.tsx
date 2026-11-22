@@ -52,6 +52,8 @@ export default function AdminSolicitacaoDetailPage() {
   const [showProposalForm, setShowProposalForm] = useState(false);
   const [proposalForm, setProposalForm] = useState({ parcelas: '12', valorParcela: '', taxaMensal: '', cetAnual: '' });
   const [generatedLink, setGeneratedLink] = useState('');
+  const [hubQuoting, setHubQuoting] = useState(false);
+  const [hubSummary, setHubSummary] = useState<Array<{ partner: string; status: string; ms: number; offers: number; motivo?: string }> | null>(null);
 
   useEffect(() => {
     loadData();
@@ -67,6 +69,10 @@ export default function AdminSolicitacaoDetailPage() {
 
   async function action(actionName: string, payload: Record<string, unknown> = {}) {
     setActionLoading(true);
+    if (actionName === 'quote_all_partners') {
+      setHubQuoting(true);
+      setHubSummary(null);
+    }
     try {
       const res = await fetch(`/api/applications/${id}/action`, {
         method: 'POST',
@@ -78,12 +84,14 @@ export default function AdminSolicitacaoDetailPage() {
         alert(d.error || 'Erro ao executar ação.');
       } else {
         if (d.url) setGeneratedLink(d.url);
+        if (d.summary) setHubSummary(d.summary);
         await loadData();
       }
     } catch (err) {
       alert('Erro de conexão.');
     } finally {
       setActionLoading(false);
+      setHubQuoting(false);
     }
   }
 
@@ -100,6 +108,8 @@ export default function AdminSolicitacaoDetailPage() {
   const isActive = !['APPROVED', 'DECLINED', 'CANCELLED', 'EXPIRED', 'PAYOUT_SCHEDULED', 'PAYOUT_COMPLETED', 'TREATMENT_RELEASED'].includes(app.status);
   const canApprove = app.status === 'INTERNAL_REVIEW' && app.internal_decision === 'PENDING';
   const canReject = ['INTERNAL_REVIEW', 'AWAITING_CLINIC', 'AWAITING_DOCUMENTS', 'PRE_ANALYSIS_APPROVED'].includes(app.status);
+  const canQuoteAllPartners = app.status === 'READY_FOR_LENDERS';
+  const integratedActiveCount = partners.filter((p: any) => p.ativo && p.integration_active && p.api_slug).length;
   const canSubmitToPartner = app.status === 'READY_FOR_LENDERS' || (app.status === 'INTERNAL_REVIEW' && app.internal_decision === 'APPROVED_TO_PROCEED');
   const canCreateProposal = ['READY_FOR_LENDERS', 'SUBMITTED_TO_LENDER', 'LENDER_ANALYSIS', 'PRE_APPROVED'].includes(app.status);
   const canRegisterContract = app.status === 'OFFER_SELECTED';
@@ -388,6 +398,64 @@ export default function AdminSolicitacaoDetailPage() {
                     ✕ Recusar
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* Hub fan-out multi-financeiras */}
+            {(canQuoteAllPartners || hubSummary) && (
+              <div style={{ marginBottom: '16px', padding: '16px', background: '#f5f3ff', borderRadius: '10px', border: '1px solid #ddd6fe' }}>
+                <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: '700', color: '#4c1d95' }}>
+                  Hub de financeiras (API)
+                </p>
+                {canQuoteAllPartners && (
+                  <button
+                    onClick={() => action('quote_all_partners')}
+                    disabled={actionLoading}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      background: '#4f46e5',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: actionLoading ? 'not-allowed' : 'pointer',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      fontFamily: 'inherit',
+                      opacity: actionLoading ? 0.75 : 1,
+                    }}
+                  >
+                    {hubQuoting
+                      ? `Consultando ${integratedActiveCount || 'as'} financeiras em paralelo…`
+                      : '⚡ Consultar todas as financeiras'}
+                  </button>
+                )}
+                {hubSummary && hubSummary.length > 0 && (
+                  <div style={{ marginTop: '12px', overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', background: 'white', borderRadius: '6px', overflow: 'hidden' }}>
+                      <thead>
+                        <tr style={{ background: '#ede9fe', color: '#4c1d95', textAlign: 'left' }}>
+                          <th style={{ padding: '6px 8px' }}>Parceiro</th>
+                          <th style={{ padding: '6px 8px' }}>Status</th>
+                          <th style={{ padding: '6px 8px' }}>Tempo</th>
+                          <th style={{ padding: '6px 8px' }}>Ofertas</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {hubSummary.map((row, idx) => (
+                          <tr key={idx} style={{ borderTop: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '6px 8px', fontWeight: '600', color: '#1e293b' }}>{row.partner}</td>
+                            <td style={{ padding: '6px 8px', color: row.status === 'OFFERS' ? '#059669' : row.status === 'REJECTED' ? '#d97706' : '#dc2626', fontWeight: '600' }}>
+                              {row.status}
+                            </td>
+                            <td style={{ padding: '6px 8px', color: '#64748b' }}>{row.ms}ms</td>
+                            <td style={{ padding: '6px 8px', fontWeight: '700', color: '#1c1d4c' }}>{row.offers}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 
