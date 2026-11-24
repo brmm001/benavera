@@ -358,7 +358,11 @@ export default function KonsigaCompletionFlow({ token, konsiga, prefill, onUpdat
   }
 
   const statusMeta = getKonsigaStatusMeta(konsiga.externalStatus);
-  const currentStep = konsiga.signingUrl ? 3 : konsiga.completed ? 3 : 2;
+  const safeSigningUrl =
+    konsiga.signingUrl && konsiga.signingUrl.startsWith('https://')
+      ? konsiga.signingUrl
+      : null;
+  const currentStep = safeSigningUrl ? 3 : konsiga.completed ? 3 : 2;
 
   return (
     <div
@@ -486,11 +490,11 @@ export default function KonsigaCompletionFlow({ token, konsiga, prefill, onUpdat
             </p>
           </div>
 
-          {konsiga.signingUrl ? (
+          {safeSigningUrl ? (
             <button
               type="button"
               onClick={() => {
-                window.location.href = konsiga.signingUrl!;
+                window.location.href = safeSigningUrl;
               }}
               style={{
                 width: '100%',

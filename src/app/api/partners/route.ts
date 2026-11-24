@@ -1,6 +1,6 @@
 // app/api/partners/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession, hasPermission } from '@/lib/auth';
+import { getSession, hasPermission, isBenaveraStaff } from '@/lib/auth';
 import { sql } from '@/lib/benavera-db';
 import { getAdapter } from '@/lib/partners/registry';
 
@@ -22,9 +22,12 @@ function getWebhookInfo(apiSlug: string | null): { path: string | null; authConf
   return { path: null, authConfigured: false };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  if (!isBenaveraStaff(session.role)) {
+    return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
+  }
 
   try {
     const rows = await sql`
@@ -41,9 +44,12 @@ export async function GET(request: NextRequest) {
         webhook_configured: webhook.authConfigured,
       };
     });
-    return NextResponse.json({ partners });
+    return NextResponse.json(
+      { partners },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (err) {
-    console.error('[Partners GET]', err);
+    console.error('[Partners GET]', err instanceof Error ? err.message : 'erro');
     return NextResponse.json({ error: 'Erro ao buscar parceiros.' }, { status: 500 });
   }
 }

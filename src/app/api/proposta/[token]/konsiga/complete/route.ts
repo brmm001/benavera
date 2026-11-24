@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { logEvent } from '@/lib/application-service';
 import { sql } from '@/lib/benavera-db';
-import { onlyDigits } from '@/lib/partners/http';
+import { PartnerHttpError, onlyDigits } from '@/lib/partners/http';
 import { syncPartnerStatus } from '@/lib/partners/hub';
 import {
   normalizeBase64Document,
@@ -19,6 +19,16 @@ import {
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const MAX_REQUEST_BYTES = 18 * 1024 * 1024; // 18 MB (2 docs Base64 + JSON)
+const COMPLETED_STEPS = new Set([
+  'PROPOSTA_COMPLETA_ENVIADA',
+  'AGUARDANDO_ANALISE',
+  'ASSINATURA_DISPONIVEL',
+  'AGUARDANDO_NF',
+  'NF_ENVIADA',
+  'CREDITO_EFETUADO',
+]);
 
 const CompleteProposalSchema = z.object({
   email: z.string().trim().email('Informe um e-mail válido.'),
@@ -63,6 +73,14 @@ export async function POST(
   const { token } = await params;
 
   try {
+    const contentLengthHeader = request.headers.get('content-length');
+    if (contentLengthHeader) {
+      const len = Number(contentLengthHeader);
+      if (Number.isFinite(len) && len > MAX_REQUEST_BYTES) {
+        return NextResponse.json({ error: 'Arquivos muito grandes. Reduza o tamanho e tente novamente.' }, { status: 413 });
+      }
+    }
+
     const tokenRows = await sql`
       SELECT pt.application_id, a.patient_id
       FROM proposal_tokens pt
@@ -84,6 +102,13 @@ export async function POST(
       return NextResponse.json(
         { error: 'Nenhuma proposta Konsiga ativa encontrada para esta solicitação.' },
         { status: 400 }
+      );
+    }
+
+    if (COMPLETED_STEPS.has((ctx.externalStep || '').toUpperCase())) {
+      return NextResponse.json(
+        { error: 'Sua documentação já foi enviada para a Konsiga.' },
+        { status: 409 }
       );
     }
 
@@ -207,17 +232,26 @@ export async function POST(
       // Não falhar se a consulta imediata demorar; o webhook ou botão de atualizar sincroniza
     }
 
-    return NextResponse.json({
-      success: true,
-      externalStatus,
-      signingUrl,
-      message: signingUrl
-        ? 'Documentação enviada! Seu contrato já está disponível para assinatura.'
-        : 'Documentação enviada com sucesso! Sua proposta está em análise pela Konsiga.',
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        externalStatus,
+        signingUrl,
+        message: signingUrl
+          ? 'Documentação enviada! Seu contrato já está disponível para assinatura.'
+          : 'Documentação enviada com sucesso! Sua proposta está em análise pela Konsiga.',
+      },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (err) {
-    console.error('[Proposta Konsiga Complete]', err);
-    const msg = err instanceof Error ? err.message : 'Erro ao enviar documentação para a Konsiga.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('[Proposta Konsiga Complete]', err instanceof Error ? err.message : 'erro');
+    const safeMsg =
+      err instanceof PartnerHttpError && err.status >= 400 && err.status < 500
+        ? err.message
+        : 'Não foi possível enviar a documentação agora. Tente novamente em instantes.';
+    return NextResponse.json(
+      { error: safeMsg },
+      { status: err instanceof PartnerHttpError && err.status < 500 ? err.status : 500 }
+    );
   }
 }

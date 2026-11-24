@@ -946,7 +946,20 @@ export async function uploadKonsigaInvoice(
   );
 }
 
-/** Seção 3.7: Recupera o link de assinatura digital do contrato. */
+/** Valida que uma URL externa de redirecionamento/assinatura usa HTTPS válido (bloqueia javascript:, data:, http:). */
+export function sanitizeHttpsRedirectUrl(rawUrl: string | null | undefined): string | null {
+  const trimmed = (rawUrl || '').trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'https:') return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+/** Seção 3.7: Recupera o link de assinatura digital do contrato (validado como HTTPS). */
 export async function getKonsigaSignatureLink(
   transacao: string,
   clinicCnpj: string
@@ -964,8 +977,8 @@ export async function getKonsigaSignatureLink(
     }
   );
 
-  const link = linkData.data?.link?.trim();
-  return linkData.sucesso && link ? link : null;
+  if (!linkData.sucesso) return null;
+  return sanitizeHttpsRedirectUrl(linkData.data?.link);
 }
 
 /** Seção 3.8 / 3.9: Cadastra ou atualiza clínica consolidadora na Konsiga. */

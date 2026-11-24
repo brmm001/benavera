@@ -11,6 +11,7 @@ import {
   parseBankDetails,
   resolveCouncilName,
   resolveKonsigaAuthEndpoint,
+  sanitizeHttpsRedirectUrl,
   sendKonsigaCompleteProposal,
   sendKonsigaConfirmationToken,
   uploadKonsigaInvoice,
@@ -396,6 +397,18 @@ test('normalizeBase64Document strips valid data URLs and rejects invalid MIME, m
 
   const tooBig = normalizeBase64Document(sampleBase64, 5);
   assert.equal(tooBig.ok, false);
+});
+
+test('sanitizeHttpsRedirectUrl accepts only valid HTTPS URLs and blocks javascript:/http:/data:', () => {
+  assert.equal(
+    sanitizeHttpsRedirectUrl('https://assinar.konsigapay.com.br/contrato/123'),
+    'https://assinar.konsigapay.com.br/contrato/123'
+  );
+  assert.equal(sanitizeHttpsRedirectUrl('javascript:alert(1)'), null);
+  assert.equal(sanitizeHttpsRedirectUrl('http://assinar.konsigapay.com.br/contrato/123'), null);
+  assert.equal(sanitizeHttpsRedirectUrl('data:text/html,<script>alert(1)</script>'), null);
+  assert.equal(sanitizeHttpsRedirectUrl(''), null);
+  assert.equal(sanitizeHttpsRedirectUrl(null), null);
 });
 
 test('sendKonsigaCompleteProposal, uploadKonsigaInvoice and upsertKonsigaConsolidator call official v1.4 paths', async () => {

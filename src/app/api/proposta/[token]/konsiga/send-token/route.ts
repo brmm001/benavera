@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logEvent } from '@/lib/application-service';
 import { sql } from '@/lib/benavera-db';
+import { PartnerHttpError } from '@/lib/partners/http';
 import {
   resolveKonsigaAttemptByApplication,
   sendKonsigaConfirmationToken,
@@ -13,6 +14,14 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const SMS_COOLDOWN_SECONDS = 45;
+const COMPLETED_STEPS = new Set([
+  'PROPOSTA_COMPLETA_ENVIADA',
+  'AGUARDANDO_ANALISE',
+  'ASSINATURA_DISPONIVEL',
+  'AGUARDANDO_NF',
+  'NF_ENVIADA',
+  'CREDITO_EFETUADO',
+]);
 
 export async function POST(
   _request: NextRequest,
@@ -39,6 +48,13 @@ export async function POST(
       return NextResponse.json(
         { error: 'Nenhuma proposta Konsiga ativa encontrada para esta solicitação.' },
         { status: 400 }
+      );
+    }
+
+    if (COMPLETED_STEPS.has((ctx.externalStep || '').toUpperCase())) {
+      return NextResponse.json(
+        { error: 'Cadastro complementar já foi enviado anteriormente.' },
+        { status: 409 }
       );
     }
 
@@ -88,14 +104,20 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      tokenClienteEnviado: Boolean(res.data?.tokenClienteEnviado ?? true),
-      message: 'Código SMS enviado para o seu celular cadastrado.',
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        tokenClienteEnviado: Boolean(res.data?.tokenClienteEnviado ?? true),
+        message: 'Código SMS enviado para o seu celular cadastrado.',
+      },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (err) {
-    console.error('[Proposta Konsiga Send Token]', err);
-    const msg = err instanceof Error ? err.message : 'Erro ao enviar código SMS.';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('[Proposta Konsiga Send Token]', err instanceof Error ? err.message : 'erro');
+    const safeMsg =
+      err instanceof PartnerHttpError && err.status >= 400 && err.status < 500
+        ? err.message
+        : 'Não foi possível enviar o código SMS agora. Tente novamente em instantes.';
+    return NextResponse.json({ error: safeMsg }, { status: err instanceof PartnerHttpError && err.status < 500 ? err.status : 500 });
   }
 }

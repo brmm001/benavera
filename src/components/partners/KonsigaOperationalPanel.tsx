@@ -41,6 +41,8 @@ export default function KonsigaOperationalPanel({
   const [copied, setCopied] = useState(false);
 
   const meta = getKonsigaStatusMeta(externalStatus);
+  const safeSigningUrl =
+    signingUrl && signingUrl.startsWith('https://') ? signingUrl : null;
   const stepUpper = (externalStep || '').toUpperCase();
   const isCompleted =
     stepUpper === 'PROPOSTA_COMPLETA_ENVIADA' ||
@@ -117,8 +119,8 @@ export default function KonsigaOperationalPanel({
   }
 
   async function handleCopySignUrl() {
-    if (!signingUrl) return;
-    await navigator.clipboard.writeText(signingUrl);
+    if (!safeSigningUrl) return;
+    await navigator.clipboard.writeText(safeSigningUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -230,7 +232,7 @@ export default function KonsigaOperationalPanel({
           </button>
         )}
 
-        {signingUrl && (
+        {safeSigningUrl && (
           <div
             style={{
               padding: '10px',
@@ -244,7 +246,7 @@ export default function KonsigaOperationalPanel({
             </div>
             <div style={{ display: 'flex', gap: '6px' }}>
               <a
-                href={signingUrl}
+                href={safeSigningUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{

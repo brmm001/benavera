@@ -100,7 +100,7 @@ export default function PropostaPublicaPage() {
       }
 
       setConfirmModal(null);
-      if (json.redirectUrl) {
+      if (json.redirectUrl && typeof json.redirectUrl === 'string' && json.redirectUrl.startsWith('https://')) {
         setExternalRedirectUrl(json.redirectUrl);
         setSuccessMessage('Proposta aceita! Redirecionando para concluir na financeira...');
         await fetchProposal();
@@ -185,8 +185,10 @@ export default function PropostaPublicaPage() {
   const selectedProposal = data.proposals.find(p => p.selecionada || p.id === selectedProposalId);
   const isKonsigaSelected =
     isAlreadyChosen && data.selected_partner_slug === 'konsiga' && Boolean(data.konsiga);
-  const continueUrl =
+  const rawContinueUrl =
     externalRedirectUrl || data.konsiga?.signingUrl || selectedProposal?.url_externa || null;
+  const continueUrl =
+    rawContinueUrl && rawContinueUrl.startsWith('https://') ? rawContinueUrl : null;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1e293b' }}>
