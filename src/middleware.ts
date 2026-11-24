@@ -147,6 +147,27 @@ async function handle(request: NextRequest) {
   }
 
   // ── Rotas não-admin protegidas ────────────────────────────────────────────
+  // APIs compartilhadas entre portal da clínica e backoffice admin aceitam fallback bv_admin
+  const isAdminSharedApi =
+    pathname === '/api/partners' ||
+    pathname.startsWith('/api/partners/') ||
+    pathname === '/api/applications' ||
+    pathname.startsWith('/api/applications/') ||
+    pathname === '/api/payouts' ||
+    pathname.startsWith('/api/payouts/');
+
+  if (!token && isAdminSharedApi) {
+    const bvToken = request.cookies.get(BV_ADMIN_COOKIE)?.value;
+    const expectedToken = process.env.ADMIN_SECRET;
+    if (bvToken && expectedToken && safeEqual(bvToken, expectedToken)) {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-user-id', 'a1000001-0001-4001-a001-000000000001');
+      requestHeaders.set('x-user-role', 'BENAVERA_ADMIN');
+      requestHeaders.set('x-user-name', 'Admin Benavera');
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
+  }
+
   if (!token) {
     // Sem sessão → redireciona para o login correto por contexto
     if (isRepRoute(pathname)) {
