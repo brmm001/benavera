@@ -18,6 +18,45 @@ function getResend(): Resend | { emails: { send: (payload: unknown) => Promise<{
 
 const FROM_EMAIL = process.env.EMAIL_FROM || 'Benavera <noreply@benavera.com.br>';
 
+export interface EmailDispatchResult {
+  sent: boolean;
+  simulated: boolean;
+  id?: string;
+  error?: string;
+}
+
+function escapeHtml(value: string): string {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function interpretResendResult(result: unknown): EmailDispatchResult {
+  const res = (result || {}) as {
+    data?: { id?: string } | null;
+    error?: { message?: string; name?: string } | string | null;
+  };
+  if (res.error) {
+    const errMsg = typeof res.error === 'string'
+      ? res.error
+      : (res.error.message || res.error.name || 'Erro desconhecido ao enviar e-mail.');
+    return { sent: false, simulated: false, error: errMsg };
+  }
+  const id = res.data?.id;
+  if (id === 'simulated-email-id') {
+    return {
+      sent: false,
+      simulated: true,
+      id,
+      error: 'RESEND_API_KEY não configurada no servidor (envio apenas simulado).',
+    };
+  }
+  return { sent: true, simulated: false, id };
+}
+
 // ─── Templates ─────────────────────────────────────────────────────────────
 
 function baseLayout(content: string, preheader = '') {
@@ -437,29 +476,133 @@ export async function sendOnboardingApprovedEmail(opts: {
   to: string;
   clinicName: string;
   responsavel: string;
-}) {
-  const { to, clinicName, responsavel } = opts;
+  loginEmail?: string;
+  temporaryPassword?: string | null;
+  loginUrl?: string;
+}): Promise<EmailDispatchResult> {
+  const {
+    to,
+    clinicName,
+    responsavel,
+    loginEmail,
+    temporaryPassword,
+    loginUrl = 'https://www.benavera.com.br/login',
+  } = opts;
+
+  const safeName = escapeHtml(responsavel);
+  const safeClinic = escapeHtml(clinicName);
+  const safeLoginEmail = escapeHtml(loginEmail || to);
+
+  const credentialsBlock = temporaryPassword
+    ? `
+      <div style="background:#f8fafc;border-radius:12px;padding:20px;border:1px solid #cbd5e1;margin:24px 0;">
+        <p style="font-size:13px;font-weight:700;color:#0f172a;text-transform:uppercase;letter-spacing:0.4px;margin:0 0 12px;">🔐 Seus dados de acesso ao Portal Benavera</p>
+        <p style="font-size:14px;color:#334155;margin:0 0 8px;"><strong>Link de acesso:</strong> <a href="${loginUrl}" style="color:#4040ca;">${loginUrl}</a></p>
+        <p style="font-size:14px;color:#334155;margin:0 0 8px;"><strong>E-mail:</strong> ${safeLoginEmail}</p>
+        <p style="font-size:14px;color:#334155;margin:0;"><strong>Senha temporária:</strong> <code style="background:#e2e8f0;padding:3px 8px;border-radius:6px;font-family:monospace;font-size:15px;font-weight:700;color:#0f172a;">${escapeHtml(temporaryPassword)}</code></p>
+      </div>
+    `
+    : `
+      <div style="background:#f0f4ff;border-radius:12px;padding:18px;border:1px solid #c7d7fe;margin:24px 0;">
+        <p style="font-size:14px;color:#1e293b;margin:0;">
+          Seu acesso ao Portal Benavera foi liberado! Entre utilizando o e-mail <strong>${safeLoginEmail}</strong> e a senha cadastrada no início do credenciamento.
+        </p>
+      </div>
+    `;
 
   const content = `
     <div style="border-top:4px solid #10b981;padding:40px;">
       <div style="font-size:36px;margin-bottom:12px;">🎉</div>
       <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">Credenciamento aprovado!</h1>
       <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">
-        Parabéns, <strong>${responsavel}</strong>! O credenciamento da <strong>${clinicName}</strong> foi aprovado.
+        Parabéns, <strong>${safeName}</strong>! O credenciamento da <strong>${safeClinic}</strong> foi aprovado e seu acesso ao portal já está liberado.
       </p>
-      <div style="background:#f0faf8;border-radius:10px;padding:20px;border:1px solid #b4e6de;">
-        <p style="font-size:14px;color:#1e6560;margin:0;">
-          ⚠️ A aprovação cadastral e a ativação operacional são etapas separadas. 
-          A concessão de crédito depende do parceiro financeiro e não é garantida pela Benavera.
+      ${credentialsBlock}
+      <a href="${loginUrl}" style="display:inline-block;background:linear-gradient(135deg,#6370f1,#4040ca);color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;margin:4px 0 24px;">
+        Acessar o Portal Benavera →
+      </a>
+      <div style="background:#f0faf8;border-radius:10px;padding:16px;border:1px solid #b4e6de;">
+        <p style="font-size:13px;color:#1e6560;margin:0;">
+          ⚠️ A concessão de crédito para cada paciente depende da análise do parceiro financeiro e não é garantida pela Benavera.
         </p>
       </div>
     </div>
   `;
 
-  return getResend().emails.send({
-    from: FROM_EMAIL,
+  try {
+    const res = await getResend().emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `🎉 Credenciamento aprovado e acesso liberado — ${clinicName}`,
+      html: baseLayout(content, `O credenciamento da ${clinicName} foi aprovado. Acesse o portal Benavera.`),
+    });
+    return interpretResendResult(res);
+  } catch (err) {
+    return { sent: false, simulated: false, error: err instanceof Error ? err.message : 'Erro ao enviar e-mail.' };
+  }
+}
+
+// ─── Email: Credenciais de Acesso ao Portal da Clínica ───────────────────
+
+export async function sendClinicCredentialsEmail(opts: {
+  to: string;
+  clinicName: string;
+  responsavel: string;
+  loginEmail: string;
+  temporaryPassword: string;
+  loginUrl?: string;
+  isReset?: boolean;
+}): Promise<EmailDispatchResult> {
+  const {
     to,
-    subject: `🎉 Credenciamento aprovado — ${clinicName}`,
-    html: baseLayout(content, `O credenciamento da ${clinicName} foi aprovado.`),
-  });
+    clinicName,
+    responsavel,
+    loginEmail,
+    temporaryPassword,
+    loginUrl = 'https://www.benavera.com.br/login',
+    isReset = false,
+  } = opts;
+
+  const safeName = escapeHtml(responsavel);
+  const safeClinic = escapeHtml(clinicName);
+  const safeLoginEmail = escapeHtml(loginEmail);
+  const safePassword = escapeHtml(temporaryPassword);
+
+  const heading = isReset ? 'Suas novas credenciais de acesso' : 'Suas credenciais de acesso ao Portal Benavera';
+  const intro = isReset
+    ? `Uma nova senha temporária foi gerada para o acesso da <strong>${safeClinic}</strong> no Portal Benavera.`
+    : `O cadastro da <strong>${safeClinic}</strong> está liberado. Utilize as credenciais abaixo para acessar o Portal Benavera e enviar suas solicitações de financiamento.`;
+
+  const content = `
+    <div style="border-top:4px solid #6370f1;padding:40px;">
+      <div style="font-size:36px;margin-bottom:12px;">🔑</div>
+      <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">${heading}</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 20px;">
+        Olá, <strong>${safeName}</strong>! ${intro}
+      </p>
+      <div style="background:#f8fafc;border-radius:12px;padding:22px;border:1px solid #cbd5e1;margin:20px 0 24px;">
+        <p style="font-size:14px;color:#334155;margin:0 0 10px;"><strong>Portal de Login:</strong> <a href="${loginUrl}" style="color:#4040ca;">${loginUrl}</a></p>
+        <p style="font-size:14px;color:#334155;margin:0 0 10px;"><strong>E-mail:</strong> ${safeLoginEmail}</p>
+        <p style="font-size:14px;color:#334155;margin:0;"><strong>Senha de acesso:</strong> <code style="background:#e2e8f0;padding:4px 10px;border-radius:6px;font-family:monospace;font-size:15px;font-weight:700;color:#0f172a;">${safePassword}</code></p>
+      </div>
+      <a href="${loginUrl}" style="display:inline-block;background:linear-gradient(135deg,#6370f1,#4040ca);color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;margin-bottom:20px;">
+        Entrar no Portal Benavera →
+      </a>
+      <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0;">
+        Guarde esta senha em local seguro e não a compartilhe fora da equipe autorizada da clínica. Em caso de dúvida, fale com nosso suporte.
+      </p>
+    </div>
+  `;
+
+  try {
+    const res = await getResend().emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `🔑 Dados de acesso ao Portal Benavera — ${clinicName}`,
+      html: baseLayout(content, `Credenciais de acesso da ${clinicName} no Portal Benavera.`),
+    });
+    return interpretResendResult(res);
+  } catch (err) {
+    return { sent: false, simulated: false, error: err instanceof Error ? err.message : 'Erro ao enviar e-mail.' };
+  }
 }

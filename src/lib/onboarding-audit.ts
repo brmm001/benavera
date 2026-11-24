@@ -33,6 +33,7 @@ export type AuditAction =
   | 'contract_signed'
   | 'clinic_activated'
   | 'clinic_suspended'
+  | 'credentials_sent'
   | 'session_started'
   | 'session_expired';
 

@@ -6,6 +6,8 @@ import { getAdminSession, hasPermission } from '@/lib/auth';
 import { getClientIP } from '@/lib/security';
 import { getOnboardingById, updateOnboardingStatus, canApproveOnboarding } from '@/lib/onboarding-db';
 import { sendOnboardingApprovedEmail, sendCorrectionRequestEmail } from '@/lib/email';
+import { provisionClinicAccountFromOnboarding } from '@/lib/clinic-credentials';
+import { logAuditEvent } from '@/lib/onboarding-audit';
 import { sql } from '@/lib/benavera-db';
 import type { OnboardingStatus } from '@/lib/benavera-db';
 import { z } from 'zod';
@@ -90,6 +92,16 @@ export async function POST(
     }
 
     // Ações pós-transição
+    let credentialsSummary: {
+      email: string;
+      loginUrl: string;
+      userCreated: boolean;
+      temporaryPassword: string | null;
+      emailSent: boolean;
+      emailSimulated: boolean;
+      emailError: string | null;
+    } | null = null;
+
     if (status === 'APPROVED' || status === 'ACTIVE') {
       // 1. Auto-validar qualquer documento enviado que ainda esteja pendente de revisão
       await sql`
@@ -103,93 +115,59 @@ export async function POST(
           AND review_status != 'VALIDATED'
       `;
 
-      // 2. Liberar clinic e usuários no banco de dados (ativo = TRUE) e sincronizar endereço/banco
-      if (onboarding.clinic_id) {
-        await sql`
-          UPDATE clinics
-          SET
-            ativo = TRUE,
-            nome_fantasia = COALESCE(${onboarding.trade_name || null}, nome_fantasia),
-            razao_social = COALESCE(${onboarding.legal_name || null}, razao_social),
-            cnpj = COALESCE(${onboarding.cnpj || null}, cnpj),
-            cep = COALESCE(${onboarding.address_cep || null}, cep),
-            logradouro = COALESCE(${onboarding.address_street || null}, logradouro),
-            numero = COALESCE(${onboarding.address_number || null}, numero),
-            complemento = COALESCE(${onboarding.address_complement || null}, complemento),
-            bairro = COALESCE(${onboarding.address_neighborhood || null}, bairro),
-            cidade = COALESCE(${onboarding.address_city || onboarding.city || null}, cidade),
-            estado = COALESCE(${onboarding.address_state || onboarding.state || null}, estado),
-            responsavel = COALESCE(${onboarding.legal_rep_name || onboarding.contact_name || null}, responsavel),
-            cpf_responsavel = COALESCE(${onboarding.legal_rep_cpf || onboarding.contact_cpf || null}, cpf_responsavel),
-            email_financeiro = COALESCE(${onboarding.email_financial || onboarding.email || null}, email_financeiro),
-            site = COALESCE(${onboarding.website || null}, site),
-            banco = COALESCE(${onboarding.bank_name || null}, banco),
-            agencia = COALESCE(${onboarding.bank_agency || null}, agencia),
-            conta = COALESCE(${onboarding.bank_account || null}, conta),
-            chave_pix = COALESCE(${onboarding.bank_pix_key || null}, chave_pix),
-            updated_at = NOW()
-          WHERE id = ${onboarding.clinic_id}
-        `;
-        await sql`
-          UPDATE users
-          SET ativo = TRUE, updated_at = NOW()
-          WHERE clinic_id = ${onboarding.clinic_id}
-        `;
-      } else {
-        const clinicRows = await sql`
-          INSERT INTO clinics (
-            nome_fantasia, razao_social, cnpj, email, email_financeiro, telefone, whatsapp,
-            responsavel, cpf_responsavel, cep, logradouro, numero, complemento, bairro,
-            cidade, estado, especialidade, site, banco, agencia, conta, chave_pix, ativo
-          ) VALUES (
-            ${onboarding.trade_name},
-            ${onboarding.legal_name || onboarding.trade_name},
-            ${onboarding.cnpj || '00.000.000/0001-00'},
-            ${onboarding.email},
-            ${onboarding.email_financial || onboarding.email},
-            ${onboarding.phone},
-            ${onboarding.phone},
-            ${onboarding.legal_rep_name || onboarding.contact_name || null},
-            ${onboarding.legal_rep_cpf || onboarding.contact_cpf || null},
-            ${onboarding.address_cep || null},
-            ${onboarding.address_street || null},
-            ${onboarding.address_number || null},
-            ${onboarding.address_complement || null},
-            ${onboarding.address_neighborhood || null},
-            ${onboarding.address_city || onboarding.city},
-            ${onboarding.address_state || onboarding.state},
-            ${onboarding.specialty || 'Geral'},
-            ${onboarding.website || null},
-            ${onboarding.bank_name || null},
-            ${onboarding.bank_agency || null},
-            ${onboarding.bank_account || null},
-            ${onboarding.bank_pix_key || null},
-            TRUE
-          )
-          RETURNING id
-        `;
-        const clinicId = clinicRows[0].id;
-        await sql`UPDATE clinic_onboardings SET clinic_id = ${clinicId} WHERE id = ${id}`;
-        await sql`UPDATE users SET clinic_id = ${clinicId}, ativo = TRUE WHERE id = ${onboarding.created_by}`;
-      }
+      // 2. Provisionar clínica e usuário CLINIC_ADMIN de forma segura (sem tocar em created_by interno)
+      const provisioned = await provisionClinicAccountFromOnboarding(onboarding);
+      const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.benavera.com.br').replace(/\/$/, '');
+      const loginUrl = `${baseUrl}/login`;
 
-      sendOnboardingApprovedEmail({
-        to: onboarding.email,
+      const emailResult = await sendOnboardingApprovedEmail({
+        to: provisioned.email,
         clinicName: onboarding.trade_name,
-        responsavel: onboarding.contact_name,
-      }).catch(err => console.warn('[Email Aprovação]', err));
+        responsavel: onboarding.contact_name || provisioned.userName,
+        loginEmail: provisioned.email,
+        temporaryPassword: provisioned.temporaryPassword,
+        loginUrl,
+      });
+
+      await logAuditEvent({
+        onboardingId: id,
+        actorType: 'admin',
+        actorId: session.userId,
+        actorName: session.name,
+        actorRole: session.role,
+        action: 'credentials_sent',
+        entityType: 'user',
+        entityId: provisioned.userId,
+        ip,
+        metadata: {
+          email: provisioned.email,
+          user_created: provisioned.createdNewUser,
+          email_sent: emailResult.sent,
+          email_simulated: emailResult.simulated,
+        },
+      });
+
+      credentialsSummary = {
+        email: provisioned.email,
+        loginUrl,
+        userCreated: provisioned.createdNewUser,
+        temporaryPassword: provisioned.temporaryPassword,
+        emailSent: emailResult.sent,
+        emailSimulated: emailResult.simulated,
+        emailError: emailResult.error || null,
+      };
     }
 
     if (status === 'REJECTED' || status === 'SUSPENDED' || status === 'REVOKED') {
       if (onboarding.clinic_id) {
         await sql`UPDATE clinics SET ativo = FALSE, updated_at = NOW() WHERE id = ${onboarding.clinic_id}`;
-        await sql`UPDATE users SET ativo = FALSE, updated_at = NOW() WHERE clinic_id = ${onboarding.clinic_id}`;
+        await sql`UPDATE users SET ativo = FALSE, updated_at = NOW() WHERE clinic_id = ${onboarding.clinic_id} AND role::text LIKE 'CLINIC_%'`;
       }
     }
 
     if (status === 'CORRECTION_REQUIRED' && corrections?.length) {
       // Buscar convite ativo para gerar URL
-      const inviteRows = await sql`
+      await sql`
         SELECT i.id FROM onboarding_invites i
         WHERE i.onboarding_id = ${id} AND i.revoked_at IS NULL AND i.expires_at > NOW()
         ORDER BY i.created_at DESC LIMIT 1
@@ -206,7 +184,10 @@ export async function POST(
       }).catch(err => console.warn('[Email Correção]', err));
     }
 
-    return NextResponse.json({ success: true, status });
+    return NextResponse.json(
+      { success: true, status, credentials: credentialsSummary },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (err) {
     console.error('[Admin Onboarding Status POST]', err);
     return NextResponse.json({ error: 'Erro ao atualizar status.' }, { status: 500 });

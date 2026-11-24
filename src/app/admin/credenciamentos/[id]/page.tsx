@@ -65,6 +65,18 @@ export default function OnboardingDetailPage() {
   const [reviewingDoc, setReviewingDoc] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState('');
   const [reviewMessage, setReviewMessage] = useState('');
+  const [sendingCredentials, setSendingCredentials] = useState(false);
+  const [credentialsBox, setCredentialsBox] = useState<{
+    email: string;
+    loginUrl: string;
+    userCreated: boolean;
+    passwordReset?: boolean;
+    temporaryPassword: string | null;
+    emailSent: boolean;
+    emailSimulated: boolean;
+    emailError: string | null;
+  } | null>(null);
+  const [copiedCreds, setCopiedCreds] = useState(false);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -141,12 +153,64 @@ export default function OnboardingDetailPage() {
       if (res.ok) {
         setShowStatusModal(null);
         setStatusMessage(''); setStatusReason('');
+        if (data.credentials) {
+          setCredentialsBox(data.credentials);
+          setCopiedCreds(false);
+        }
         fetchData();
       } else {
         alert(data.error || 'Erro ao alterar status');
       }
     } finally {
       setStatusActionLoading(false);
+    }
+  };
+
+  const handleSendCredentials = async (approveIfSubmitted: boolean) => {
+    if (!id || !onboarding) return;
+    const confirmMsg = approveIfSubmitted
+      ? `Aprovar ${onboarding.trade_name}, criar/liberar o acesso de ${onboarding.email} e enviar as credenciais por e-mail agora?`
+      : `Gerar uma nova senha temporária para ${onboarding.email} e enviar as credenciais de login por e-mail agora?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setSendingCredentials(true);
+    try {
+      const res = await fetch(`/api/admin/onboardings/${id}/credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approveIfSubmitted, resetPassword: true }),
+      });
+      const data = await res.json();
+      if (res.ok && data.credentials) {
+        setCredentialsBox(data.credentials);
+        setCopiedCreds(false);
+        fetchData();
+      } else {
+        alert(data.error || 'Erro ao enviar credenciais.');
+      }
+    } catch {
+      alert('Erro ao conectar ao servidor para enviar credenciais.');
+    } finally {
+      setSendingCredentials(false);
+    }
+  };
+
+  const handleCopyCredentials = async () => {
+    if (!credentialsBox) return;
+    const lines = [
+      `Olá! Seu acesso ao Portal Benavera foi liberado.`,
+      `Link de login: ${credentialsBox.loginUrl}`,
+      `E-mail: ${credentialsBox.email}`,
+      credentialsBox.temporaryPassword
+        ? `Senha de acesso: ${credentialsBox.temporaryPassword}`
+        : `Senha: utilize a senha cadastrada no credenciamento`,
+    ];
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'));
+      setCopiedCreds(true);
+      setTimeout(() => setCopiedCreds(false), 3000);
+    } catch {
+      window.prompt('Copie os dados de acesso abaixo:', lines.join('\n'));
     }
   };
 
@@ -351,7 +415,73 @@ export default function OnboardingDetailPage() {
             🚀 Ativar clínica
           </button>
         )}
+
+        {canActivate && ['SUBMITTED', 'UNDER_REVIEW'].includes(onboarding.status) && (
+          <button
+            onClick={() => handleSendCredentials(true)}
+            disabled={sendingCredentials}
+            style={{ padding: '10px 18px', background: 'linear-gradient(135deg,#6370f1,#4040ca)', color: 'white', border: 'none', borderRadius: '8px', cursor: sendingCredentials ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit', opacity: sendingCredentials ? 0.7 : 1 }}>
+            {sendingCredentials ? 'Enviando…' : '🔑 Aprovar e enviar credenciais por e-mail'}
+          </button>
+        )}
+
+        {canActivate && ['APPROVED', 'CONTRACT_PENDING', 'CONTRACT_SIGNED', 'ACTIVE'].includes(onboarding.status) && (
+          <button
+            onClick={() => handleSendCredentials(false)}
+            disabled={sendingCredentials}
+            style={{ padding: '10px 18px', background: '#f0f4ff', color: '#4040ca', border: '1px solid #c7d7fe', borderRadius: '8px', cursor: sendingCredentials ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit', opacity: sendingCredentials ? 0.7 : 1 }}>
+            {sendingCredentials ? 'Enviando…' : '🔑 Enviar / redefinir credenciais por e-mail'}
+          </button>
+        )}
       </div>
+
+      {/* Painel de credenciais geradas / enviadas (exibido uma única vez) */}
+      {credentialsBox && (
+        <div style={{
+          background: credentialsBox.emailSent ? '#f0fdf4' : '#fffbeb',
+          border: `1.5px solid ${credentialsBox.emailSent ? '#86efac' : '#fde68a'}`,
+          borderRadius: '12px',
+          padding: '18px 22px',
+          marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ margin: '0 0 6px', fontSize: '14px', fontWeight: '800', color: credentialsBox.emailSent ? '#166534' : '#92400e' }}>
+                {credentialsBox.emailSent
+                  ? `✅ Credenciais enviadas por e-mail para ${credentialsBox.email}`
+                  : `⚠️ Conta liberada, mas o e-mail não foi disparado automaticamente (${credentialsBox.emailError || 'verifique RESEND_API_KEY'})`}
+              </p>
+              <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#334155' }}>
+                <strong>Login:</strong> {credentialsBox.loginUrl} · <strong>E-mail:</strong> {credentialsBox.email}
+              </p>
+              {credentialsBox.temporaryPassword ? (
+                <p style={{ margin: 0, fontSize: '13px', color: '#334155' }}>
+                  <strong>Senha temporária (exibida uma única vez):</strong>{' '}
+                  <code style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '2px 8px', fontWeight: '700', fontSize: '14px' }}>
+                    {credentialsBox.temporaryPassword}
+                  </code>
+                </p>
+              ) : (
+                <p style={{ margin: 0, fontSize: '13px', color: '#475569' }}>
+                  A clínica já possuía senha própria definida no credenciamento.
+                </p>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={handleCopyCredentials}
+                style={{ padding: '8px 14px', background: '#1c1d4c', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit' }}>
+                {copiedCreds ? '✓ Copiado!' : '📋 Copiar mensagem'}
+              </button>
+              <button
+                onClick={() => setCredentialsBox(null)}
+                style={{ padding: '8px 12px', background: 'white', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontFamily: 'inherit' }}>
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: '#f8fafc', padding: '4px', borderRadius: '10px', width: 'fit-content' }}>
