@@ -30,8 +30,8 @@ const WebhookPayloadSchema = z
       .max(64)
       .regex(/^[A-Za-z0-9_-]+$/),
     orderId: z.string().max(120).optional(),
-    action: z.string().min(1).max(50).optional(),
-    step: z.string().max(50).optional(),
+    action: z.string().min(1).max(120).optional(),
+    step: z.string().max(80).optional(),
     message: z.string().max(500).optional(),
   })
   .passthrough();
@@ -211,12 +211,13 @@ export async function quoteAllPartners(
     attemptMap.set(partner.id, String(attemptRows[0].id));
   }
 
-  // 4. Fan-out simultâneo limitado pelo maior timeout (padrão 12s)
-  const configuredTimeout = Number(process.env.PARCELEX_TIMEOUT_MS || DEFAULT_HUB_TIMEOUT_MS);
-  const hubTimeoutMs =
-    Number.isFinite(configuredTimeout) && configuredTimeout >= 1000
-      ? Math.max(DEFAULT_HUB_TIMEOUT_MS, configuredTimeout)
-      : DEFAULT_HUB_TIMEOUT_MS;
+  // 4. Fan-out simultâneo limitado pelo maior timeout configurado entre os parceiros
+  const timeoutCandidates = [
+    DEFAULT_HUB_TIMEOUT_MS,
+    Number(process.env.PARCELEX_TIMEOUT_MS),
+    Number(process.env.KONSIGA_TIMEOUT_MS || (eligible.some(e => e.apiSlug === 'konsiga') ? 15000 : 0)),
+  ].filter(v => Number.isFinite(v) && v >= 1000 && v <= 60000);
+  const hubTimeoutMs = Math.max(...timeoutCandidates);
 
   const hubController = new AbortController();
   const hubTimer = setTimeout(() => {
@@ -613,7 +614,7 @@ export async function handlePartnerWebhook(
     SELECT fa.id AS attempt_id, fa.application_id, fa.partner_id
     FROM funding_attempts fa
     JOIN financial_partners fp ON fp.id = fa.partner_id
-    WHERE fa.external_transaction_id = ${txId}
+    WHERE (fa.external_transaction_id = ${txId} OR fa.external_id = ${txId})
       AND fp.api_slug = ${slug}
     LIMIT 1
   `;

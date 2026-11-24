@@ -118,6 +118,12 @@ export default function PropostaPublicaPage() {
     return Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const formatMonthlyRate = (rate?: number | null) => {
+    if (rate === undefined || rate === null || !Number.isFinite(rate) || rate <= 0) return null;
+    const pct = rate <= 1 ? rate * 100 : rate;
+    return `${pct.toFixed(2).replace('.', ',')}%`;
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
@@ -272,7 +278,9 @@ export default function PropostaPublicaPage() {
               <div>
                 <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Taxa Estimada</span>
                 <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#334155' }}>
-                  {selectedProposal.taxa_mensal ? `${selectedProposal.taxa_mensal}% a.m.` : 'Inclusa'}
+                  {formatMonthlyRate(selectedProposal.taxa_mensal)
+                    ? `${formatMonthlyRate(selectedProposal.taxa_mensal)} a.m.`
+                    : 'Inclusa'}
                 </div>
               </div>
             </div>
@@ -376,7 +384,7 @@ export default function PropostaPublicaPage() {
 
                         <div style={{ backgroundColor: '#f8fafc', padding: 12, borderRadius: 8, fontSize: '0.8rem', color: '#475569', marginBottom: 20, display: 'flex', justifyContent: 'space-between' }}>
                           <span>Taxa mensal estimada:</span>
-                          <strong>{proposal.taxa_mensal ? `${proposal.taxa_mensal}%` : 'Sem juros'}</strong>
+                          <strong>{formatMonthlyRate(proposal.taxa_mensal) ? `${formatMonthlyRate(proposal.taxa_mensal)} a.m.` : 'Sem juros'}</strong>
                         </div>
                       </div>
 

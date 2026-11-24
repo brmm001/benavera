@@ -81,9 +81,25 @@ async function parseErrorResponse(res: Response): Promise<{ errorCode?: string |
         typeof parsed.errorCode === 'string' || typeof parsed.errorCode === 'number'
           ? parsed.errorCode
           : undefined;
-      const msg = typeof parsed.message === 'string' && parsed.message.trim()
-        ? parsed.message.trim().slice(0, 240)
-        : `HTTP ${res.status}`;
+
+      const rawErrors = Array.isArray(parsed.erros)
+        ? parsed.erros
+        : Array.isArray(parsed.Erros)
+          ? parsed.Erros
+          : [];
+      const joinedErrors = rawErrors
+        .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+        .join('; ')
+        .trim();
+
+      const candidateMsg =
+        joinedErrors ||
+        (typeof parsed.message === 'string' && parsed.message.trim()) ||
+        (typeof parsed.mensagem === 'string' && parsed.mensagem.trim()) ||
+        (typeof parsed.Mensagem === 'string' && parsed.Mensagem.trim()) ||
+        '';
+
+      const msg = candidateMsg ? candidateMsg.slice(0, 240) : `HTTP ${res.status}`;
       return { errorCode, message: msg };
     }
     return { message: `HTTP ${res.status}` };
