@@ -16,7 +16,10 @@ function getResend(): Resend | { emails: { send: (payload: unknown) => Promise<{
   return new Resend(key);
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM || 'Benavera <noreply@benavera.com.br>';
+function getFromEmail(): string {
+  const configured = (process.env.EMAIL_FROM || process.env.RESEND_FROM_EMAIL || '').trim();
+  return configured || 'Benavera <noreply@benavera.com.br>';
+}
 
 export interface EmailDispatchResult {
   sent: boolean;
@@ -130,7 +133,7 @@ export async function sendClinicWelcomeEmail(opts: {
   `;
 
   return getResend().emails.send({
-    from: FROM_EMAIL,
+    from: getFromEmail(),
     to,
     subject: `Bem-vindo à Benavera, ${clinicName}! 🎉`,
     html: baseLayout(content, `Sua clínica ${clinicName} foi credenciada com sucesso!`),
@@ -184,7 +187,7 @@ export async function sendApplicationStatusEmail(opts: {
   `;
 
   return getResend().emails.send({
-    from: FROM_EMAIL,
+    from: getFromEmail(),
     to,
     subject: `${info.emoji} ${info.title} — Protocolo ${protocol}`,
     html: baseLayout(content, info.msg),
@@ -230,7 +233,7 @@ export async function sendClinicFollowupEmail(opts: {
   `;
 
   return getResend().emails.send({
-    from: FROM_EMAIL,
+    from: getFromEmail(),
     to,
     subject: `${clinicName} — Financiamento sem burocracia para seus pacientes`,
     html: baseLayout(content, 'Aumente o ticket médio da sua clínica com a Benavera'),
@@ -271,7 +274,7 @@ export async function sendAnalystAlertEmail(opts: {
   `;
 
   return getResend().emails.send({
-    from: FROM_EMAIL,
+    from: getFromEmail(),
     to,
     subject: `${cfg.emoji} ${cfg.title} — ${entityName}`,
     html: baseLayout(content),
@@ -306,7 +309,7 @@ export async function sendOTPEmail(opts: {
   `;
 
   return getResend().emails.send({
-    from: FROM_EMAIL,
+    from: getFromEmail(),
     to,
     subject: `${code} — Código de verificação Benavera`,
     html: baseLayout(content, `Seu código de verificação para o credenciamento Benavera.`),
@@ -353,7 +356,7 @@ export async function sendOnboardingInviteEmail(opts: {
   `;
 
   return getResend().emails.send({
-    from: FROM_EMAIL,
+    from: getFromEmail(),
     to,
     subject: `${clinicName} — Complete seu credenciamento na Benavera`,
     html: baseLayout(content, `Finalize o credenciamento da ${clinicName} na Benavera.`),
@@ -396,7 +399,7 @@ export async function sendCorrectionRequestEmail(opts: {
   `;
 
   return getResend().emails.send({
-    from: FROM_EMAIL,
+    from: getFromEmail(),
     to,
     subject: `${clinicName} — Correção necessária no credenciamento`,
     html: baseLayout(content, `Verifique os itens que precisam ser corrigidos.`),
@@ -431,7 +434,7 @@ export async function sendOnboardingSubmittedClinicEmail(opts: {
   `;
 
   return getResend().emails.send({
-    from: FROM_EMAIL,
+    from: getFromEmail(),
     to,
     subject: `${clinicName} — Credenciamento recebido com sucesso`,
     html: baseLayout(content, `Seu credenciamento foi recebido.`),
@@ -463,7 +466,7 @@ export async function sendOnboardingSubmittedAlert(opts: {
   `;
 
   return getResend().emails.send({
-    from: FROM_EMAIL,
+    from: getFromEmail(),
     to,
     subject: `📥 Novo credenciamento — ${clinicName}`,
     html: baseLayout(content),
@@ -531,7 +534,7 @@ export async function sendOnboardingApprovedEmail(opts: {
 
   try {
     const res = await getResend().emails.send({
-      from: FROM_EMAIL,
+      from: getFromEmail(),
       to,
       subject: `🎉 Credenciamento aprovado e acesso liberado — ${clinicName}`,
       html: baseLayout(content, `O credenciamento da ${clinicName} foi aprovado. Acesse o portal Benavera.`),
@@ -596,7 +599,7 @@ export async function sendClinicCredentialsEmail(opts: {
 
   try {
     const res = await getResend().emails.send({
-      from: FROM_EMAIL,
+      from: getFromEmail(),
       to,
       subject: `🔑 Dados de acesso ao Portal Benavera — ${clinicName}`,
       html: baseLayout(content, `Credenciais de acesso da ${clinicName} no Portal Benavera.`),
