@@ -6,12 +6,23 @@ import {
   formatDateOnly,
   getKonsigaSignatureLink,
   konsigaAdapter,
+  normalizeBase64Document,
   normalizeKonsigaStatus,
   parseBankDetails,
   resolveCouncilName,
   resolveKonsigaAuthEndpoint,
+  sendKonsigaCompleteProposal,
   sendKonsigaConfirmationToken,
+  uploadKonsigaInvoice,
+  upsertKonsigaConsolidator,
 } from '../src/lib/partners/konsiga';
+import {
+  KONSIGA_OCUPACOES,
+  KONSIGA_PROFISSOES,
+  VALID_KONSIGA_OCUPACAO_IDS,
+  VALID_KONSIGA_PROFISSAO_IDS,
+  getKonsigaStatusMeta,
+} from '../src/lib/partners/konsiga-catalogs';
 import {
   isValidKonsigaBasicAuth,
   normalizeKonsigaWebhookPayload,
@@ -348,6 +359,154 @@ test('Konsiga authenticated requests cache Bearer token, avoid double /access_to
         assert.equal(apiCalls[0].cnpjClinica, '99.888.777/0001-66');
         assert.equal(apiCalls[0].cnpjConsolidador, '12.345.678/0001-99');
         assert.equal(apiCalls[apiCalls.length - 1].auth, 'Bearer tok_2');
+      }
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('Konsiga official catalogs include 5 occupations and all 447 unique professions (1..447)', () => {
+  assert.equal(KONSIGA_OCUPACOES.length, 5);
+  assert.equal(VALID_KONSIGA_OCUPACAO_IDS.size, 5);
+  assert.equal(KONSIGA_PROFISSOES.length, 447);
+  assert.equal(VALID_KONSIGA_PROFISSAO_IDS.size, 447);
+  for (let id = 1; id <= 447; id++) {
+    assert.ok(VALID_KONSIGA_PROFISSAO_IDS.has(id), `Missing profession id ${id}`);
+  }
+  assert.equal(getKonsigaStatusMeta('AGUARDANDO ASSINATURA DO CONTRATO PELO PACIENTE').readyToSign, true);
+  assert.equal(getKonsigaStatusMeta('AGUARDANDO ENVIO DE RECIBO OU NF').needsInvoice, true);
+  assert.equal(getKonsigaStatusMeta('PROSSEGUIR CADASTRO').needsCompletion, true);
+});
+
+test('normalizeBase64Document strips valid data URLs and rejects invalid MIME, malformed base64, or oversized files', () => {
+  const sampleBase64 = Buffer.from('hello-pdf-bytes').toString('base64');
+  const okPdf = normalizeBase64Document(`data:application/pdf;base64,${sampleBase64}`);
+  assert.equal(okPdf.ok, true);
+  if (okPdf.ok) {
+    assert.equal(okPdf.base64, sampleBase64);
+    assert.equal(okPdf.bytes, 15);
+  }
+
+  const badMime = normalizeBase64Document(`data:text/html;base64,${sampleBase64}`);
+  assert.equal(badMime.ok, false);
+
+  const badB64 = normalizeBase64Document('not!valid@base64');
+  assert.equal(badB64.ok, false);
+
+  const tooBig = normalizeBase64Document(sampleBase64, 5);
+  assert.equal(tooBig.ok, false);
+});
+
+test('sendKonsigaCompleteProposal, uploadKonsigaInvoice and upsertKonsigaConsolidator call official v1.4 paths', async () => {
+  const originalFetch = globalThis.fetch;
+  const visited: string[] = [];
+
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = String(input);
+    visited.push(url);
+    if (url.endsWith('/api/access_token')) {
+      return new Response(
+        JSON.stringify({ AccessToken: 'tok_full', ExpiringAt: new Date(Date.now() + 3600_000).toISOString() }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    if (url.includes('/proposta/enviar-proposta-completa/')) {
+      return new Response(
+        JSON.stringify({ sucesso: true, mensagem: 'OK', erros: null, data: { transacao: 'tx-99' } }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    if (url.includes('/proposta/salvar-nota-fiscal/')) {
+      return new Response(
+        JSON.stringify({ sucesso: true, mensagem: 'OK', erros: null, data: { salvo: true } }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    if (url.endsWith('/v1/consolidador')) {
+      return new Response(
+        JSON.stringify({ sucesso: true, mensagem: 'OK', erros: null, data: 'Clinica cadastrada com sucesso' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    return new Response('{}', { status: 404 });
+  }) as typeof fetch;
+
+  try {
+    await withEnv(
+      {
+        KONSIGA_USERNAME: 'u',
+        KONSIGA_PASSWORD: 'p',
+        KONSIGA_BASE_URL: 'https://integracao-api-hml.konsiga.com.br/v1',
+        KONSIGA_AUTH_URL: 'https://sso-homolog.b2esistemas.com.br/api/access_token',
+      },
+      async () => {
+        const comp = await sendKonsigaCompleteProposal('tx-99', '11.222.333/0001-44', {
+          cliente: {
+            email: 'paciente@teste.com',
+            documentoFrenteBase64: Buffer.from('frente').toString('base64'),
+            documentoVersoBase64: Buffer.from('verso').toString('base64'),
+            tokenConfirmacao: '654321',
+            enderecoResidencial: {
+              logradouro: 'Rua A',
+              numero: '10',
+              bairro: 'Centro',
+              cidade: 'Curitiba',
+              estado: 'PR',
+              cep: '80000-000',
+            },
+            dadosComerciais: {
+              atividadeDesde: '01/2022',
+              cidade: 'Curitiba',
+              estado: 'PR',
+              idOcupacao: 1,
+              idProfissao: 394,
+              rendaMensal: 5000,
+            },
+          },
+        });
+        assert.equal(comp.sucesso, true);
+
+        const inv = await uploadKonsigaInvoice('tx-99', '11.222.333/0001-44', Buffer.from('nf').toString('base64'));
+        assert.equal(inv.data?.salvo, true);
+
+        const cons = await upsertKonsigaConsolidator(
+          {
+            cnpj: '11.222.333/0001-44',
+            nomeFantasia: 'Clinica Teste',
+            razaoSocial: 'Clinica Teste LTDA',
+            celular: '41999999999',
+            email: 'clinica@teste.com',
+            endereco: {
+              logradouro: 'Rua B',
+              numero: '20',
+              bairro: 'Centro',
+              cidade: 'Curitiba',
+              estado: 'PR',
+              cep: '80000-000',
+            },
+            responsavelTecnico: {
+              nome: 'Dr Teste',
+              cpf: '12345678901',
+              dataNascimento: '1985-05-05',
+              numeroDeRegistroConselho: '12345',
+              ufDeRegistroConselho: 'PR',
+              nomeConselho: 'Conselho Regional de Odontologia',
+            },
+            representanteLegal: {
+              nome: 'Rep Teste',
+              cpf: '12345678901',
+              dataNascimento: '1985-05-05',
+              email: 'rep@teste.com',
+            },
+          },
+          'create'
+        );
+        assert.equal(cons.sucesso, true);
+
+        assert.ok(visited.some(u => u.endsWith('/v1/proposta/enviar-proposta-completa/tx-99')));
+        assert.ok(visited.some(u => u.endsWith('/v1/proposta/salvar-nota-fiscal/tx-99')));
+        assert.ok(visited.some(u => u.endsWith('/v1/consolidador')));
       }
     );
   } finally {

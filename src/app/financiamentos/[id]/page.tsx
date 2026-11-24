@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import KonsigaOperationalPanel from '@/components/partners/KonsigaOperationalPanel';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   SUBMITTED: { label: 'Enviado', color: '#d97706', bg: '#fffbeb' },
@@ -58,11 +59,18 @@ export default function FinanciamentoDetailPage() {
   const [proposalLink, setProposalLink] = useState('');
   const [copied, setCopied] = useState(false);
 
+  async function loadData() {
+    try {
+      const r = await fetch(`/api/applications/${id}`);
+      const d = await r.json();
+      setData(d);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
-    fetch(`/api/applications/${id}`)
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+    loadData();
   }, [id]);
 
   async function ensureLink(): Promise<string> {
@@ -107,8 +115,16 @@ export default function FinanciamentoDetailPage() {
   const app = data.application;
   const proposals = data.proposals || [];
   const events = data.events || [];
+  const attempts = data.attempts || [];
   const st = STATUS_CONFIG[app.status] || { label: app.status, color: '#64748b', bg: '#f1f5f9' };
   const hasOffers = app.status === 'OFFERS_AVAILABLE' || proposals.length > 0;
+  const selectedKonsigaProposal = proposals.find(
+    (p: any) => p.selecionada && p.partner_api_slug === 'konsiga'
+  );
+  const konsigaAttempt = attempts.find(
+    (a: any) => a.partner_api_slug === 'konsiga' && a.external_transaction_id
+  );
+  const konsigaSigningUrl = selectedKonsigaProposal?.url_externa || app.contract_url || null;
   const elapsed = timeSince(app.created_at);
   const elapsedMins = Math.floor((Date.now() - new Date(app.created_at).getTime()) / 60000);
   const isOverSLA = elapsedMins > 15 && !['APPROVED', 'CONTRACT_SIGNED', 'PAYOUT_SCHEDULED', 'PAYOUT_COMPLETED', 'TREATMENT_RELEASED', 'DECLINED', 'CANCELLED', 'EXPIRED'].includes(app.status);
@@ -305,6 +321,17 @@ export default function FinanciamentoDetailPage() {
               </div>
             ))}
           </div>
+
+          {konsigaAttempt && konsigaAttempt.external_transaction_id && (
+            <KonsigaOperationalPanel
+              applicationId={String(id)}
+              transactionId={String(konsigaAttempt.external_transaction_id)}
+              externalStatus={konsigaAttempt.external_status}
+              externalStep={konsigaAttempt.external_step}
+              signingUrl={konsigaSigningUrl}
+              onUpdated={loadData}
+            />
+          )}
 
           {app.status === 'INTERNAL_REVIEW' && (
             <div style={{ background: '#fffbeb', borderRadius: '14px', padding: '20px', border: '1px solid #fde68a' }}>

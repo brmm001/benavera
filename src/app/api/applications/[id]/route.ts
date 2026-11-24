@@ -40,7 +40,7 @@ export async function GET(
 
     // Buscar proposals
     const proposals = await sql`
-      SELECT pr.*, fp.nome as partner_nome
+      SELECT pr.*, fp.nome as partner_nome, fp.api_slug as partner_api_slug
       FROM proposals pr
       LEFT JOIN financial_partners fp ON fp.id = pr.partner_id
       WHERE pr.application_id = ${id} AND pr.ativa = true
@@ -56,7 +56,7 @@ export async function GET(
 
     // Buscar funding attempts
     const attempts = await sql`
-      SELECT fa.*, fp.nome as partner_nome
+      SELECT fa.*, fp.nome as partner_nome, fp.api_slug as partner_api_slug
       FROM funding_attempts fa
       LEFT JOIN financial_partners fp ON fp.id = fa.partner_id
       WHERE fa.application_id = ${id}

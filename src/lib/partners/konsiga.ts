@@ -502,6 +502,48 @@ export function normalizeKonsigaStatus(status: string): PartnerStatus['normalize
   return 'IN_PROGRESS';
 }
 
+const MAX_DOCUMENT_BYTES = 6 * 1024 * 1024; // 6 MB decodificado
+
+/**
+ * Remove prefixo `data:<mime>;base64,` se presente, limpa espaços e valida Base64 e tamanho máximo.
+ */
+export function normalizeBase64Document(
+  raw: string,
+  maxBytes: number = MAX_DOCUMENT_BYTES
+): { ok: true; base64: string; bytes: number } | { ok: false; error: string } {
+  const trimmed = (raw || '').trim();
+  if (!trimmed) {
+    return { ok: false, error: 'Arquivo vazio.' };
+  }
+
+  let payload = trimmed;
+  const dataUrlMatch = trimmed.match(/^data:([^;]+);base64,([\s\S]+)$/i);
+  if (dataUrlMatch) {
+    const mime = dataUrlMatch[1].toLowerCase().trim();
+    const allowedMimes = new Set(['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']);
+    if (!allowedMimes.has(mime)) {
+      return { ok: false, error: 'Formato não suportado. Envie JPG, PNG ou PDF.' };
+    }
+    payload = dataUrlMatch[2];
+  }
+
+  const cleaned = payload.replace(/\s+/g, '');
+  if (!cleaned || cleaned.length % 4 === 1 || !/^[A-Za-z0-9+/]+=*$/.test(cleaned)) {
+    return { ok: false, error: 'Conteúdo Base64 inválido.' };
+  }
+
+  const bytes = Buffer.from(cleaned, 'base64').byteLength;
+  if (bytes === 0) {
+    return { ok: false, error: 'Arquivo inválido ou vazio.' };
+  }
+  if (bytes > maxBytes) {
+    const maxMb = Math.round((maxBytes / (1024 * 1024)) * 10) / 10;
+    return { ok: false, error: `Arquivo excede o limite de ${maxMb} MB.` };
+  }
+
+  return { ok: true, base64: cleaned, bytes };
+}
+
 function validateApplicantForKonsiga(applicant: HubApplicant): string[] {
   const missing: string[] = [];
   const p = applicant.patient;
@@ -733,7 +775,7 @@ export const konsigaAdapter: PartnerAdapter = {
         responsavelTecnico: {
           nome: (appData.techRepName || appData.clinicResponsavel || appData.clinicNomeFantasia).trim(),
           cpf: onlyDigits(appData.techRepCpf || appData.legalRepCpf || appData.clinicCpfResponsavel) || '00000000000',
-          dataNascimento: '1990-01-01',
+          dataNascimento: appData.techRepBirthDate || '1990-01-01',
           numeroDeRegistroConselho: (appData.techRepCouncilNumber || '00000').trim(),
           ufDeRegistroConselho: (appData.techRepCouncilState || clinicUf).trim().toUpperCase().slice(0, 2),
           nomeConselho: resolveCouncilName(appData.techRepCouncil),
@@ -742,7 +784,7 @@ export const konsigaAdapter: PartnerAdapter = {
           nome: (appData.legalRepName || appData.clinicResponsavel || appData.clinicNomeFantasia).trim(),
           email: (appData.legalRepEmail || appData.clinicEmail).trim(),
           cpf: onlyDigits(appData.legalRepCpf || appData.clinicCpfResponsavel) || '00000000000',
-          dataNascimento: '1990-01-01',
+          dataNascimento: appData.legalRepBirthDate || '1990-01-01',
         },
         dadosBancarios: bank,
       },
@@ -945,7 +987,7 @@ export async function upsertKonsigaConsolidator(
 
 // ─── Helpers de banco ───────────────────────────────────────────────────────
 
-async function resolveClinicCnpj(applicationId: string): Promise<string | null> {
+export async function resolveClinicCnpj(applicationId: string): Promise<string | null> {
   const rows = await sql`
     SELECT c.cnpj
     FROM applications a
@@ -956,7 +998,7 @@ async function resolveClinicCnpj(applicationId: string): Promise<string | null> 
   return rows[0]?.cnpj ? String(rows[0].cnpj).trim() : null;
 }
 
-async function resolveClinicCnpjByTransaction(transactionId: string): Promise<string | null> {
+export async function resolveClinicCnpjByTransaction(transactionId: string): Promise<string | null> {
   const rows = await sql`
     SELECT c.cnpj
     FROM funding_attempts fa
@@ -967,6 +1009,72 @@ async function resolveClinicCnpjByTransaction(transactionId: string): Promise<st
     LIMIT 1
   `;
   return rows[0]?.cnpj ? String(rows[0].cnpj).trim() : null;
+}
+
+export interface KonsigaAttemptContext {
+  attemptId: string;
+  applicationId: string;
+  partnerId: string;
+  clinicCnpj: string;
+  transactionId: string;
+  externalStatus: string | null;
+  externalStep: string | null;
+  proposalId: string | null;
+  signingUrl: string | null;
+}
+
+/** Localiza a tentativa ativa da Konsiga vinculada a uma solicitação. */
+export async function resolveKonsigaAttemptByApplication(
+  applicationId: string
+): Promise<KonsigaAttemptContext | null> {
+  const rows = await sql`
+    SELECT
+      fa.id AS attempt_id,
+      fa.application_id,
+      fa.partner_id,
+      fa.external_transaction_id,
+      fa.external_id,
+      fa.external_status,
+      fa.external_step,
+      c.cnpj AS clinic_cnpj,
+      pr.id AS proposal_id,
+      pr.url_externa AS signing_url
+    FROM funding_attempts fa
+    JOIN financial_partners fp ON fp.id = fa.partner_id
+    JOIN applications a ON a.id = fa.application_id
+    JOIN clinics c ON c.id = a.clinic_id
+    LEFT JOIN proposals pr
+      ON pr.application_id = fa.application_id
+     AND pr.funding_attempt_id = fa.id
+     AND pr.selecionada = true
+    WHERE fa.application_id = ${applicationId}
+      AND fp.api_slug = 'konsiga'
+    ORDER BY
+      (pr.id IS NOT NULL) DESC,
+      (fa.external_transaction_id IS NOT NULL) DESC,
+      fa.updated_at DESC NULLS LAST,
+      fa.submitted_at DESC
+    LIMIT 1
+  `;
+
+  const row = rows[0];
+  if (!row) return null;
+
+  const transactionId = String(row.external_transaction_id || row.external_id || '').trim();
+  const clinicCnpj = String(row.clinic_cnpj || '').trim();
+  if (!transactionId || !clinicCnpj) return null;
+
+  return {
+    attemptId: String(row.attempt_id),
+    applicationId: String(row.application_id),
+    partnerId: String(row.partner_id),
+    clinicCnpj,
+    transactionId,
+    externalStatus: row.external_status ? String(row.external_status) : null,
+    externalStep: row.external_step ? String(row.external_step) : null,
+    proposalId: row.proposal_id ? String(row.proposal_id) : null,
+    signingUrl: row.signing_url ? String(row.signing_url) : null,
+  };
 }
 
 interface ApplicationDataForKonsiga {
@@ -996,11 +1104,13 @@ interface ApplicationDataForKonsiga {
   clinicBankAccountType: string;
   techRepName: string;
   techRepCpf: string;
+  techRepBirthDate: string;
   techRepCouncil: string;
   techRepCouncilNumber: string;
   techRepCouncilState: string;
   legalRepName: string;
   legalRepCpf: string;
+  legalRepBirthDate: string;
   legalRepEmail: string;
 }
 
@@ -1044,11 +1154,13 @@ async function resolveApplicationData(protocol: string): Promise<ApplicationData
       ob.bank_account_type AS ob_bank_account_type,
       ob.tech_rep_name AS ob_tech_name,
       ob.tech_rep_cpf AS ob_tech_cpf,
+      ob.tech_rep_birth_date AS ob_tech_birth_date,
       ob.tech_rep_council AS ob_tech_council,
       ob.tech_rep_council_number AS ob_tech_council_number,
       ob.tech_rep_council_state AS ob_tech_council_state,
       ob.legal_rep_name AS ob_legal_name,
       ob.legal_rep_cpf AS ob_legal_cpf,
+      ob.legal_rep_birth_date AS ob_legal_birth_date,
       ob.legal_rep_email AS ob_legal_email
     FROM applications a
     JOIN patients p ON p.id = a.patient_id
@@ -1098,11 +1210,13 @@ async function resolveApplicationData(protocol: string): Promise<ApplicationData
     clinicBankAccountType: String(r.ob_bank_account_type || ''),
     techRepName: String(r.ob_tech_name || ''),
     techRepCpf: String(r.ob_tech_cpf || ''),
+    techRepBirthDate: formatDateOnly(r.ob_tech_birth_date, '1990-01-01'),
     techRepCouncil: String(r.ob_tech_council || ''),
     techRepCouncilNumber: String(r.ob_tech_council_number || ''),
     techRepCouncilState: String(r.ob_tech_council_state || ''),
     legalRepName: String(r.ob_legal_name || ''),
     legalRepCpf: String(r.ob_legal_cpf || ''),
+    legalRepBirthDate: formatDateOnly(r.ob_legal_birth_date, '1990-01-01'),
     legalRepEmail: String(r.ob_legal_email || ''),
   };
 }

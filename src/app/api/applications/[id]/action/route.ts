@@ -10,9 +10,34 @@ import {
   createProposal,
   generateProposalToken,
   transitionStatus,
+  logEvent,
 } from '@/lib/application-service';
-import { quoteAllPartners } from '@/lib/partners/hub';
-import type { InternalDecision, ApplicationStatus } from '@/lib/benavera-db';
+import { quoteAllPartners, syncPartnerStatus } from '@/lib/partners/hub';
+import {
+  normalizeBase64Document,
+  resolveKonsigaAttemptByApplication,
+  sendKonsigaConfirmationToken,
+  uploadKonsigaInvoice,
+} from '@/lib/partners/konsiga';
+import { sql, type InternalDecision, type ApplicationStatus } from '@/lib/benavera-db';
+
+async function canAccessApplication(
+  applicationId: string,
+  role: string,
+  clinicId?: string | null
+): Promise<boolean> {
+  if (
+    role === 'BENAVERA_ADMIN' ||
+    role === 'BENAVERA_ANALYST' ||
+    role === 'BENAVERA_COMPLIANCE' ||
+    role === 'BENAVERA_FINANCEIRO'
+  ) {
+    return true;
+  }
+  if (!clinicId) return false;
+  const rows = await sql`SELECT clinic_id FROM applications WHERE id = ${applicationId} LIMIT 1`;
+  return Boolean(rows[0] && String(rows[0].clinic_id) === String(clinicId));
+}
 
 export async function POST(
   request: NextRequest,
@@ -136,7 +161,6 @@ export async function POST(
         if (!hasPermission(session.role, 'APPROVE_REJECT_INTERNAL')) {
           return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
         }
-        const { sql } = await import('@/lib/benavera-db');
         await sql`
           UPDATE applications
           SET contract_status = 'SIGNED',
@@ -146,6 +170,120 @@ export async function POST(
           WHERE id = ${id}
         `;
         return NextResponse.json({ success: true });
+      }
+
+      // ── Konsiga: sincronizar status e capturar link de assinatura ─────────
+      case 'konsiga_sync_status': {
+        const allowed = await canAccessApplication(id, session.role, session.clinicId);
+        if (!allowed) {
+          return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
+        }
+        const result = await syncPartnerStatus(id, 'konsiga');
+        if (!result.success) {
+          return NextResponse.json(result, { status: 400 });
+        }
+        return NextResponse.json(result);
+      }
+
+      // ── Konsiga: reenviar token SMS de confirmação ao paciente ────────────
+      case 'konsiga_send_sms': {
+        const allowed = await canAccessApplication(id, session.role, session.clinicId);
+        if (!allowed) {
+          return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
+        }
+        const ctx = await resolveKonsigaAttemptByApplication(id);
+        if (!ctx) {
+          return NextResponse.json(
+            { success: false, error: 'Nenhuma transação Konsiga ativa nesta solicitação.' },
+            { status: 400 }
+          );
+        }
+        const smsRes = await sendKonsigaConfirmationToken(ctx.transactionId, ctx.clinicCnpj);
+        if (!smsRes.sucesso) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: smsRes.erros?.join('; ') || smsRes.mensagem || 'Falha ao enviar SMS.',
+            },
+            { status: 422 }
+          );
+        }
+        await sql`
+          UPDATE funding_attempts
+          SET
+            external_step = CASE
+              WHEN external_step IN ('PROPOSTA_COMPLETA_ENVIADA', 'ASSINATURA_DISPONIVEL', 'NF_ENVIADA', 'CREDITO_EFETUADO')
+                THEN external_step
+              ELSE 'TOKEN_SMS_ENVIADO'
+            END,
+            updated_at = NOW()
+          WHERE id = ${ctx.attemptId}
+        `;
+        await logEvent({
+          applicationId: id,
+          actorType: 'USER',
+          actorId: session.userId,
+          actorName: session.name,
+          event: 'KONSIGA_SMS_SENT',
+          metadata: { partner: 'konsiga', transactionId: ctx.transactionId },
+        });
+        return NextResponse.json({
+          success: true,
+          message: 'Token SMS reenviado ao celular do paciente.',
+        });
+      }
+
+      // ── Konsiga: enviar Nota Fiscal / Recibo (Base64) para liberar repasse ─
+      case 'konsiga_upload_invoice': {
+        const allowed = await canAccessApplication(id, session.role, session.clinicId);
+        if (!allowed) {
+          return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
+        }
+        const { nfBase64, fileName } = body as { nfBase64?: string; fileName?: string };
+        const norm = normalizeBase64Document(nfBase64 || '', 8 * 1024 * 1024);
+        if (!norm.ok) {
+          return NextResponse.json({ success: false, error: norm.error }, { status: 400 });
+        }
+        const ctx = await resolveKonsigaAttemptByApplication(id);
+        if (!ctx) {
+          return NextResponse.json(
+            { success: false, error: 'Nenhuma transação Konsiga ativa nesta solicitação.' },
+            { status: 400 }
+          );
+        }
+        const invRes = await uploadKonsigaInvoice(ctx.transactionId, ctx.clinicCnpj, norm.base64);
+        if (!invRes.sucesso || invRes.data?.salvo === false) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: invRes.erros?.join('; ') || invRes.mensagem || 'A Konsiga recusou o envio da NF.',
+            },
+            { status: 422 }
+          );
+        }
+        await sql`
+          UPDATE funding_attempts
+          SET external_step = 'NF_ENVIADA', updated_at = NOW()
+          WHERE id = ${ctx.attemptId}
+        `;
+        await logEvent({
+          applicationId: id,
+          actorType: 'USER',
+          actorId: session.userId,
+          actorName: session.name,
+          event: 'KONSIGA_INVOICE_UPLOADED',
+          metadata: {
+            partner: 'konsiga',
+            transactionId: ctx.transactionId,
+            fileName: fileName ? String(fileName).slice(0, 120) : null,
+            bytes: norm.bytes,
+          },
+        });
+        return NextResponse.json({
+          success: true,
+          salvo: true,
+          message: 'Nota Fiscal enviada com sucesso para a Konsiga.',
+        });
       }
 
       default:

@@ -2,10 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import KonsigaCompletionFlow, {
+  type KonsigaPatientPrefill,
+  type KonsigaPatientState,
+} from '@/components/proposta/KonsigaCompletionFlow';
 
 interface Proposal {
   id: string;
   partner_nome: string;
+  partner_api_slug?: string | null;
   valor_financiado: number;
   entrada: number;
   parcelas: number;
@@ -29,6 +34,9 @@ interface ProposalData {
   valor_financiado: number;
   status: string;
   expires_at: string;
+  selected_partner_slug?: string | null;
+  konsiga?: KonsigaPatientState | null;
+  patient_prefill?: KonsigaPatientPrefill | null;
   proposals: Proposal[];
 }
 
@@ -103,7 +111,9 @@ export default function PropostaPublicaPage() {
       setSuccessMessage(
         json.authorizeError
           ? `Proposta aceita! ${json.authorizeError}`
-          : 'Proposta aceita com sucesso!'
+          : json.requiresCompletion
+            ? 'Proposta inicial aprovada! Complete seus dados e documento abaixo para liberar a assinatura.'
+            : 'Proposta aceita com sucesso!'
       );
       await fetchProposal();
     } catch (err: any) {
@@ -173,7 +183,10 @@ export default function PropostaPublicaPage() {
       'CONCLUIDA',
     ].includes(data.status);
   const selectedProposal = data.proposals.find(p => p.selecionada || p.id === selectedProposalId);
-  const continueUrl = externalRedirectUrl || selectedProposal?.url_externa || null;
+  const isKonsigaSelected =
+    isAlreadyChosen && data.selected_partner_slug === 'konsiga' && Boolean(data.konsiga);
+  const continueUrl =
+    externalRedirectUrl || data.konsiga?.signingUrl || selectedProposal?.url_externa || null;
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1e293b' }}>
@@ -286,11 +299,13 @@ export default function PropostaPublicaPage() {
             </div>
             <div style={{ backgroundColor: '#f0fdfa', borderRadius: 8, padding: 14, fontSize: '0.9rem', color: '#047857' }}>
               ℹ️ <strong>Próximos passos:</strong>{' '}
-              {continueUrl
-                ? 'Finalize a validação cadastral e assinatura digital diretamente no ambiente seguro da financeira.'
-                : 'O contrato digital está sendo processado. Você receberá o link para assinatura eletrônica no seu WhatsApp ou e-mail cadastrado.'}
+              {isKonsigaSelected && !data.konsiga?.completed
+                ? 'Conclua o envio do código SMS, dados comerciais e documento logo abaixo para liberar o contrato digital.'
+                : continueUrl
+                  ? 'Finalize a validação cadastral e assinatura digital diretamente no ambiente seguro da financeira.'
+                  : 'O contrato digital está sendo processado. Você receberá o link para assinatura eletrônica no seu WhatsApp ou e-mail cadastrado.'}
             </div>
-            {continueUrl && (
+            {continueUrl && !isKonsigaSelected && (
               <div style={{ marginTop: 16 }}>
                 <button
                   type="button"
@@ -315,6 +330,16 @@ export default function PropostaPublicaPage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Fluxo guiado Konsiga (SMS + Proposta Completa + Acompanhamento/Assinatura) */}
+        {isKonsigaSelected && data.konsiga && (
+          <KonsigaCompletionFlow
+            token={token}
+            konsiga={data.konsiga}
+            prefill={data.patient_prefill || null}
+            onUpdated={fetchProposal}
+          />
         )}
 
         {/* List of Proposals to Select */}

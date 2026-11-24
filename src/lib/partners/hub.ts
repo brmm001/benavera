@@ -7,6 +7,7 @@ import type { SessionPayload } from '@/lib/auth';
 import { canTransition, logEvent } from '@/lib/application-service';
 import { sql, type ApplicationStatus } from '@/lib/benavera-db';
 import { maskCpf } from './http';
+import { getKonsigaSignatureLink, resolveClinicCnpj } from './konsiga';
 import { getAdapter } from './registry';
 import type { HubApplicant, PartnerStatus } from './types';
 
@@ -404,7 +405,12 @@ export async function quoteAllPartners(
 export async function authorizeProposal(
   applicationId: string,
   proposalId: string
-): Promise<{ redirectUrl: string | null; error?: string }> {
+): Promise<{
+  redirectUrl: string | null;
+  partnerSlug?: string | null;
+  requiresCompletion?: boolean;
+  error?: string;
+}> {
   const rows = await sql`
     SELECT
       pr.id AS proposal_id,
@@ -423,29 +429,40 @@ export async function authorizeProposal(
   `;
 
   const row = rows[0];
-  if (!row) return { redirectUrl: null };
+  if (!row) return { redirectUrl: null, partnerSlug: null };
 
   const slug = row.partner_api_slug ? String(row.partner_api_slug) : null;
   const externalOptionId = row.external_option_id ? String(row.external_option_id) : null;
   if (!slug || !externalOptionId) {
     // Fluxo manual existente — retorna null sem alterar nada
-    return { redirectUrl: null };
+    return { redirectUrl: null, partnerSlug: slug };
   }
 
   const adapter = getAdapter(slug);
   if (!adapter || !adapter.isConfigured()) {
-    return { redirectUrl: null };
+    return { redirectUrl: null, partnerSlug: slug };
   }
 
   try {
     const authRes = await adapter.authorize(externalOptionId, String(row.protocol));
+    const initialExternalStatus =
+      typeof authRes.raw?.status === 'string' && authRes.raw.status.trim()
+        ? authRes.raw.status.trim()
+        : 'AUTHORIZED';
+    const initialStep =
+      slug === 'konsiga'
+        ? authRes.redirectUrl
+          ? 'ASSINATURA_DISPONIVEL'
+          : 'PROPOSTA_INICIAL_ENVIADA'
+        : null;
 
     if (row.funding_attempt_id) {
       await sql`
         UPDATE funding_attempts
         SET
           external_transaction_id = ${authRes.externalTransactionId},
-          external_status = 'AUTHORIZED',
+          external_status = ${initialExternalStatus},
+          external_step = COALESCE(${initialStep}, external_step),
           updated_at = NOW()
         WHERE id = ${String(row.funding_attempt_id)}
       `;
@@ -457,12 +474,29 @@ export async function authorizeProposal(
       WHERE id = ${proposalId}
     `;
 
+    if (authRes.redirectUrl) {
+      await sql`
+        UPDATE applications
+        SET
+          contract_url = COALESCE(contract_url, ${authRes.redirectUrl}),
+          contract_provider = COALESCE(contract_provider, ${slug === 'konsiga' ? 'Konsiga' : slug}),
+          contract_id = COALESCE(contract_id, ${authRes.externalTransactionId}),
+          updated_at = NOW()
+        WHERE id = ${applicationId}
+      `;
+    }
+
     await systemTransition(applicationId, 'CONTRACT_PENDING', 'PARTNER_AUTHORIZED', {
       partner: slug,
       transactionId: authRes.externalTransactionId,
+      externalStatus: initialExternalStatus,
     });
 
-    return { redirectUrl: authRes.redirectUrl || null };
+    return {
+      redirectUrl: authRes.redirectUrl || null,
+      partnerSlug: slug,
+      requiresCompletion: slug === 'konsiga' && !authRes.redirectUrl,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message.slice(0, 200) : 'Falha na autorização';
     await logEvent({
@@ -477,6 +511,7 @@ export async function authorizeProposal(
     });
     return {
       redirectUrl: null,
+      partnerSlug: slug,
       error: 'Não foi possível iniciar a etapa na financeira agora. Nossa equipe dará seguimento.',
     };
   }
@@ -549,6 +584,278 @@ async function handleRejectionOrFallback(
       WHERE id = ${applicationId}
     `;
   }
+}
+
+function stripAccentsUpper(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim();
+}
+
+/**
+ * Aplica um `PartnerStatus` confirmado pela API da financeira ao banco e à state machine.
+ * Usado tanto pelo webhook quanto pela sincronização sob demanda.
+ */
+async function applyPartnerStatus(
+  ctx: {
+    applicationId: string;
+    attemptId: string;
+    partnerId: string;
+    slug: string;
+    txId: string;
+  },
+  statusInfo: PartnerStatus
+): Promise<{ signingUrl: string | null; derivedStep: string | null }> {
+  const { applicationId, attemptId, partnerId, slug, txId } = ctx;
+  const externalUpper = stripAccentsUpper(statusInfo.externalStatus || '');
+
+  let signingUrl: string | null = null;
+  let derivedStep: string | null = statusInfo.step || null;
+
+  // Para Konsiga: capturar automaticamente o link de assinatura quando liberado
+  if (slug === 'konsiga') {
+    const existingProp = await sql`
+      SELECT id, url_externa
+      FROM proposals
+      WHERE application_id = ${applicationId}
+        AND (funding_attempt_id = ${attemptId} OR (partner_id = ${partnerId} AND selecionada = true))
+      ORDER BY selecionada DESC, created_at DESC
+      LIMIT 1
+    `;
+    signingUrl = existingProp[0]?.url_externa ? String(existingProp[0].url_externa) : null;
+
+    const shouldTryFetchLink =
+      !signingUrl &&
+      (externalUpper.includes('ASSINATURA') ||
+        externalUpper.includes('CCB') ||
+        externalUpper.includes('APROVADO') ||
+        externalUpper.includes('RECIBO OU NF') ||
+        externalUpper.includes('CREDITO'));
+
+    if (shouldTryFetchLink) {
+      try {
+        const clinicCnpj = await resolveClinicCnpj(applicationId);
+        if (clinicCnpj) {
+          const fetched = await getKonsigaSignatureLink(txId, clinicCnpj);
+          if (fetched) {
+            signingUrl = fetched;
+            if (existingProp[0]?.id) {
+              await sql`
+                UPDATE proposals
+                SET url_externa = ${fetched}
+                WHERE id = ${String(existingProp[0].id)}
+              `;
+            }
+            await sql`
+              UPDATE applications
+              SET
+                contract_url = ${fetched},
+                contract_provider = COALESCE(contract_provider, 'Konsiga'),
+                contract_id = COALESCE(contract_id, ${txId}),
+                contract_status = CASE
+                  WHEN contract_status = 'SIGNED' THEN contract_status
+                  ELSE 'SENT'::contract_status
+                END,
+                updated_at = NOW()
+              WHERE id = ${applicationId}
+            `;
+            await systemTransition(applicationId, 'CONTRACT_SENT', 'PARTNER_CONTRACT_LINK_READY', {
+              partner: slug,
+              transactionId: txId,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn(
+          '[Hub Konsiga] Falha ao consultar link de assinatura:',
+          err instanceof Error ? err.message : 'erro desconhecido'
+        );
+      }
+    }
+
+    if (externalUpper === 'CREDITO EFETUADO NA CONTA INFORMADA') {
+      derivedStep = 'CREDITO_EFETUADO';
+    } else if (externalUpper === 'AGUARDANDO ENVIO DE RECIBO OU NF') {
+      derivedStep = 'AGUARDANDO_NF';
+    } else if (externalUpper === 'AGUARDANDO ASSINATURA DO CONTRATO PELO PACIENTE' || signingUrl) {
+      derivedStep = 'ASSINATURA_DISPONIVEL';
+    } else if (externalUpper === 'AGUARDANDO ANALISE') {
+      derivedStep = 'AGUARDANDO_ANALISE';
+    }
+  }
+
+  await sql`
+    UPDATE funding_attempts
+    SET
+      external_status = ${statusInfo.externalStatus},
+      external_step = COALESCE(${derivedStep}, external_step),
+      updated_at = NOW()
+    WHERE id = ${attemptId}
+  `;
+
+  if (statusInfo.normalized === 'APPROVED') {
+    await sql`
+      UPDATE funding_attempts
+      SET
+        status = 'APPROVED',
+        responded_at = COALESCE(responded_at, NOW()),
+        updated_at = NOW()
+      WHERE id = ${attemptId}
+    `;
+
+    // Garantir que saia de OFFER_SELECTED para CONTRACT_PENDING se ainda estiver lá
+    await systemTransition(applicationId, 'CONTRACT_PENDING', 'PARTNER_CONTRACT_SYNC', {
+      partner: slug,
+    });
+
+    const signedOk = await systemTransition(
+      applicationId,
+      'CONTRACT_SIGNED',
+      'PARTNER_CONTRACT_SIGNED',
+      { partner: slug, transactionId: txId }
+    );
+    if (signedOk) {
+      await sql`
+        UPDATE applications
+        SET
+          contract_signed_at = COALESCE(contract_signed_at, NOW()),
+          contract_status = 'SIGNED',
+          updated_at = NOW()
+        WHERE id = ${applicationId}
+      `;
+    }
+
+    const approvedOk = await systemTransition(applicationId, 'APPROVED', 'PARTNER_APPROVED', {
+      partner: slug,
+      transactionId: txId,
+    });
+    if (approvedOk) {
+      await sql`
+        UPDATE applications
+        SET lender_decision = 'APPROVED'::lender_decision, updated_at = NOW()
+        WHERE id = ${applicationId}
+      `;
+    }
+
+    if (slug === 'konsiga' && externalUpper === 'CREDITO EFETUADO NA CONTA INFORMADA') {
+      await logEvent({
+        applicationId,
+        actorType: 'SYSTEM',
+        event: 'PARTNER_CREDIT_DISBURSED',
+        metadata: { partner: slug, transactionId: txId, externalStatus: statusInfo.externalStatus },
+      });
+    }
+  } else if (
+    statusInfo.normalized === 'DENIED' ||
+    statusInfo.normalized === 'ABANDONED' ||
+    statusInfo.normalized === 'CANCELLED'
+  ) {
+    await handleRejectionOrFallback(
+      applicationId,
+      attemptId,
+      partnerId,
+      slug,
+      statusInfo.normalized
+    );
+  } else {
+    const evtName =
+      slug === 'konsiga' && externalUpper === 'AGUARDANDO ENVIO DE RECIBO OU NF'
+        ? 'PARTNER_AWAITING_INVOICE'
+        : `PARTNER_STEP_${derivedStep || 'IN_PROGRESS'}`;
+    await logEvent({
+      applicationId,
+      actorType: 'SYSTEM',
+      event: evtName,
+      metadata: {
+        partner: slug,
+        transactionId: txId,
+        externalStatus: statusInfo.externalStatus,
+        step: derivedStep,
+        hasSigningUrl: Boolean(signingUrl),
+      },
+    });
+  }
+
+  return { signingUrl, derivedStep };
+}
+
+/**
+ * Sincroniza sob demanda o status da financeira ativa (e captura o link de assinatura na Konsiga).
+ */
+export async function syncPartnerStatus(
+  applicationId: string,
+  partnerSlug?: string
+): Promise<{
+  success: boolean;
+  error?: string;
+  partner?: string;
+  transactionId?: string;
+  externalStatus?: string;
+  externalStep?: string | null;
+  normalized?: PartnerStatus['normalized'];
+  signingUrl?: string | null;
+  appStatus?: string;
+}> {
+  const rows = await sql`
+    SELECT
+      fa.id AS attempt_id,
+      fa.application_id,
+      fa.partner_id,
+      fa.external_transaction_id,
+      fa.external_id,
+      fp.api_slug
+    FROM funding_attempts fa
+    JOIN financial_partners fp ON fp.id = fa.partner_id
+    LEFT JOIN proposals pr
+      ON pr.application_id = fa.application_id
+     AND pr.funding_attempt_id = fa.id
+     AND pr.selecionada = true
+    WHERE fa.application_id = ${applicationId}
+      AND fp.api_slug IS NOT NULL
+      AND (${partnerSlug || null}::text IS NULL OR fp.api_slug = ${partnerSlug || null})
+      AND (fa.external_transaction_id IS NOT NULL OR fa.external_id IS NOT NULL)
+    ORDER BY
+      (pr.id IS NOT NULL) DESC,
+      (fa.external_transaction_id IS NOT NULL) DESC,
+      fa.updated_at DESC NULLS LAST,
+      fa.submitted_at DESC
+    LIMIT 1
+  `;
+
+  const row = rows[0];
+  if (!row) {
+    return { success: false, error: 'Nenhuma transação de financeira integrada encontrada.' };
+  }
+
+  const slug = String(row.api_slug);
+  const txId = String(row.external_transaction_id || row.external_id || '').trim();
+  const adapter = getAdapter(slug);
+  if (!adapter || !adapter.isConfigured()) {
+    return { success: false, error: `Integração ${slug} não configurada no ambiente.` };
+  }
+
+  const statusInfo = await adapter.getStatus(txId);
+  const { signingUrl, derivedStep } = await applyPartnerStatus(
+    {
+      applicationId: String(row.application_id),
+      attemptId: String(row.attempt_id),
+      partnerId: String(row.partner_id),
+      slug,
+      txId,
+    },
+    statusInfo
+  );
+
+  const appRows = await sql`SELECT status FROM applications WHERE id = ${applicationId} LIMIT 1`;
+
+  return {
+    success: true,
+    partner: slug,
+    transactionId: txId,
+    externalStatus: statusInfo.externalStatus,
+    externalStep: derivedStep,
+    normalized: statusInfo.normalized,
+    signingUrl,
+    appStatus: appRows[0]?.status ? String(appRows[0].status) : undefined,
+  };
 }
 
 export async function handlePartnerWebhook(
@@ -663,84 +970,10 @@ export async function handlePartnerWebhook(
     }
 
     const statusInfo = await adapter.getStatus(txId);
-
-    await sql`
-      UPDATE funding_attempts
-      SET
-        external_status = ${statusInfo.externalStatus},
-        external_step = ${statusInfo.step || null},
-        updated_at = NOW()
-      WHERE id = ${attemptId}
-    `;
-
-    if (statusInfo.normalized === 'APPROVED') {
-      await sql`
-        UPDATE funding_attempts
-        SET
-          status = 'APPROVED',
-          responded_at = COALESCE(responded_at, NOW()),
-          updated_at = NOW()
-        WHERE id = ${attemptId}
-      `;
-
-      // Garantir que saia de OFFER_SELECTED para CONTRACT_PENDING se ainda estiver lá
-      await systemTransition(applicationId, 'CONTRACT_PENDING', 'PARTNER_CONTRACT_SYNC', {
-        partner: slug,
-      });
-
-      const signedOk = await systemTransition(
-        applicationId,
-        'CONTRACT_SIGNED',
-        'PARTNER_CONTRACT_SIGNED',
-        { partner: slug, transactionId: txId }
-      );
-      if (signedOk) {
-        await sql`
-          UPDATE applications
-          SET
-            contract_signed_at = COALESCE(contract_signed_at, NOW()),
-            contract_status = 'SIGNED',
-            updated_at = NOW()
-          WHERE id = ${applicationId}
-        `;
-      }
-
-      const approvedOk = await systemTransition(applicationId, 'APPROVED', 'PARTNER_APPROVED', {
-        partner: slug,
-        transactionId: txId,
-      });
-      if (approvedOk) {
-        await sql`
-          UPDATE applications
-          SET lender_decision = 'APPROVED'::lender_decision, updated_at = NOW()
-          WHERE id = ${applicationId}
-        `;
-      }
-    } else if (
-      statusInfo.normalized === 'DENIED' ||
-      statusInfo.normalized === 'ABANDONED' ||
-      statusInfo.normalized === 'CANCELLED'
-    ) {
-      await handleRejectionOrFallback(
-        applicationId,
-        attemptId,
-        partnerId,
-        slug,
-        statusInfo.normalized
-      );
-    } else {
-      await logEvent({
-        applicationId,
-        actorType: 'SYSTEM',
-        event: `PARTNER_STEP_${statusInfo.step || 'IN_PROGRESS'}`,
-        metadata: {
-          partner: slug,
-          transactionId: txId,
-          externalStatus: statusInfo.externalStatus,
-          step: statusInfo.step || null,
-        },
-      });
-    }
+    await applyPartnerStatus(
+      { applicationId, attemptId, partnerId, slug, txId },
+      statusInfo
+    );
 
     await sql`
       UPDATE partner_webhook_events SET processed_at = NOW() WHERE id = ${eventId}

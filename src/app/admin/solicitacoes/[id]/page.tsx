@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import KonsigaOperationalPanel from '@/components/partners/KonsigaOperationalPanel';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   SUBMITTED: { label: 'Enviada', color: '#7c3aed', bg: '#f5f3ff' },
@@ -115,6 +116,17 @@ export default function AdminSolicitacaoDetailPage() {
   const canRegisterContract = app.status === 'OFFER_SELECTED';
   const canConfirmContractSigned = app.status === 'CONTRACT_SENT';
   const hasOffers = proposals.length > 0;
+  const selectedKonsigaProposal = proposals.find(
+    (p: any) => p.selecionada && p.partner_api_slug === 'konsiga'
+  );
+  const konsigaAttempt = attempts.find(
+    (a: any) => a.partner_api_slug === 'konsiga' && (a.external_transaction_id || a.external_id)
+  );
+  const konsigaTransactionId = konsigaAttempt
+    ? String(konsigaAttempt.external_transaction_id || konsigaAttempt.external_id)
+    : null;
+  const konsigaSigningUrl =
+    selectedKonsigaProposal?.url_externa || app.contract_url || null;
 
   return (
     <div style={{ padding: '40px 48px', maxWidth: '1100px' }}>
@@ -196,8 +208,15 @@ export default function AdminSolicitacaoDetailPage() {
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {attempts.map((att: any) => (
-                  <div key={att.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <span style={{ flex: 1, fontSize: '14px', fontWeight: '600', color: '#334155' }}>{att.partner_nome}</span>
+                  <div key={att.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#f8fafc', borderRadius: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '160px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>{att.partner_nome}</div>
+                      {att.external_status && (
+                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                          {att.external_status}{att.external_step ? ` · ${att.external_step}` : ''}
+                        </div>
+                      )}
+                    </div>
                     <span style={{ fontSize: '13px', color: '#64748b' }}>{formatCurrency(att.valor_solicitado)}</span>
                     <span style={{
                       fontSize: '12px', fontWeight: '600', padding: '3px 8px', borderRadius: '20px',
@@ -457,6 +476,18 @@ export default function AdminSolicitacaoDetailPage() {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Painel Operacional Konsiga (sync, SMS, link de assinatura e Nota Fiscal) */}
+            {konsigaAttempt && konsigaTransactionId && (
+              <KonsigaOperationalPanel
+                applicationId={String(id)}
+                transactionId={konsigaTransactionId}
+                externalStatus={konsigaAttempt.external_status}
+                externalStep={konsigaAttempt.external_step}
+                signingUrl={konsigaSigningUrl}
+                onUpdated={loadData}
+              />
             )}
 
             {/* Enviar para parceiro */}
