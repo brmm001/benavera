@@ -64,6 +64,31 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         action: `SET_MODULE_${adminState}`,
         newValue: { adminState, note: body.note ?? null },
       });
+    } else if (body.kind === 'financing_access') {
+      const allowNew = Boolean(body.allow_new_applications);
+      const blockReason = allowNew
+        ? null
+        : (typeof body.block_reason === 'string' && body.block_reason.trim()
+            ? body.block_reason.trim().slice(0, 500)
+            : 'A criação de novos financiamentos está temporariamente bloqueada para esta conta. Todas as demais ferramentas do painel estão liberadas.');
+
+      await sql`
+        UPDATE clinics
+        SET allow_new_applications = ${allowNew},
+            new_applications_block_reason = ${blockReason},
+            updated_at = NOW()
+        WHERE id = ${id}::uuid
+      `;
+
+      await logModuleAudit({
+        clinicId: id,
+        actorId: session.userId,
+        actorName: session.name,
+        scope: 'OVERRIDE',
+        targetId: 'allow_new_applications',
+        action: allowNew ? 'ALLOW_NEW_APPLICATIONS' : 'BLOCK_NEW_APPLICATIONS',
+        newValue: { allow_new_applications: allowNew, block_reason: blockReason },
+      });
     } else if (body.kind === 'subscription') {
       await sql`
         INSERT INTO clinic_subscriptions (

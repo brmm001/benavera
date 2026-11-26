@@ -47,6 +47,17 @@ export function generateProtocol(): string {
   return `BEN-${year}-${random}`;
 }
 
+export class NewApplicationsBlockedError extends Error {
+  readonly code = 'NEW_APPLICATIONS_BLOCKED';
+  constructor(message?: string) {
+    super(
+      message ||
+        'A criação de novos financiamentos está temporariamente bloqueada para esta clínica. Todas as demais ferramentas do painel permanecem liberadas.'
+    );
+    this.name = 'NewApplicationsBlockedError';
+  }
+}
+
 // ── Criar solicitação ────────────────────────────────────────────────────────
 export async function createApplication(data: {
   clinicId: string;
@@ -58,6 +69,23 @@ export async function createApplication(data: {
   createdByUserId: string;
   consentIp?: string;
 }): Promise<{ id: string; protocol: string }> {
+  // Defesa em profundidade: impedir criação de novos financiamentos para clínicas bloqueadas ou inativas
+  const clinicCheck = await sql`
+    SELECT ativo, allow_new_applications, new_applications_block_reason
+    FROM clinics
+    WHERE id = ${data.clinicId}
+    LIMIT 1
+  `;
+  const clinicRow = clinicCheck[0];
+  if (!clinicRow || !clinicRow.ativo) {
+    throw new NewApplicationsBlockedError('Clínica inativa ou não autorizada para novos financiamentos.');
+  }
+  if (clinicRow.allow_new_applications === false) {
+    throw new NewApplicationsBlockedError(
+      clinicRow.new_applications_block_reason ? String(clinicRow.new_applications_block_reason) : undefined
+    );
+  }
+
   const protocol = generateProtocol();
   const valorFinanciado = Math.max(0, data.valorTratamento - data.entrada);
 

@@ -71,6 +71,8 @@ export interface ClinicEntitlementsContext {
   subscriptionStatus: string;
   billingCycle: string;
   isExempt: boolean;
+  allowNewApplications: boolean;
+  newApplicationsBlockReason: string | null;
   preferences: ClinicPreferences;
   modules: ResolvedModule[];
 }
@@ -131,7 +133,7 @@ export async function resolveClinicEntitlements(
   clinicId: string,
   userRole: string
 ): Promise<Omit<ClinicEntitlementsContext, 'session'>> {
-  const [modulesRows, subRows, defaultPlanRows, overrideRows, prefRows] = await Promise.all([
+  const [modulesRows, subRows, defaultPlanRows, overrideRows, prefRows, clinicRows] = await Promise.all([
     sql`SELECT * FROM platform_modules ORDER BY sort_order ASC, name ASC`,
     sql`
       SELECT cs.*, sp.name AS plan_name, sp.module_ids AS plan_module_ids
@@ -143,7 +145,14 @@ export async function resolveClinicEntitlements(
     sql`SELECT id, name, module_ids FROM saas_plans WHERE is_free = true AND archived = false ORDER BY created_at ASC LIMIT 1`,
     sql`SELECT module_id, admin_state FROM clinic_module_overrides WHERE clinic_id = ${clinicId}`,
     sql`SELECT * FROM clinic_preferences WHERE clinic_id = ${clinicId} LIMIT 1`,
+    sql`SELECT allow_new_applications, new_applications_block_reason FROM clinics WHERE id = ${clinicId} LIMIT 1`,
   ]);
+
+  const clinicRow = clinicRows[0];
+  const allowNewApplications = clinicRow ? clinicRow.allow_new_applications !== false : true;
+  const newApplicationsBlockReason = clinicRow?.new_applications_block_reason
+    ? String(clinicRow.new_applications_block_reason)
+    : null;
 
   const sub = subRows[0];
   const fallbackPlan = defaultPlanRows[0];
@@ -168,22 +177,22 @@ export async function resolveClinicEntitlements(
   const base = DEFAULT_PREFS(clinicId);
   const preferences: ClinicPreferences = prefRow
     ? {
-        clinicId,
-        uiMode: prefRow.ui_mode === 'complete' ? 'complete' : 'simple',
-        enabledModules: (prefRow.enabled_modules as Record<string, boolean>) || {},
-        menuOrder: Array.isArray(prefRow.menu_order) ? (prefRow.menu_order as string[]) : [],
-        dashboardWidgets: {
-          ...base.dashboardWidgets,
-          ...((prefRow.dashboard_widgets as Record<string, unknown>) || {}),
-        },
-        quickActions: Array.isArray(prefRow.quick_actions) && prefRow.quick_actions.length > 0
-          ? (prefRow.quick_actions as string[])
-          : base.quickActions,
-        notificationsConfig: {
-          ...base.notificationsConfig,
-          ...((prefRow.notifications_config as Record<string, boolean>) || {}),
-        },
-      }
+      clinicId,
+      uiMode: prefRow.ui_mode === 'complete' ? 'complete' : 'simple',
+      enabledModules: (prefRow.enabled_modules as Record<string, boolean>) || {},
+      menuOrder: Array.isArray(prefRow.menu_order) ? (prefRow.menu_order as string[]) : [],
+      dashboardWidgets: {
+        ...base.dashboardWidgets,
+        ...((prefRow.dashboard_widgets as Record<string, unknown>) || {}),
+      },
+      quickActions: Array.isArray(prefRow.quick_actions) && prefRow.quick_actions.length > 0
+        ? (prefRow.quick_actions as string[])
+        : base.quickActions,
+      notificationsConfig: {
+        ...base.notificationsConfig,
+        ...((prefRow.notifications_config as Record<string, boolean>) || {}),
+      },
+    }
     : base;
 
   const subscriptionActive = subscriptionStatus === 'ACTIVE' || subscriptionStatus === 'TRIAL' || subscriptionStatus === 'GRACE' || subscriptionStatus === 'EXEMPT';
@@ -282,6 +291,8 @@ export async function resolveClinicEntitlements(
     subscriptionStatus,
     billingCycle,
     isExempt,
+    allowNewApplications,
+    newApplicationsBlockReason,
     preferences,
     modules,
   };

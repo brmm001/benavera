@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { sql } from '@/lib/benavera-db';
-import { createApplication } from '@/lib/application-service';
+import { createApplication, NewApplicationsBlockedError } from '@/lib/application-service';
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -97,7 +97,28 @@ export async function GET(request: NextRequest) {
       `;
     }
 
-    return NextResponse.json({ applications: rows });
+    let allowNewApplications = true;
+    let newApplicationsBlockReason: string | null = null;
+    if (!isBenaveraStaff && session.clinicId) {
+      const clinicMeta = await sql`
+        SELECT allow_new_applications, new_applications_block_reason
+        FROM clinics
+        WHERE id = ${session.clinicId}
+        LIMIT 1
+      `;
+      if (clinicMeta[0]) {
+        allowNewApplications = clinicMeta[0].allow_new_applications !== false;
+        newApplicationsBlockReason = clinicMeta[0].new_applications_block_reason
+          ? String(clinicMeta[0].new_applications_block_reason)
+          : null;
+      }
+    }
+
+    return NextResponse.json({
+      applications: rows,
+      allowNewApplications,
+      newApplicationsBlockReason,
+    });
   } catch (err) {
     console.error('[Applications GET]', err);
     return NextResponse.json({ error: 'Erro ao buscar solicitações.' }, { status: 500 });
@@ -129,6 +150,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Clínica não identificada.' }, { status: 400 });
     }
 
+    // Verificar se a clínica tem permissão para criar novos financiamentos
+    const clinicRows = await sql`
+      SELECT ativo, allow_new_applications, new_applications_block_reason
+      FROM clinics
+      WHERE id = ${clinicId}
+      LIMIT 1
+    `;
+    const clinic = clinicRows[0];
+    if (!clinic || !clinic.ativo) {
+      return NextResponse.json(
+        { error: 'Clínica inativa ou não autorizada.', code: 'CLINIC_INACTIVE' },
+        { status: 403 }
+      );
+    }
+    if (clinic.allow_new_applications === false) {
+      return NextResponse.json(
+        {
+          error:
+            (clinic.new_applications_block_reason ? String(clinic.new_applications_block_reason) : null) ||
+            'A criação de novos financiamentos está temporariamente bloqueada para esta clínica. O restante do painel permanece liberado.',
+          code: 'NEW_APPLICATIONS_BLOCKED',
+        },
+        { status: 403 }
+      );
+    }
+
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '0.0.0.0';
 
     const result = await createApplication({
@@ -144,6 +191,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, ...result }, { status: 201 });
   } catch (err) {
+    if (err instanceof NewApplicationsBlockedError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 403 });
+    }
     console.error('[Applications POST]', err);
     return NextResponse.json({ error: 'Não foi possível criar a solicitação.' }, { status: 500 });
   }

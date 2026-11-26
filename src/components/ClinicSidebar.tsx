@@ -25,6 +25,7 @@ import {
   Settings,
   UserCog,
   Plus,
+  Lock,
   LogOut,
   Menu,
   X,
@@ -61,6 +62,7 @@ interface ClinicSidebarProps {
   modules?: ResolvedModule[];
   uiMode?: 'simple' | 'complete';
   planName?: string;
+  allowNewApplications?: boolean;
 }
 
 const CATEGORY_ORDER: { key: ModuleCategory; label: string }[] = [
@@ -72,7 +74,14 @@ const CATEGORY_ORDER: { key: ModuleCategory; label: string }[] = [
   { key: 'configuracoes', label: 'Configurações' },
 ];
 
-export function ClinicSidebar({ userName, clinicName, modules, uiMode = 'simple', planName }: ClinicSidebarProps) {
+export function ClinicSidebar({
+  userName,
+  clinicName,
+  modules,
+  uiMode = 'simple',
+  planName,
+  allowNewApplications = true,
+}: ClinicSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -175,17 +184,40 @@ export function ClinicSidebar({ userName, clinicName, modules, uiMode = 'simple'
       </div>
 
       <div style={{ padding: '14px 16px 6px' }}>
-        <button
-          type="button"
-          onClick={() => {
-            setMobileOpen(false);
-            router.push('/novo-financiamento');
-          }}
-          className="bv-btn"
-          style={{ width: '100%', padding: '11px 14px', fontSize: '13px', boxShadow: '0 4px 14px rgba(64,64,202,0.28)' }}
-        >
-          <Plus size={16} /> Novo financiamento
-        </button>
+        {allowNewApplications ? (
+          <button
+            type="button"
+            onClick={() => {
+              setMobileOpen(false);
+              router.push('/novo-financiamento');
+            }}
+            className="bv-btn"
+            style={{ width: '100%', padding: '11px 14px', fontSize: '13px', boxShadow: '0 4px 14px rgba(64,64,202,0.28)' }}
+          >
+            <Plus size={16} /> Novo financiamento
+          </button>
+        ) : (
+          <div
+            title="A criação de novos financiamentos está bloqueada para esta clínica. Todas as demais ferramentas continuam liberadas."
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              borderRadius: '10px',
+              background: '#fef3c7',
+              border: '1px solid #fde68a',
+              color: '#92400e',
+              fontSize: '12px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              boxSizing: 'border-box',
+            }}
+          >
+            <Lock size={14} /> Financiamentos bloqueados
+          </div>
+        )}
       </div>
 
       <nav style={{ padding: '10px 12px 16px', flex: 1 }}>
@@ -296,9 +328,27 @@ export function ClinicSidebar({ userName, clinicName, modules, uiMode = 'simple'
             <div style={{ fontSize: '11px', color: '#64748b' }}>{clinicName}</div>
           </div>
         </div>
-        <button type="button" onClick={() => router.push('/novo-financiamento')} className="bv-btn sm">
-          <Plus size={14} /> Novo
-        </button>
+        {allowNewApplications ? (
+          <button type="button" onClick={() => router.push('/novo-financiamento')} className="bv-btn sm">
+            <Plus size={14} /> Novo
+          </button>
+        ) : (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '6px 10px',
+              borderRadius: '8px',
+              background: '#fef3c7',
+              color: '#92400e',
+              fontSize: '11px',
+              fontWeight: '700',
+            }}
+          >
+            <Lock size={12} /> Bloqueado
+          </span>
+        )}
       </div>
 
       <div className={`bv-drawer-backdrop ${mobileOpen ? 'open' : ''}`} onClick={() => setMobileOpen(false)} />

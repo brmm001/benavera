@@ -70,6 +70,8 @@ export default function FinanciamentosPage() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [allowNewApplications, setAllowNewApplications] = useState(true);
+  const [blockReason, setBlockReason] = useState<string | null>(null);
 
   const fetchApps = useCallback(async () => {
     setLoading(true);
@@ -79,6 +81,10 @@ export default function FinanciamentosPage() {
     const res = await fetch(`/api/applications?${params}`);
     const data = await res.json();
     setApps(data.applications || []);
+    if (typeof data.allowNewApplications === 'boolean') {
+      setAllowNewApplications(data.allowNewApplications);
+    }
+    setBlockReason(data.newApplicationsBlockReason || null);
     setLoading(false);
   }, [activeFilter, search]);
 
@@ -99,19 +105,36 @@ export default function FinanciamentosPage() {
             Acompanhe todas as suas solicitações
           </p>
         </div>
-        <button
-          onClick={() => router.push('/novo-financiamento')}
-          style={{
-            padding: '12px 20px',
-            background: 'linear-gradient(135deg, #6370f1, #4040ca)',
-            color: 'white', border: 'none', borderRadius: '10px',
-            fontSize: '14px', fontWeight: '700', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '6px',
-            boxShadow: '0 4px 12px rgba(99,112,241,0.35)', fontFamily: 'inherit',
-          }}
-        >
-          <span>+</span> Novo financiamento
-        </button>
+        {allowNewApplications ? (
+          <button
+            onClick={() => router.push('/novo-financiamento')}
+            style={{
+              padding: '12px 20px',
+              background: 'linear-gradient(135deg, #6370f1, #4040ca)',
+              color: 'white', border: 'none', borderRadius: '10px',
+              fontSize: '14px', fontWeight: '700', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '6px',
+              boxShadow: '0 4px 12px rgba(99,112,241,0.35)', fontFamily: 'inherit',
+            }}
+          >
+            <span>+</span> Novo financiamento
+          </button>
+        ) : (
+          <span
+            title={blockReason || 'Novos financiamentos bloqueados para esta conta'}
+            style={{
+              padding: '10px 16px',
+              background: '#fef3c7',
+              color: '#92400e',
+              border: '1px solid #fde68a',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: '700',
+            }}
+          >
+            🔒 Novos financiamentos bloqueados
+          </span>
+        )}
       </div>
 
       {/* Search */}

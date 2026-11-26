@@ -23,6 +23,7 @@ export async function ClinicLayoutShell({ children }: { children: React.ReactNod
         modules={resolved.modules}
         uiMode={resolved.preferences.uiMode}
         planName={resolved.planName}
+        allowNewApplications={resolved.allowNewApplications}
       />
       <main className="bv-main">{children}</main>
     </div>

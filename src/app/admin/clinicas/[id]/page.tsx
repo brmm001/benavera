@@ -6,18 +6,30 @@ import '@/app/painel/clinic-panel.css';
 import type { ResolvedModule } from '@/lib/clinic-modules';
 
 interface ClinicControlResponse {
-  clinic: { id: string; nome_fantasia: string; razao_social: string; responsavel: string | null; email: string | null; cnpj: string; ativo: boolean };
+  clinic: {
+    id: string;
+    nome_fantasia: string;
+    razao_social: string;
+    responsavel: string | null;
+    email: string | null;
+    cnpj: string;
+    ativo: boolean;
+    allow_new_applications?: boolean;
+    new_applications_block_reason?: string | null;
+  };
   subscription: { plan_id: string | null; status: string; billing_cycle: string; custom_price: number | null; discount_percent: number; is_exempt: boolean; notes: string | null } | null;
   plans: { id: string; name: string }[];
   users: { id: string; name: string; email: string; role: string; ativo: boolean }[];
   auditLogs: { id: string; actor_name: string | null; scope: string; target_id: string; action: string; created_at: string }[];
-  entitlements: { planName: string; subscriptionStatus: string; modules: ResolvedModule[] };
+  entitlements: { planName: string; subscriptionStatus: string; allowNewApplications?: boolean; modules: ResolvedModule[] };
 }
 
 export default function AdminClinicaControlePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [data, setData] = useState<ClinicControlResponse | null>(null);
   const [msg, setMsg] = useState('');
+  const [blockReason, setBlockReason] = useState('');
+  const [savingFinancing, setSavingFinancing] = useState(false);
   const [sub, setSub] = useState({ plan_id: '', status: 'EXEMPT', billing_cycle: 'LIFETIME_FREE', custom_price: '', discount_percent: '0', is_exempt: true, notes: '' });
 
   async function load() {
@@ -25,6 +37,7 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
     const d = await res.json();
     if (res.ok) {
       setData(d);
+      setBlockReason(d.clinic?.new_applications_block_reason || '');
       if (d.subscription) {
         setSub({
           plan_id: d.subscription.plan_id || '',
@@ -39,6 +52,27 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
     }
   }
   useEffect(() => { load(); }, [id]);
+
+  async function toggleNewApplications(allow: boolean) {
+    setSavingFinancing(true);
+    try {
+      const res = await fetch(`/api/admin/clinicas/${id}/controle`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'financing_access',
+          allow_new_applications: allow,
+          block_reason: blockReason,
+        }),
+      });
+      if (res.ok) {
+        setMsg(allow ? 'Criação de novos financiamentos liberada para esta clínica.' : 'Criação de novos financiamentos bloqueada (acesso ao restante do painel mantido).');
+        load();
+      }
+    } finally {
+      setSavingFinancing(false);
+    }
+  }
 
   async function setModuleState(moduleId: string, adminState: string) {
     const res = await fetch(`/api/admin/clinicas/${id}/controle`, {
@@ -80,6 +114,58 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
       </div>
 
       {msg && <div className="bv-card" style={{ marginBottom: '16px', background: '#ecfdf5', borderColor: '#a7f3d0', color: '#065f46', fontSize: '13px', fontWeight: '600' }}>{msg}</div>}
+
+      {/* Permissão de Novos Financiamentos */}
+      <div className="bv-card" style={{ marginBottom: '20px', borderColor: data.clinic.allow_new_applications === false ? '#fde68a' : undefined }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div>
+            <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '800' }}>Permissão de Novos Financiamentos</h3>
+            <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+              Bloqueia ou libera a criação de novas solicitações (/novo-financiamento e POST /api/applications) sem afetar o restante do painel.
+            </p>
+          </div>
+          <span
+            className="bv-badge"
+            style={
+              data.clinic.allow_new_applications === false
+                ? { background: '#fef3c7', color: '#92400e' }
+                : { background: '#d1fae5', color: '#047857' }
+            }
+          >
+            {data.clinic.allow_new_applications === false ? '🔒 Bloqueado' : '✓ Liberado'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ flex: 1, minWidth: '240px' }}>
+            <label className="bv-label">Mensagem exibida à clínica quando bloqueado</label>
+            <input
+              className="bv-input"
+              value={blockReason}
+              onChange={(e) => setBlockReason(e.target.value)}
+              placeholder="A criação de novos financiamentos está temporariamente bloqueada para esta conta."
+            />
+          </div>
+          {data.clinic.allow_new_applications === false ? (
+            <button
+              type="button"
+              className="bv-btn"
+              disabled={savingFinancing}
+              onClick={() => toggleNewApplications(true)}
+            >
+              {savingFinancing ? 'Salvando…' : '✓ Liberar novos financiamentos'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="bv-btn danger"
+              disabled={savingFinancing}
+              onClick={() => toggleNewApplications(false)}
+            >
+              {savingFinancing ? 'Salvando…' : '🔒 Bloquear novos financiamentos'}
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Assinatura individual */}
       <form onSubmit={saveSubscription} className="bv-card" style={{ marginBottom: '20px' }}>

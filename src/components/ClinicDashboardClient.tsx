@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Plus, Sliders, RotateCcw, Calculator, Kanban, Link2, FileCheck,
+  Plus, Lock, Sliders, RotateCcw, Calculator, Kanban, Link2, FileCheck,
   Sparkles, BarChart3, ArrowRight, CheckCircle2, EyeOff, RefreshCw,
 } from 'lucide-react';
 import type { ClinicPreferences, ResolvedModule } from '@/lib/clinic-modules';
@@ -24,6 +24,8 @@ interface Props {
   clinicName: string;
   planName: string;
   isClinicAdmin: boolean;
+  allowNewApplications?: boolean;
+  newApplicationsBlockReason?: string | null;
   initialPrefs: ClinicPreferences;
   modules: ResolvedModule[];
   kpis: {
@@ -73,7 +75,16 @@ const SHORTCUT_CATALOG = [
 const brl = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
 
 export function ClinicDashboardClient({
-  userName, clinicName, planName, isClinicAdmin, initialPrefs, modules, kpis, recentApps,
+  userName,
+  clinicName,
+  planName,
+  isClinicAdmin,
+  allowNewApplications = true,
+  newApplicationsBlockReason = null,
+  initialPrefs,
+  modules,
+  kpis,
+  recentApps,
 }: Props) {
   const router = useRouter();
   const [prefs, setPrefs] = useState<ClinicPreferences>(initialPrefs);
@@ -117,7 +128,10 @@ export function ClinicDashboardClient({
 
   const visibleKpis = KPI_CATALOG.filter((k) => (prefs.dashboardWidgets.kpis || []).includes(k.id));
   const visibleShortcuts = SHORTCUT_CATALOG.filter(
-    (s) => (prefs.quickActions || []).includes(s.id) && (!s.moduleId || activeSet.has(s.moduleId))
+    (s) =>
+      (s.id !== 'novo_financiamento' || allowNewApplications) &&
+      (prefs.quickActions || []).includes(s.id) &&
+      (!s.moduleId || activeSet.has(s.moduleId))
   );
 
   return (
@@ -151,11 +165,42 @@ export function ClinicDashboardClient({
           >
             <Sliders size={14} /> {customizing ? 'Fechar personalização' : 'Personalizar início'}
           </button>
-          <Link href="/novo-financiamento" className="bv-btn">
-            <Plus size={16} /> Novo financiamento
-          </Link>
+          {allowNewApplications ? (
+            <Link href="/novo-financiamento" className="bv-btn">
+              <Plus size={16} /> Novo financiamento
+            </Link>
+          ) : (
+            <span
+              className="bv-badge"
+              style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '8px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Lock size={14} /> Novos financiamentos bloqueados
+            </span>
+          )}
         </div>
       </div>
+
+      {!allowNewApplications && (
+        <div
+          className="bv-card"
+          style={{
+            marginBottom: '20px',
+            background: '#fffbeb',
+            borderColor: '#fde68a',
+            color: '#92400e',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <Lock size={16} style={{ flexShrink: 0 }} />
+          <span>
+            {newApplicationsBlockReason ||
+              'A criação de novos financiamentos está temporariamente bloqueada para esta conta. Todas as demais ferramentas do painel estão liberadas.'}
+          </span>
+        </div>
+      )}
 
       {/* Personalization Drawer */}
       {customizing && (
@@ -211,7 +256,7 @@ export function ClinicDashboardClient({
             <div>
               <div className="bv-label">Atalhos rápidos favoritos</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {SHORTCUT_CATALOG.filter((s) => !s.moduleId || activeSet.has(s.moduleId)).map((s) => {
+                {SHORTCUT_CATALOG.filter((s) => (s.id !== 'novo_financiamento' || allowNewApplications) && (!s.moduleId || activeSet.has(s.moduleId))).map((s) => {
                   const on = (prefs.quickActions || []).includes(s.id);
                   return (
                     <button
@@ -364,10 +409,16 @@ export function ClinicDashboardClient({
 
         {recentApps.length === 0 ? (
           <div className="bv-empty">
-            <p style={{ margin: '0 0 14px', fontSize: '14px' }}>Seu primeiro financiamento começa aqui.</p>
-            <Link href="/novo-financiamento" className="bv-btn">
-              <Plus size={15} /> Criar primeiro financiamento
-            </Link>
+            <p style={{ margin: '0 0 14px', fontSize: '14px' }}>
+              {allowNewApplications
+                ? 'Seu primeiro financiamento começa aqui.'
+                : 'Nenhuma solicitação de financiamento registrada. A criação de novos financiamentos está bloqueada para esta conta.'}
+            </p>
+            {allowNewApplications && (
+              <Link href="/novo-financiamento" className="bv-btn">
+                <Plus size={15} /> Criar primeiro financiamento
+              </Link>
+            )}
           </div>
         ) : (
           <div className="bv-table-wrap">

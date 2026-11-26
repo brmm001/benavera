@@ -48,6 +48,8 @@ export default async function DashboardPage() {
       clinicName={ctx.session.clinicName || 'Clínica'}
       planName={ctx.planName}
       isClinicAdmin={ctx.session.role === 'CLINIC_ADMIN' || ctx.session.role === 'BENAVERA_ADMIN'}
+      allowNewApplications={ctx.allowNewApplications}
+      newApplicationsBlockReason={ctx.newApplicationsBlockReason}
       initialPrefs={ctx.preferences}
       modules={ctx.modules}
       kpis={{
