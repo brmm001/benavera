@@ -10,6 +10,8 @@ import {
   getCommissionRules,
 } from '@/lib/atendente-db';
 import type { CommissionStatus } from '@/lib/atendente-db';
+import { sql } from '@/lib/benavera-db';
+import { sendAtendenteCommissionEmail } from '@/lib/email';
 
 const VALID_STATUSES: CommissionStatus[] = ['pendente', 'aprovada', 'paga', 'recusada', 'estornada'];
 
@@ -101,6 +103,30 @@ export async function PATCH(request: NextRequest) {
     // Atendente não pode aprovar própria comissão — garantido pois apenas admin/financeiro chegam aqui
     const updated = await updateComissaoStatus(id, status, session!.userId, justificativa);
     if (!updated) return NextResponse.json({ error: 'Comissão não encontrada.' }, { status: 404 });
+
+    if (status === 'aprovada' || status === 'paga') {
+      await (async () => {
+        const rows = await sql`
+          SELECT c.id, c.atendente_id, c.atendente_name, c.evento, c.valor, u.email
+          FROM commissions c
+          JOIN users u ON u.id = c.atendente_id
+          WHERE c.id = ${id} LIMIT 1
+        `;
+        const cm = rows[0];
+        if (cm?.email) {
+          await sendAtendenteCommissionEmail({
+            to: String(cm.email),
+            userId: String(cm.atendente_id),
+            atendenteName: String(cm.atendente_name || 'Comercial'),
+            evento: String(cm.evento || 'Comissão'),
+            valor: Number(cm.valor || 0),
+            status,
+            justificativa: justificativa || null,
+            commissionId: String(cm.id),
+          });
+        }
+      })().catch(() => {});
+    }
 
     return NextResponse.json({ success: true });
   } catch (e) {

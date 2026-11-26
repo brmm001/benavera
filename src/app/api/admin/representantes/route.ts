@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRepAdmin } from '@/lib/rep-guards';
 import { createRepresentante, listRepresentantes } from '@/lib/representantes-db';
+import { sendRepresentanteWelcomeEmail } from '@/lib/email';
 
 export async function GET() {
   const g = await requireRepAdmin({ financeiro: true });
@@ -33,6 +34,17 @@ export async function POST(request: NextRequest) {
       observacoes: body.observacoes ?? null,
     });
     if (!result.success) return NextResponse.json({ error: result.error }, { status: 400 });
+    if (result.representante && result.senhaTemporaria) {
+      await sendRepresentanteWelcomeEmail({
+        to: result.representante.email,
+        repId: result.representante.id,
+        nome: result.representante.nome,
+        senhaTemporaria: result.senhaTemporaria,
+        codigoIndicacao: result.representante.codigo_indicacao,
+        comissaoPercent: result.representante.comissao_percent,
+        mensalidadePercent: result.representante.mensalidade_percent,
+      }).catch(() => {});
+    }
     return NextResponse.json({ success: true, representante: result.representante, senhaTemporaria: result.senhaTemporaria });
   } catch (e) {
     console.error('[API Admin Representantes POST]', e);

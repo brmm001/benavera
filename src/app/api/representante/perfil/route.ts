@@ -14,6 +14,7 @@ export async function PATCH(request: NextRequest) {
     const documento = typeof body.documento === 'string' ? body.documento.replace(/\D/g, '').slice(0, 14) : null;
     const chavePix = typeof body.chave_pix === 'string' ? body.chave_pix.trim().slice(0, 200) : null;
     const tipoPix = typeof body.tipo_pix === 'string' && TIPOS_PIX.has(body.tipo_pix) ? body.tipo_pix : null;
+    const notifEmail = typeof body.notif_email === 'boolean' ? body.notif_email : null;
 
     await sql`
       UPDATE representantes SET
@@ -21,6 +22,7 @@ export async function PATCH(request: NextRequest) {
         documento = COALESCE(${documento}, documento),
         chave_pix = COALESCE(${chavePix}, chave_pix),
         tipo_pix = COALESCE(${tipoPix}, tipo_pix),
+        notif_email = COALESCE(${notifEmail}, notif_email),
         updated_at = NOW()
       WHERE id = ${ctx.rep.id}
     `;

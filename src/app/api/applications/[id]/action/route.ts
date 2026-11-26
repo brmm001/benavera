@@ -20,6 +20,7 @@ import {
   uploadKonsigaInvoice,
 } from '@/lib/partners/konsiga';
 import { sql, type InternalDecision, type ApplicationStatus } from '@/lib/benavera-db';
+import { notifyApplicationStatusEmails } from '@/lib/email-reports';
 
 async function canAccessApplication(
   applicationId: string,
@@ -109,7 +110,8 @@ export async function POST(
           return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
         }
         const token = await generateProposalToken(id, session.userId);
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.benavera.com.br';
+        await notifyApplicationStatusEmails(id, 'OFFERS_AVAILABLE', { proposalToken: token }).catch(() => {});
         return NextResponse.json({ token, url: `${baseUrl}/proposta/${token}` });
       }
 
@@ -153,6 +155,7 @@ export async function POST(
               updated_at = NOW()
           WHERE id = ${id}
         `;
+        notifyApplicationStatusEmails(id, 'CONTRACT_SENT', { contractUrl: contractUrl || null }).catch(() => {});
         return NextResponse.json({ success: true });
       }
 
@@ -169,6 +172,7 @@ export async function POST(
               updated_at = NOW()
           WHERE id = ${id}
         `;
+        notifyApplicationStatusEmails(id, 'CONTRACT_SIGNED').catch(() => {});
         return NextResponse.json({ success: true });
       }
 

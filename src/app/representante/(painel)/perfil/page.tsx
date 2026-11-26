@@ -37,7 +37,7 @@ export default async function RepresentantePerfil() {
         <h3>Dados de contato e pagamento</h3>
         <RepresentantePerfilForm
           mode="dados"
-          initial={{ nome: ctx.rep.nome, email: ctx.rep.email, telefone: ctx.rep.telefone ?? '', documento: ctx.rep.documento ?? '', tipo_pix: ctx.rep.tipo_pix ?? 'cpf', chave_pix: ctx.rep.chave_pix ?? '' }}
+          initial={{ nome: ctx.rep.nome, email: ctx.rep.email, telefone: ctx.rep.telefone ?? '', documento: ctx.rep.documento ?? '', tipo_pix: ctx.rep.tipo_pix ?? 'cpf', chave_pix: ctx.rep.chave_pix ?? '', notif_email: ctx.rep.notif_email }}
         />
       </div>
     </div>

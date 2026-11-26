@@ -2,6 +2,7 @@
 // Distribuição automática de leads entre atendentes (sem race condition)
 
 import { sql } from './benavera-db';
+import { sendAtendenteLeadAssignedEmail } from './email';
 
 interface DistributionResult {
   success: boolean;
@@ -39,14 +40,14 @@ export async function distributeLeadToAtendente(
 
     // Buscar atendentes elegíveis ordenados por menor carga e última atribuição
     const candidates = await sql`
-      SELECT u.id, u.name, u.lead_limit,
+      SELECT u.id, u.name, u.email, u.lead_limit,
         COUNT(CASE WHEN cl.status_comercial NOT IN ('perdido','parceiro_ativo') THEN 1 END)::int as active_count
       FROM users u
       LEFT JOIN clinic_leads cl ON cl.assigned_to = u.id
       WHERE u.role = 'BENAVERA_COMERCIAL'
         AND u.ativo = TRUE
         AND u.receiving_leads = TRUE
-      GROUP BY u.id, u.name, u.lead_limit, u.last_assigned_at
+      GROUP BY u.id, u.name, u.email, u.lead_limit, u.last_assigned_at
       HAVING COUNT(CASE WHEN cl.status_comercial NOT IN ('perdido','parceiro_ativo') THEN 1 END) < u.lead_limit
       ORDER BY active_count ASC, u.last_assigned_at ASC NULLS FIRST
       LIMIT 1
@@ -81,6 +82,31 @@ export async function distributeLeadToAtendente(
     `;
 
     await logDistribution(leadId, leadTipo, atendenteId, 'distribuido', null);
+
+    // Notificar atendente por e-mail sobre o novo lead atribuído
+    if (atendente.email) {
+      await (async () => {
+        const leadMeta = leadTipo === 'clinic'
+          ? await sql`SELECT nome_clinica, nome_responsavel, whatsapp, email FROM clinic_leads WHERE id = ${leadId} LIMIT 1`
+          : await sql`SELECT nome, telefone, email FROM patient_leads WHERE id = ${leadId} LIMIT 1`;
+        const lm = leadMeta[0];
+        const leadName = leadTipo === 'clinic'
+          ? String(lm?.nome_clinica || lm?.nome_responsavel || 'Nova clínica')
+          : String(lm?.nome || 'Novo paciente');
+        const leadContact = leadTipo === 'clinic'
+          ? String(lm?.whatsapp || lm?.email || '')
+          : String(lm?.telefone || lm?.email || '');
+        await sendAtendenteLeadAssignedEmail({
+          to: String(atendente.email),
+          userId: atendenteId,
+          atendenteName: String(atendente.name),
+          leadTipo,
+          leadName,
+          leadContact,
+          leadId,
+        });
+      })().catch(() => {});
+    }
 
     return {
       success: true,

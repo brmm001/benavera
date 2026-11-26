@@ -4,6 +4,7 @@
 import { sql } from './benavera-db';
 import type { ApplicationStatus, InternalDecision } from './benavera-db';
 import type { SessionPayload } from './auth';
+import { notifyApplicationStatusEmails } from './email-reports';
 
 // ── State Machine ────────────────────────────────────────────────────────────
 // Define transições válidas de status
@@ -151,6 +152,9 @@ export async function createApplication(data: {
   // Iniciar pré-análise automaticamente (sandbox/simulado)
   await startPreAnalysis(String(app.id), data.clinicId, valorFinanciado, data.categoria);
 
+  // Disparar e-mail de confirmação para paciente e alerta para equipe Benavera
+  await notifyApplicationStatusEmails(String(app.id), 'SUBMITTED', { notifyAdminNew: true }).catch(() => {});
+
   return { id: String(app.id), protocol: finalProtocol };
 }
 
@@ -269,6 +273,8 @@ export async function transitionStatus(
     newStatus,
     metadata: options?.note ? { note: options.note } : undefined,
   });
+
+  notifyApplicationStatusEmails(applicationId, newStatus).catch(() => {});
 
   return { success: true };
 }
@@ -406,6 +412,8 @@ export async function recordPartnerResponse(
     metadata: { result, attemptId },
   });
 
+  notifyApplicationStatusEmails(applicationId, newAppStatus).catch(() => {});
+
   return { success: true };
 }
 
@@ -453,6 +461,8 @@ export async function createProposal(data: {
     newStatus: 'OFFERS_AVAILABLE',
     metadata: { proposalId: String(rows[0].id) },
   });
+
+  notifyApplicationStatusEmails(data.applicationId, 'OFFERS_AVAILABLE').catch(() => {});
 
   return { id: String(rows[0].id) };
 }

@@ -12,6 +12,11 @@ import { randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
 import { sql } from './benavera-db';
 import { getSession, type SessionPayload } from './auth';
+import {
+  fmtDateBr,
+  sendRepresentanteClinicLinkedEmail,
+  sendRepresentantePaymentReceiptEmail,
+} from './email';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +38,7 @@ export interface Representante {
   mensalidade_percent: number;
   bonus_ativacao: number;
   ativo: boolean;
+  notif_email: boolean;
   observacoes: string | null;
   created_at: string;
 }
@@ -53,6 +59,7 @@ function mapRep(r: Record<string, unknown>): Representante {
     mensalidade_percent: Number(r.mensalidade_percent ?? 0),
     bonus_ativacao: Number(r.bonus_ativacao ?? 0),
     ativo: Boolean(r.ativo),
+    notif_email: r.notif_email !== false,
     observacoes: (r.observacoes as string) ?? null,
     created_at: String(r.created_at),
   };
@@ -233,7 +240,7 @@ export async function vincularClinica(params: {
   if (!repRows[0]) return { success: false, error: 'Representante não encontrado.' };
   const rep = mapRep(repRows[0]);
 
-  const clinic = await sql`SELECT id FROM clinics WHERE id = ${params.clinicId} LIMIT 1`;
+  const clinic = await sql`SELECT id, nome_fantasia, razao_social FROM clinics WHERE id = ${params.clinicId} LIMIT 1`;
   if (!clinic[0]) return { success: false, error: 'Clínica não encontrada.' };
 
   const percent = params.comissaoPercent !== undefined ? clampPercent(params.comissaoPercent, rep.comissao_percent) : rep.comissao_percent;
@@ -257,6 +264,17 @@ export async function vincularClinica(params: {
     RETURNING id
   `;
   await syncComissoes(rep.id);
+  if (rep.notif_email && rep.email) {
+    await sendRepresentanteClinicLinkedEmail({
+      to: rep.email,
+      repId: rep.id,
+      repNome: rep.nome,
+      clinicName: String(clinic[0].nome_fantasia || clinic[0].razao_social || 'Clínica'),
+      comissaoPercent: percent,
+      mensalidadePercent: rep.mensalidade_percent,
+      periodoMeses: periodo,
+    }).catch(() => {});
+  }
   return { success: true, vinculoId: String(rows[0].id) };
 }
 
@@ -396,6 +414,23 @@ export async function registrarPagamento(params: {
     UPDATE representante_comissoes SET status = 'PAGA', pagamento_id = ${pagamentoId}, updated_at = NOW()
     WHERE id = ANY(${paidIds}::uuid[]) AND status = 'A_RECEBER'
   `;
+
+  // Disparar recibo de pagamento para o representante (sempre envia comprovante financeiro)
+  const repInfo = await getRepresentanteById(params.representanteId);
+  if (repInfo?.email) {
+    await sendRepresentantePaymentReceiptEmail({
+      to: repInfo.email,
+      repId: repInfo.id,
+      repNome: repInfo.nome,
+      totalPago: total,
+      qtdComissoes: paidIds.length,
+      pagoEm: fmtDateBr(params.pagoEm || new Date()),
+      observacao: params.observacao ?? null,
+      comprovanteUrl: params.comprovanteUrl ?? null,
+      pagamentoId,
+    }).catch(() => {});
+  }
+
   return { success: true, total, pagamentoId };
 }
 

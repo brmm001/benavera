@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         responsavel: String(user.name),
       });
 
-      return NextResponse.json({ success: true, emailId: result.data?.id });
+      return NextResponse.json({ success: true, emailId: result.id });
     }
 
     if (trigger === 'analyst_alert' && entity_id) {

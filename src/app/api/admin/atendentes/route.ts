@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getAtendentes } from '@/lib/atendente-db';
 import { sql } from '@/lib/benavera-db';
+import { sendAtendenteWelcomeEmail } from '@/lib/email';
 import bcrypt from 'bcryptjs';
 
 function requireAdmin(session: Awaited<ReturnType<typeof getSession>>) {
@@ -57,6 +58,15 @@ export async function POST(request: NextRequest) {
         'BENAVERA_COMERCIAL', TRUE, ${lead_limit ?? 30}, ${receiving_leads ?? true})
       RETURNING id, name, email, role, ativo, lead_limit, receiving_leads, created_at
     `;
+
+    if (rows[0]) {
+      await sendAtendenteWelcomeEmail({
+        to: email.toLowerCase().trim(),
+        userId: String(rows[0].id),
+        name: name.trim(),
+        password: String(password),
+      }).catch(() => {});
+    }
 
     return NextResponse.json({ success: true, atendente: rows[0] }, { status: 201 });
   } catch (e) {

@@ -75,6 +75,10 @@ export async function systemTransition(
     metadata,
   });
 
+  import('../email-reports')
+    .then(({ notifyApplicationStatusEmails }) => notifyApplicationStatusEmails(applicationId, to))
+    .catch(() => {});
+
   return true;
 }
 

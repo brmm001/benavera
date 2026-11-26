@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 type Props =
   | { mode: 'link'; link: string; codigo: string }
-  | { mode: 'dados'; initial: { nome: string; email: string; telefone: string; documento: string; tipo_pix: string; chave_pix: string } };
+  | { mode: 'dados'; initial: { nome: string; email: string; telefone: string; documento: string; tipo_pix: string; chave_pix: string; notif_email: boolean } };
 
 export function RepresentantePerfilForm(props: Props) {
   const [copied, setCopied] = useState(false);
@@ -38,7 +38,7 @@ export function RepresentantePerfilForm(props: Props) {
     try {
       const res = await fetch('/api/representante/perfil', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telefone: form.telefone, documento: form.documento, tipo_pix: form.tipo_pix, chave_pix: form.chave_pix }),
+        body: JSON.stringify({ telefone: form.telefone, documento: form.documento, tipo_pix: form.tipo_pix, chave_pix: form.chave_pix, notif_email: form.notif_email }),
       });
       const data = await res.json();
       setMsg(res.ok ? { ok: true, text: 'Dados salvos.' } : { ok: false, text: data.error || 'Erro ao salvar.' });
@@ -65,6 +65,14 @@ export function RepresentantePerfilForm(props: Props) {
         </div>
         <div><label className="rep-label">Chave PIX</label><input className="rep-input" value={form.chave_pix} onChange={set('chave_pix')} maxLength={200} /></div>
       </div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, fontSize: 13, color: '#334155', cursor: 'pointer' }}>
+        <input
+          type="checkbox"
+          checked={form.notif_email}
+          onChange={e => setForm({ ...form, notif_email: e.target.checked })}
+        />
+        Receber relatórios periódicos e avisos de novas comissões por e-mail
+      </label>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
         <button className="rep-btn" disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</button>
         {msg && <span style={{ fontSize: 13, color: msg.ok ? '#047857' : '#dc2626' }}>{msg.text}</span>}

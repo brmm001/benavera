@@ -525,9 +525,15 @@ export async function applyPaidInvoice(params: {
     },
   });
 
-  // Gerar comissão MENSALIDADE para representante vinculado (idempotente)
+  // Gerar comissão MENSALIDADE para representante vinculado (idempotente) e notificar por e-mail
   try {
     await syncComissoes(null);
+    const { notifyRepresentanteUnlockedCommission } = await import('./email-reports');
+    await notifyRepresentanteUnlockedCommission({
+      clinicId,
+      tipo: 'MENSALIDADE',
+      refId: params.invoiceId,
+    }).catch(() => {});
   } catch (repErr) {
     console.error('[Billing] Falha ao sincronizar comissão de mensalidade:', repErr);
   }

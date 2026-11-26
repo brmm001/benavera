@@ -1,7 +1,8 @@
 // PATCH atualiza representante / ações (resetSenha)
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRepAdmin, isUuid } from '@/lib/rep-guards';
-import { updateRepresentante, resetRepresentantePassword } from '@/lib/representantes-db';
+import { getRepresentanteById, updateRepresentante, resetRepresentantePassword } from '@/lib/representantes-db';
+import { sendRepresentantePasswordResetEmail } from '@/lib/email';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const g = await requireRepAdmin();
@@ -15,6 +16,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (body.action === 'resetSenha') {
       const senha = await resetRepresentantePassword(id);
       if (!senha) return NextResponse.json({ error: 'Representante sem usuário de login.' }, { status: 400 });
+      const repInfo = await getRepresentanteById(id);
+      if (repInfo?.email) {
+        await sendRepresentantePasswordResetEmail({
+          to: repInfo.email,
+          repId: repInfo.id,
+          nome: repInfo.nome,
+          senhaTemporaria: senha,
+        }).catch(() => {});
+      }
       return NextResponse.json({ success: true, senhaTemporaria: senha });
     }
 
