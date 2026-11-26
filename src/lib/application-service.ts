@@ -69,16 +69,27 @@ export async function createApplication(data: {
   createdByUserId: string;
   consentIp?: string;
 }): Promise<{ id: string; protocol: string }> {
-  // Defesa em profundidade: impedir criação de novos financiamentos para clínicas bloqueadas ou inativas
+  // Defesa em profundidade: impedir criação de novos financiamentos para clínicas bloqueadas, inativas ou inadimplentes
   const clinicCheck = await sql`
-    SELECT ativo, allow_new_applications, new_applications_block_reason
-    FROM clinics
-    WHERE id = ${data.clinicId}
+    SELECT c.ativo, c.allow_new_applications, c.new_applications_block_reason,
+           cs.status AS sub_status, cs.is_exempt AS sub_exempt, cs.current_period_end AS sub_period_end
+    FROM clinics c
+    LEFT JOIN clinic_subscriptions cs ON cs.clinic_id = c.id
+    WHERE c.id = ${data.clinicId}
     LIMIT 1
   `;
   const clinicRow = clinicCheck[0];
   if (!clinicRow || !clinicRow.ativo) {
     throw new NewApplicationsBlockedError('Clínica inativa ou não autorizada para novos financiamentos.');
+  }
+  const subStatus = String(clinicRow.sub_status || 'EXEMPT');
+  const subExempt = clinicRow.sub_exempt === undefined || clinicRow.sub_exempt === null ? true : Boolean(clinicRow.sub_exempt);
+  const periodEndMs = clinicRow.sub_period_end ? Date.parse(String(clinicRow.sub_period_end)) : NaN;
+  const subBlocked = !subExempt && (subStatus === 'SUSPENDED' || subStatus === 'PAST_DUE' || (subStatus === 'CANCELLED' && !(Number.isFinite(periodEndMs) && periodEndMs > Date.now())));
+  if (subBlocked) {
+    throw new NewApplicationsBlockedError(
+      'Assinatura suspensa por pendência financeira. Regularize o pagamento em Assinatura e Faturas para criar novos financiamentos.'
+    );
   }
   if (clinicRow.allow_new_applications === false) {
     throw new NewApplicationsBlockedError(

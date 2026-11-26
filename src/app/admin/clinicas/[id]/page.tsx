@@ -31,10 +31,17 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
   const [msg, setMsg] = useState('');
   const [blockReason, setBlockReason] = useState('');
   const [savingFinancing, setSavingFinancing] = useState(false);
+  const [invoices, setInvoices] = useState<Array<{ id: string; amount: number; status: string; cycle: string; payment_method: string | null; due_date: string | null; paid_at: string | null; checkout_url: string | null; pix_qr_code: string | null; created_at: string }>>([]);
+  const [billingMethod, setBillingMethod] = useState<'PIX' | 'CARD_RECURRING' | 'BOLETO'>('PIX');
+  const [billingBusy, setBillingBusy] = useState(false);
+  const [lastChargeLink, setLastChargeLink] = useState<string | null>(null);
   const [sub, setSub] = useState({ plan_id: '', status: 'EXEMPT', billing_cycle: 'LIFETIME_FREE', custom_price: '', discount_percent: '0', is_exempt: true, notes: '' });
 
   async function load() {
-    const res = await fetch(`/api/admin/clinicas/${id}/controle`);
+    const [res, invRes] = await Promise.all([
+      fetch(`/api/admin/clinicas/${id}/controle`),
+      fetch(`/api/admin/clinicas/${id}/cobranca`),
+    ]);
     const d = await res.json();
     if (res.ok) {
       setData(d);
@@ -51,8 +58,65 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
         });
       }
     }
+    if (invRes.ok) {
+      const invData = await invRes.json();
+      setInvoices(invData.invoices || []);
+    }
   }
   useEffect(() => { load(); }, [id]);
+
+  async function generateCharge() {
+    if (!sub.plan_id) {
+      alert('Selecione um plano pago antes de gerar a cobrança.');
+      return;
+    }
+    setBillingBusy(true);
+    setLastChargeLink(null);
+    try {
+      const res = await fetch(`/api/admin/clinicas/${id}/cobranca`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate',
+          planId: sub.plan_id,
+          cycle: sub.billing_cycle === 'ANNUAL' ? 'ANNUAL' : 'MONTHLY',
+          paymentMethod: billingMethod,
+          sendEmail: true,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        alert(d.error || 'Erro ao gerar cobrança.');
+      } else {
+        setMsg(`Cobrança gerada (${billingMethod}) e enviada por e-mail para a clínica.`);
+        setLastChargeLink(d.checkoutUrl || d.pixQrCode || null);
+        load();
+      }
+    } finally {
+      setBillingBusy(false);
+    }
+  }
+
+  async function markInvoicePaid(invoiceId: string) {
+    if (!confirm('Confirmar baixa manual desta fatura como PAGA? Isso ativa a assinatura e gera comissão do representante (se houver).')) return;
+    setBillingBusy(true);
+    try {
+      const res = await fetch(`/api/admin/clinicas/${id}/cobranca`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark_paid', invoiceId }),
+      });
+      if (res.ok) {
+        setMsg('Fatura baixada manualmente como PAGA e assinatura ativada.');
+        load();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Erro ao baixar fatura.');
+      }
+    } finally {
+      setBillingBusy(false);
+    }
+  }
 
   async function toggleNewApplications(allow: boolean) {
     setSavingFinancing(true);
@@ -207,6 +271,69 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
         </div>
         <button className="bv-btn">Salvar assinatura da clínica</button>
       </form>
+
+      {/* Cobranças e Faturas Mercado Pago */}
+      <div className="bv-card" style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+          <div>
+            <h3 style={{ margin: '0 0 2px', fontSize: '15px', fontWeight: '800' }}>Cobranças &amp; Faturas (Mercado Pago)</h3>
+            <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>Gere link/Pix do plano selecionado acima, envie por e-mail ou dê baixa manual.</p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <select
+              className="bv-select"
+              style={{ width: '170px', padding: '7px 10px' }}
+              value={billingMethod}
+              onChange={(e) => setBillingMethod(e.target.value as 'PIX' | 'CARD_RECURRING' | 'BOLETO')}
+            >
+              <option value="PIX">Pix (QR Code)</option>
+              <option value="CARD_RECURRING">Cartão Recorrente</option>
+              <option value="BOLETO">Boleto / Checkout Pro</option>
+            </select>
+            <button type="button" className="bv-btn sm" disabled={billingBusy} onClick={generateCharge}>
+              {billingBusy ? 'Gerando…' : '💳 Gerar e enviar cobrança'}
+            </button>
+          </div>
+        </div>
+
+        {lastChargeLink && (
+          <div style={{ background: '#f0f4ff', border: '1px solid #c7d7fe', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px', fontSize: '12px', wordBreak: 'break-all' }}>
+            <strong>Link / Pix gerado:</strong> {lastChargeLink}
+          </div>
+        )}
+
+        {invoices.length === 0 ? (
+          <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>Nenhuma fatura registrada para esta clínica.</p>
+        ) : (
+          <div className="bv-table-wrap">
+            <table className="bv-table">
+              <thead><tr><th>Data</th><th>Ciclo</th><th>Meio</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                {invoices.map((inv) => (
+                  <tr key={inv.id}>
+                    <td>{new Date(inv.created_at).toLocaleDateString('pt-BR')}</td>
+                    <td>{inv.cycle}</td>
+                    <td>{inv.payment_method || '—'}</td>
+                    <td style={{ fontWeight: '700' }}>{Number(inv.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                    <td>
+                      <span className="bv-badge" style={inv.status === 'PAID' ? { background: '#d1fae5', color: '#047857' } : { background: '#fef3c7', color: '#92400e' }}>
+                        {inv.status}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      {inv.status !== 'PAID' && (
+                        <button type="button" className="bv-btn soft sm" disabled={billingBusy} onClick={() => markInvoicePaid(inv.id)}>
+                          Dar baixa manual
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Controle de Módulos */}
       <div className="bv-card" style={{ marginBottom: '20px' }}>

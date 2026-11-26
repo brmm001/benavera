@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Lock } from 'lucide-react';
 import { ClinicLayoutShell } from '@/components/ClinicLayoutShell';
 import { getClinicContext } from '@/lib/clinic-modules';
@@ -7,6 +8,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function NovoFinanciamentoLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getClinicContext();
+
+  if (ctx && ctx.subscriptionBlocked) {
+    redirect('/painel/assinatura?blocked=1');
+  }
 
   if (ctx && !ctx.allowNewApplications) {
     return (

@@ -71,6 +71,11 @@ export interface ClinicEntitlementsContext {
   subscriptionStatus: string;
   billingCycle: string;
   isExempt: boolean;
+  subscriptionBlocked: boolean;
+  graceUntil: string | null;
+  trialEndsAt: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
   allowNewApplications: boolean;
   newApplicationsBlockReason: string | null;
   preferences: ClinicPreferences;
@@ -149,8 +154,8 @@ export async function resolveClinicEntitlements(
   ]);
 
   const clinicRow = clinicRows[0];
-  const allowNewApplications = clinicRow ? clinicRow.allow_new_applications !== false : true;
-  const newApplicationsBlockReason = clinicRow?.new_applications_block_reason
+  const clinicAllowManual = clinicRow ? clinicRow.allow_new_applications !== false : true;
+  const clinicManualReason = clinicRow?.new_applications_block_reason
     ? String(clinicRow.new_applications_block_reason)
     : null;
 
@@ -161,6 +166,23 @@ export async function resolveClinicEntitlements(
   const subscriptionStatus = String(sub?.status || 'EXEMPT');
   const billingCycle = String(sub?.billing_cycle || 'LIFETIME_FREE');
   const isExempt = sub ? Boolean(sub.is_exempt) : true;
+  const graceUntil = sub?.grace_until ? String(sub.grace_until) : null;
+  const trialEndsAt = sub?.trial_ends_at ? String(sub.trial_ends_at) : null;
+  const currentPeriodEnd = sub?.current_period_end ? String(sub.current_period_end) : null;
+  const cancelAtPeriodEnd = Boolean(sub?.cancel_at_period_end);
+
+  const periodEndMs = currentPeriodEnd ? Date.parse(currentPeriodEnd) : NaN;
+  const stillInPaidPeriod = Number.isFinite(periodEndMs) && periodEndMs > Date.now();
+  const subscriptionBlocked =
+    !isExempt &&
+    (subscriptionStatus === 'SUSPENDED' ||
+      subscriptionStatus === 'PAST_DUE' ||
+      (subscriptionStatus === 'CANCELLED' && !stillInPaidPeriod));
+
+  const allowNewApplications = clinicAllowManual && !subscriptionBlocked;
+  const newApplicationsBlockReason = subscriptionBlocked
+    ? 'Assinatura suspensa por pendência financeira. Regularize o pagamento em Assinatura e Faturas para voltar a criar financiamentos.'
+    : clinicManualReason;
 
   const planModuleSet = new Set<string>(
     (sub?.plan_module_ids as string[] | undefined) ||
@@ -195,7 +217,13 @@ export async function resolveClinicEntitlements(
     }
     : base;
 
-  const subscriptionActive = subscriptionStatus === 'ACTIVE' || subscriptionStatus === 'TRIAL' || subscriptionStatus === 'GRACE' || subscriptionStatus === 'EXEMPT';
+  const subscriptionActive =
+    isExempt ||
+    subscriptionStatus === 'ACTIVE' ||
+    subscriptionStatus === 'TRIAL' ||
+    subscriptionStatus === 'GRACE' ||
+    subscriptionStatus === 'EXEMPT' ||
+    (subscriptionStatus === 'CANCELLED' && stillInPaidPeriod);
 
   const modules: ResolvedModule[] = modulesRows.map((m) => {
     const id = String(m.id);
@@ -231,7 +259,8 @@ export async function resolveClinicEntitlements(
     }
     // 4. Administrative exception (or 5. Plan entitlement)
     else {
-      const entitled = adminState === 'EXCEPTION_FREE' || (subscriptionActive && inPlan);
+      // Módulos core (contratos antigos e repasses) permanecem liberados para consulta mesmo com assinatura suspensa
+      const entitled = isCore || adminState === 'EXCEPTION_FREE' || (subscriptionActive && inPlan);
       if (!entitled) {
         effectiveEnabled = false;
         reason = subscriptionActive ? 'Não incluído no plano atual' : 'Assinatura suspensa ou cancelada';
@@ -291,6 +320,11 @@ export async function resolveClinicEntitlements(
     subscriptionStatus,
     billingCycle,
     isExempt,
+    subscriptionBlocked,
+    graceUntil,
+    trialEndsAt,
+    currentPeriodEnd,
+    cancelAtPeriodEnd,
     allowNewApplications,
     newApplicationsBlockReason,
     preferences,
@@ -323,7 +357,14 @@ export async function requireClinicModule(moduleId: string): Promise<
     return {
       ok: false,
       response: NextResponse.json(
-        { error: mod?.reason || 'Módulo não habilitado para esta clínica.', moduleId },
+        {
+          error: resolved.subscriptionBlocked
+            ? 'Assinatura suspensa por pendência financeira. Regularize o pagamento para reativar este módulo.'
+            : (mod?.reason || 'Módulo não habilitado para esta clínica.'),
+          moduleId,
+          subscriptionBlocked: resolved.subscriptionBlocked,
+          paymentUrl: resolved.subscriptionBlocked ? '/painel/assinatura' : undefined,
+        },
         { status: 403 }
       ),
     };

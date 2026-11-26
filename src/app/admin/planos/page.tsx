@@ -110,12 +110,12 @@ export default function AdminPlanosPage() {
       <div className="bv-header">
         <div>
           <h1 className="bv-title">Planos, Assinaturas e Módulos</h1>
-          <p className="bv-subtitle">Crie planos ilimitados, defina módulos incluídos e controle globalmente a disponibilidade (cobranças reais permanecem desativadas).</p>
+          <p className="bv-subtitle">Crie planos gratuitos ou pagos (Mercado Pago: Cartão Recorrente, Pix e Boleto), cupons de desconto e controle global de módulos.</p>
         </div>
         <button
           type="button"
           className="bv-btn"
-          onClick={() => setEditing({ name: '', description: '', price_monthly: 0, price_annual: 0, is_free: true, trial_days: 0, module_ids: modules.map((m) => m.id) })}
+          onClick={() => setEditing({ name: '', description: '', price_monthly: 0, price_annual: 0, is_free: false, trial_days: 7, module_ids: modules.map((m) => m.id) })}
         >
           + Novo plano
         </button>
@@ -128,8 +128,8 @@ export default function AdminPlanosPage() {
           <h3 style={{ margin: '0 0 14px', fontSize: '16px', fontWeight: '800' }}>{editing.id ? 'Editar plano' : 'Novo plano'}</h3>
           <div className="bv-grid bv-cols-3" style={{ marginBottom: '12px' }}>
             <div><label className="bv-label">Nome *</label><input className="bv-input" required value={editing.name || ''} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></div>
-            <div><label className="bv-label">Preço mensal (R$)</label><input className="bv-input" type="number" step="0.01" value={editing.price_monthly ?? 0} onChange={(e) => setEditing({ ...editing, price_monthly: Number(e.target.value) })} /></div>
-            <div><label className="bv-label">Preço anual (R$)</label><input className="bv-input" type="number" step="0.01" value={editing.price_annual ?? 0} onChange={(e) => setEditing({ ...editing, price_annual: Number(e.target.value) })} /></div>
+            <div><label className="bv-label">Preço mensal (R$)</label><input className="bv-input" type="number" step="0.01" value={editing.price_monthly ?? 0} onChange={(e) => { const v = Number(e.target.value); setEditing({ ...editing, price_monthly: v, is_free: v <= 0 && Number(editing.price_annual || 0) <= 0 }); }} /></div>
+            <div><label className="bv-label">Preço anual (R$)</label><input className="bv-input" type="number" step="0.01" value={editing.price_annual ?? 0} onChange={(e) => { const v = Number(e.target.value); setEditing({ ...editing, price_annual: v, is_free: v <= 0 && Number(editing.price_monthly || 0) <= 0 }); }} /></div>
             <div><label className="bv-label">Dias de trial</label><input className="bv-input" type="number" value={editing.trial_days ?? 0} onChange={(e) => setEditing({ ...editing, trial_days: Number(e.target.value) })} /></div>
             <div><label className="bv-label">Limite de usuários (vazio = ilimitado)</label><input className="bv-input" type="number" value={editing.max_users ?? ''} onChange={(e) => setEditing({ ...editing, max_users: e.target.value ? Number(e.target.value) : null })} /></div>
             <div><label className="bv-label">Descrição</label><input className="bv-input" value={editing.description || ''} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>

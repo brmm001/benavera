@@ -22,6 +22,7 @@ import {
   Trophy,
   Heart,
   Sliders,
+  CreditCard,
   Settings,
   UserCog,
   Plus,
@@ -63,6 +64,7 @@ interface ClinicSidebarProps {
   uiMode?: 'simple' | 'complete';
   planName?: string;
   allowNewApplications?: boolean;
+  subscriptionBlocked?: boolean;
 }
 
 const CATEGORY_ORDER: { key: ModuleCategory; label: string }[] = [
@@ -81,6 +83,7 @@ export function ClinicSidebar({
   uiMode = 'simple',
   planName,
   allowNewApplications = true,
+  subscriptionBlocked = false,
 }: ClinicSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -108,6 +111,7 @@ export function ClinicSidebar({
     ferramentas_comerciais: [],
     relatorios: [],
     configuracoes: [
+      { href: '/painel/assinatura', label: 'Assinatura e Faturas', icon: CreditCard },
       { href: '/painel/modulos', label: 'Módulos e Layout', icon: Sliders },
       { href: '/equipe', label: 'Equipe', icon: UserCog },
       { href: '/configuracoes', label: 'Configurações', icon: Settings },
@@ -195,6 +199,32 @@ export function ClinicSidebar({
             style={{ width: '100%', padding: '11px 14px', fontSize: '13px', boxShadow: '0 4px 14px rgba(64,64,202,0.28)' }}
           >
             <Plus size={16} /> Novo financiamento
+          </button>
+        ) : subscriptionBlocked ? (
+          <button
+            type="button"
+            onClick={() => {
+              setMobileOpen(false);
+              router.push('/painel/assinatura');
+            }}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              borderRadius: '10px',
+              background: '#dc2626',
+              border: 'none',
+              color: 'white',
+              fontSize: '12px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            <CreditCard size={14} /> Regularizar assinatura
           </button>
         ) : (
           <div

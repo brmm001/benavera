@@ -101,16 +101,22 @@ export async function GET(request: NextRequest) {
     let newApplicationsBlockReason: string | null = null;
     if (!isBenaveraStaff && session.clinicId) {
       const clinicMeta = await sql`
-        SELECT allow_new_applications, new_applications_block_reason
-        FROM clinics
-        WHERE id = ${session.clinicId}
+        SELECT c.allow_new_applications, c.new_applications_block_reason,
+               cs.status AS sub_status, cs.is_exempt AS sub_exempt, cs.current_period_end AS sub_period_end
+        FROM clinics c
+        LEFT JOIN clinic_subscriptions cs ON cs.clinic_id = c.id
+        WHERE c.id = ${session.clinicId}
         LIMIT 1
       `;
       if (clinicMeta[0]) {
-        allowNewApplications = clinicMeta[0].allow_new_applications !== false;
-        newApplicationsBlockReason = clinicMeta[0].new_applications_block_reason
-          ? String(clinicMeta[0].new_applications_block_reason)
-          : null;
+        const subStatus = String(clinicMeta[0].sub_status || 'EXEMPT');
+        const subExempt = clinicMeta[0].sub_exempt === undefined || clinicMeta[0].sub_exempt === null ? true : Boolean(clinicMeta[0].sub_exempt);
+        const pMs = clinicMeta[0].sub_period_end ? Date.parse(String(clinicMeta[0].sub_period_end)) : NaN;
+        const subBlocked = !subExempt && (subStatus === 'SUSPENDED' || subStatus === 'PAST_DUE' || (subStatus === 'CANCELLED' && !(Number.isFinite(pMs) && pMs > Date.now())));
+        allowNewApplications = clinicMeta[0].allow_new_applications !== false && !subBlocked;
+        newApplicationsBlockReason = subBlocked
+          ? 'Assinatura suspensa por pendência financeira. Regularize em Assinatura e Faturas.'
+          : (clinicMeta[0].new_applications_block_reason ? String(clinicMeta[0].new_applications_block_reason) : null);
       }
     }
 
@@ -150,17 +156,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Clínica não identificada.' }, { status: 400 });
     }
 
-    // Verificar se a clínica tem permissão para criar novos financiamentos
+    // Verificar se a clínica tem permissão e assinatura regular para criar novos financiamentos
     const clinicRows = await sql`
-      SELECT ativo, allow_new_applications, new_applications_block_reason
-      FROM clinics
-      WHERE id = ${clinicId}
+      SELECT c.ativo, c.allow_new_applications, c.new_applications_block_reason,
+             cs.status AS sub_status, cs.is_exempt AS sub_exempt, cs.current_period_end AS sub_period_end
+      FROM clinics c
+      LEFT JOIN clinic_subscriptions cs ON cs.clinic_id = c.id
+      WHERE c.id = ${clinicId}
       LIMIT 1
     `;
     const clinic = clinicRows[0];
     if (!clinic || !clinic.ativo) {
       return NextResponse.json(
         { error: 'Clínica inativa ou não autorizada.', code: 'CLINIC_INACTIVE' },
+        { status: 403 }
+      );
+    }
+    const postSubStatus = String(clinic.sub_status || 'EXEMPT');
+    const postSubExempt = clinic.sub_exempt === undefined || clinic.sub_exempt === null ? true : Boolean(clinic.sub_exempt);
+    const postPeriodMs = clinic.sub_period_end ? Date.parse(String(clinic.sub_period_end)) : NaN;
+    const postSubBlocked = !postSubExempt && (postSubStatus === 'SUSPENDED' || postSubStatus === 'PAST_DUE' || (postSubStatus === 'CANCELLED' && !(Number.isFinite(postPeriodMs) && postPeriodMs > Date.now())));
+    if (postSubBlocked) {
+      return NextResponse.json(
+        {
+          error: 'Assinatura suspensa por pendência financeira. Regularize o pagamento em Assinatura e Faturas para criar novos financiamentos.',
+          code: 'SUBSCRIPTION_SUSPENDED',
+          paymentUrl: '/painel/assinatura',
+        },
         { status: 403 }
       );
     }

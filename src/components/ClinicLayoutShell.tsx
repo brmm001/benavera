@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getSession, isBenaveraStaff } from '@/lib/auth';
 import { resolveClinicEntitlements } from '@/lib/clinic-modules';
 import { ClinicSidebar } from './ClinicSidebar';
+import { ClinicSubscriptionBanner } from './ClinicSubscriptionBanner';
 import '@/app/painel/clinic-panel.css';
 
 export async function ClinicLayoutShell({ children }: { children: React.ReactNode }) {
@@ -24,8 +25,17 @@ export async function ClinicLayoutShell({ children }: { children: React.ReactNod
         uiMode={resolved.preferences.uiMode}
         planName={resolved.planName}
         allowNewApplications={resolved.allowNewApplications}
+        subscriptionBlocked={resolved.subscriptionBlocked}
       />
-      <main className="bv-main">{children}</main>
+      <main className="bv-main">
+        <ClinicSubscriptionBanner
+          subscriptionStatus={resolved.subscriptionStatus}
+          subscriptionBlocked={resolved.subscriptionBlocked}
+          graceUntil={resolved.graceUntil}
+          trialEndsAt={resolved.trialEndsAt}
+        />
+        {children}
+      </main>
     </div>
   );
 }

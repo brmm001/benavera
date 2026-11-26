@@ -329,6 +329,38 @@ export async function syncComissoes(representanteId?: string | null): Promise<vo
     WHERE representante_comissoes.status IN ('PREVISTA', 'A_RECEBER')
       AND representante_comissoes.status <> EXCLUDED.status
   `;
+
+  // Comissões sobre mensalidades SaaS pagas (saas_invoices.status = 'PAID')
+  await sql`
+    INSERT INTO representante_comissoes
+      (representante_id, vinculo_id, clinic_id, tipo, ref, base_valor, percent, valor, status, competencia, liberada_em)
+    SELECT v.representante_id, v.id, v.clinic_id, 'MENSALIDADE', i.id::text,
+           COALESCE(i.amount, 0), v.mensalidade_percent,
+           ROUND(COALESCE(i.amount, 0) * v.mensalidade_percent / 100, 2),
+           CASE WHEN i.status = 'PAID' THEN 'A_RECEBER'
+                WHEN i.status IN ('REFUNDED', 'CANCELLED') THEN 'CANCELADA'
+                ELSE 'PREVISTA' END,
+           COALESCE(i.paid_at::date, i.due_date, i.created_at::date),
+           CASE WHEN i.status = 'PAID' THEN COALESCE(i.paid_at, NOW()) END
+    FROM representante_vinculos v
+    JOIN saas_invoices i ON i.clinic_id = v.clinic_id
+                        AND i.amount > 0
+                        AND i.status IN ('PAID', 'REFUNDED', 'CANCELLED')
+                        AND COALESCE(i.paid_at, i.created_at) >= v.inicio
+                        AND (v.fim IS NULL OR COALESCE(i.paid_at, i.created_at) <= v.fim)
+    WHERE v.mensalidade_percent > 0
+      AND (${repId}::uuid IS NULL OR v.representante_id = ${repId}::uuid)
+    ON CONFLICT (vinculo_id, tipo, ref) DO UPDATE SET
+      base_valor = EXCLUDED.base_valor,
+      valor = EXCLUDED.valor,
+      status = EXCLUDED.status,
+      competencia = EXCLUDED.competencia,
+      liberada_em = COALESCE(representante_comissoes.liberada_em, EXCLUDED.liberada_em),
+      updated_at = NOW()
+    WHERE representante_comissoes.status <> 'PAGA'
+      AND (representante_comissoes.status, representante_comissoes.valor, representante_comissoes.base_valor)
+          IS DISTINCT FROM (EXCLUDED.status, EXCLUDED.valor, EXCLUDED.base_valor)
+  `;
 }
 
 // ─── Pagamentos (controle manual) ─────────────────────────────────────────────

@@ -609,3 +609,171 @@ export async function sendClinicCredentialsEmail(opts: {
     return { sent: false, simulated: false, error: err instanceof Error ? err.message : 'Erro ao enviar e-mail.' };
   }
 }
+
+// ─── Emails: Mensalidades SaaS (Mercado Pago) ───────────────────────────────
+
+function fmtBrlEmail(v: number): string {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+}
+
+export async function sendSubscriptionInvoiceEmail(opts: {
+  to: string;
+  clinicName: string;
+  planName: string;
+  amount: number;
+  dueDate: string;
+  paymentUrl: string;
+  pixCopyPaste?: string | null;
+}): Promise<EmailDispatchResult> {
+  const safeClinic = escapeHtml(opts.clinicName);
+  const safePlan = escapeHtml(opts.planName);
+  const pixBlock = opts.pixCopyPaste
+    ? `<div style="background:#f8fafc;border-radius:10px;padding:16px;border:1px solid #cbd5e1;margin:16px 0;">
+        <p style="font-size:12px;font-weight:700;color:#475569;margin:0 0 8px;">PIX COPIA E COLA:</p>
+        <p style="font-size:11px;font-family:monospace;word-break:break-all;color:#0f172a;margin:0;">${escapeHtml(opts.pixCopyPaste)}</p>
+      </div>`
+    : '';
+
+  const content = `
+    <div style="border-top:4px solid #6370f1;padding:40px;">
+      <div style="font-size:32px;margin-bottom:12px;">💳</div>
+      <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">Fatura disponível — ${safePlan}</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 18px;">
+        Olá, equipe <strong>${safeClinic}</strong>! Sua fatura da mensalidade Benavera está disponível.
+      </p>
+      <div style="background:#f0f4ff;border-radius:12px;padding:18px;margin:18px 0;">
+        <p style="margin:0 0 6px;font-size:14px;color:#1e293b;"><strong>Plano:</strong> ${safePlan}</p>
+        <p style="margin:0 0 6px;font-size:14px;color:#1e293b;"><strong>Valor:</strong> ${fmtBrlEmail(opts.amount)}</p>
+        <p style="margin:0;font-size:14px;color:#1e293b;"><strong>Vencimento:</strong> ${escapeHtml(opts.dueDate)}</p>
+      </div>
+      ${pixBlock}
+      <a href="${opts.paymentUrl}" style="display:inline-block;background:linear-gradient(135deg,#6370f1,#4040ca);color:#fff;font-weight:700;font-size:15px;padding:14px 30px;border-radius:10px;text-decoration:none;margin-top:8px;">
+        Pagar Fatura Agora →
+      </a>
+    </div>
+  `;
+
+  try {
+    const res = await getResend().emails.send({
+      from: getFromEmail(),
+      to: opts.to,
+      subject: `💳 Fatura Benavera (${fmtBrlEmail(opts.amount)}) — ${opts.clinicName}`,
+      html: baseLayout(content, `Sua fatura Benavera de ${fmtBrlEmail(opts.amount)} está disponível.`),
+    });
+    return interpretResendResult(res);
+  } catch (err) {
+    return { sent: false, simulated: false, error: err instanceof Error ? err.message : 'Erro ao enviar e-mail.' };
+  }
+}
+
+export async function sendSubscriptionPaymentConfirmedEmail(opts: {
+  to: string;
+  clinicName: string;
+  planName: string;
+  amount: number;
+  nextBillingDate: string;
+}): Promise<EmailDispatchResult> {
+  const safeClinic = escapeHtml(opts.clinicName);
+  const safePlan = escapeHtml(opts.planName);
+  const content = `
+    <div style="border-top:4px solid #10b981;padding:40px;">
+      <div style="font-size:32px;margin-bottom:12px;">✅</div>
+      <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">Pagamento confirmado!</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 18px;">
+        Recebemos o pagamento da assinatura da <strong>${safeClinic}</strong>. Seu acesso completo está ativo.
+      </p>
+      <div style="background:#f0fdf4;border-radius:12px;padding:18px;border:1px solid #bbf7d0;margin:18px 0;">
+        <p style="margin:0 0 6px;font-size:14px;color:#065f46;"><strong>Plano:</strong> ${safePlan}</p>
+        <p style="margin:0 0 6px;font-size:14px;color:#065f46;"><strong>Valor pago:</strong> ${fmtBrlEmail(opts.amount)}</p>
+        <p style="margin:0;font-size:14px;color:#065f46;"><strong>Próxima renovação:</strong> ${escapeHtml(opts.nextBillingDate)}</p>
+      </div>
+      <a href="https://www.benavera.com.br/painel/assinatura" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;font-size:14px;padding:12px 26px;border-radius:10px;text-decoration:none;">
+        Ver assinatura e faturas →
+      </a>
+    </div>
+  `;
+
+  try {
+    const res = await getResend().emails.send({
+      from: getFromEmail(),
+      to: opts.to,
+      subject: `✅ Pagamento confirmado — Benavera (${fmtBrlEmail(opts.amount)})`,
+      html: baseLayout(content, `Pagamento da sua assinatura Benavera confirmado.`),
+    });
+    return interpretResendResult(res);
+  } catch (err) {
+    return { sent: false, simulated: false, error: err instanceof Error ? err.message : 'Erro ao enviar e-mail.' };
+  }
+}
+
+export async function sendSubscriptionGraceWarningEmail(opts: {
+  to: string;
+  clinicName: string;
+  graceDays: number;
+  graceUntil: string;
+  paymentUrl: string;
+}): Promise<EmailDispatchResult> {
+  const safeClinic = escapeHtml(opts.clinicName);
+  const content = `
+    <div style="border-top:4px solid #f59e0b;padding:40px;">
+      <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+      <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">Mensalidade em aberto — regularize em até ${opts.graceDays} dias</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 18px;">
+        Identificamos uma pendência na mensalidade da <strong>${safeClinic}</strong>. Seu painel continua liberado durante o período de carência até <strong>${escapeHtml(opts.graceUntil)}</strong>.
+      </p>
+      <p style="font-size:14px;color:#64748b;line-height:1.6;margin:0 0 22px;">
+        Após essa data, novas solicitações de financiamento e os módulos do plano serão pausados até a confirmação do pagamento (contratos e repasses antigos continuam disponíveis para consulta).
+      </p>
+      <a href="${opts.paymentUrl}" style="display:inline-block;background:#d97706;color:#fff;font-weight:700;font-size:15px;padding:14px 30px;border-radius:10px;text-decoration:none;">
+        Regularizar assinatura →
+      </a>
+    </div>
+  `;
+
+  try {
+    const res = await getResend().emails.send({
+      from: getFromEmail(),
+      to: opts.to,
+      subject: `⏳ Pendência na mensalidade Benavera — ${opts.clinicName}`,
+      html: baseLayout(content, `Regularize sua mensalidade Benavera até ${opts.graceUntil}.`),
+    });
+    return interpretResendResult(res);
+  } catch (err) {
+    return { sent: false, simulated: false, error: err instanceof Error ? err.message : 'Erro ao enviar e-mail.' };
+  }
+}
+
+export async function sendSubscriptionSuspendedEmail(opts: {
+  to: string;
+  clinicName: string;
+  paymentUrl: string;
+}): Promise<EmailDispatchResult> {
+  const safeClinic = escapeHtml(opts.clinicName);
+  const content = `
+    <div style="border-top:4px solid #dc2626;padding:40px;">
+      <div style="font-size:32px;margin-bottom:12px;">🔒</div>
+      <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;">Assinatura suspensa por pendência financeira</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 18px;">
+        O prazo de carência da mensalidade da <strong>${safeClinic}</strong> foi encerrado. Novas solicitações de financiamento e os módulos pagos foram pausados temporariamente.
+      </p>
+      <p style="font-size:14px;color:#64748b;line-height:1.6;margin:0 0 22px;">
+        Seus contratos anteriores e repasses continuam disponíveis para consulta. Assim que o pagamento via Pix ou Cartão for confirmado, o acesso total é restaurado automaticamente.
+      </p>
+      <a href="${opts.paymentUrl}" style="display:inline-block;background:linear-gradient(135deg,#6370f1,#4040ca);color:#fff;font-weight:700;font-size:15px;padding:14px 30px;border-radius:10px;text-decoration:none;">
+        Regularizar e reativar agora →
+      </a>
+    </div>
+  `;
+
+  try {
+    const res = await getResend().emails.send({
+      from: getFromEmail(),
+      to: opts.to,
+      subject: `🔒 Assinatura Benavera suspensa — regularize para reativar`,
+      html: baseLayout(content, `Regularize sua assinatura Benavera para reativar o acesso imediato.`),
+    });
+    return interpretResendResult(res);
+  } catch (err) {
+    return { sent: false, simulated: false, error: err instanceof Error ? err.message : 'Erro ao enviar e-mail.' };
+  }
+}
