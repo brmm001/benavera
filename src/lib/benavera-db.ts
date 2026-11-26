@@ -58,10 +58,12 @@ export type OnboardingStatus =
 
 export type DocumentReviewStatus = 'PENDING' | 'VALIDATED' | 'CORRECTION_REQUESTED' | 'REJECTED';
 export type ScanStatus = 'PENDING' | 'CLEAN' | 'THREAT_DETECTED' | 'ERROR';
+export type PersonType = 'PJ' | 'PF';
 
 export interface ClinicOnboarding {
   // ── Core (pré-cadastro) ─────────────────────────────────
   id: string;
+  person_type: PersonType;
   trade_name: string;
   legal_name: string | null;
   cnpj: string | null;
@@ -251,6 +253,7 @@ export interface User {
 
 export interface Clinic {
   id: string;
+  person_type?: PersonType;
   razao_social: string;
   nome_fantasia: string;
   cnpj: string;

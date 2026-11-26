@@ -13,6 +13,7 @@ function NovaClincinaForm() {
   const nomePreenchido = searchParams.get('nome') || '';
 
   const [form, setForm] = useState({
+    person_type: 'PJ' as 'PJ' | 'PF',
     cnpj: '', nome_fantasia: nomePreenchido, razao_social: '', responsavel: '',
     telefone: '', email: '', cidade: '', estado: '', especialidade: '',
     clinic_lead_id: leadId,
@@ -22,10 +23,13 @@ function NovaClincinaForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Verificar CNPJ ao digitar (debounce)
+  const isPF = form.person_type === 'PF';
+
+  // Verificar CNPJ ou CPF ao digitar (debounce)
   useEffect(() => {
     const digits = form.cnpj.replace(/\D/g, '');
-    if (digits.length !== 14) {
+    const expectedLen = isPF ? 11 : 14;
+    if (digits.length !== expectedLen) {
       setCnpjStatus('idle');
       setCnpjMsg('');
       return;
@@ -34,24 +38,25 @@ function NovaClincinaForm() {
     setCnpjStatus('checking');
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/atendente/clinicas/verificar-cnpj?cnpj=${digits}`);
+        const res = await fetch(`/api/atendente/clinicas/verificar-cnpj?cnpj=${digits}&type=${form.person_type}`);
         const data = await res.json();
+        const docLabel = isPF ? 'CPF' : 'CNPJ';
         if (!data.valid) {
           setCnpjStatus('invalid');
-          setCnpjMsg('CNPJ inválido. Verifique os dígitos.');
+          setCnpjMsg(`${docLabel} inválido. Verifique os dígitos.`);
         } else if (!data.available) {
           setCnpjStatus('taken');
           setCnpjMsg(data.message);
         } else {
           setCnpjStatus('ok');
-          setCnpjMsg('CNPJ disponível para cadastro.');
+          setCnpjMsg(`${docLabel} disponível para cadastro.`);
         }
       } catch {
         setCnpjStatus('idle');
       }
     }, 600);
     return () => clearTimeout(timer);
-  }, [form.cnpj]);
+  }, [form.cnpj, form.person_type, isPF]);
 
   function formatCnpj(value: string) {
     const digits = value.replace(/\D/g, '').slice(0, 14);
@@ -62,10 +67,18 @@ function NovaClincinaForm() {
     return `${digits.slice(0,2)}.${digits.slice(2,5)}.${digits.slice(5,8)}/${digits.slice(8,12)}-${digits.slice(12)}`;
   }
 
+  function formatCpf(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0,3)}.${digits.slice(3)}`;
+    if (digits.length <= 9) return `${digits.slice(0,3)}.${digits.slice(3,6)}.${digits.slice(6)}`;
+    return `${digits.slice(0,3)}.${digits.slice(3,6)}.${digits.slice(6,9)}-${digits.slice(9)}`;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (cnpjStatus !== 'ok') {
-      setError('Verifique o CNPJ antes de continuar.');
+      setError(`Verifique o ${isPF ? 'CPF' : 'CNPJ'} antes de continuar.`);
       return;
     }
     setSubmitting(true);
@@ -106,7 +119,7 @@ function NovaClincinaForm() {
           Cadastrar nova clínica
         </h1>
         <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>
-          O CNPJ é validado e garante unicidade global no sistema.
+          Suporte a Pessoa Jurídica (CNPJ) e Pessoa Física (CPF) com validação e unicidade global.
         </p>
       </div>
 
@@ -125,16 +138,44 @@ function NovaClincinaForm() {
       )}
 
       <form onSubmit={handleSubmit} style={{ background: 'white', borderRadius: '16px', padding: '28px', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-        {/* CNPJ — campo crítico */}
+        {/* Seletor PJ / PF */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+          {(['PJ', 'PF'] as const).map(t => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => {
+                setForm(f => ({ ...f, person_type: t, cnpj: '' }));
+                setCnpjStatus('idle');
+                setCnpjMsg('');
+              }}
+              style={{
+                padding: '10px 12px',
+                borderRadius: '8px',
+                border: `1.5px solid ${form.person_type === t ? '#4040ca' : '#e2e8f0'}`,
+                background: form.person_type === t ? '#eef2ff' : '#f8fafc',
+                color: form.person_type === t ? '#1e1b4b' : '#475569',
+                fontWeight: '700',
+                fontSize: '13px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {t === 'PJ' ? '🏢 Pessoa Jurídica (CNPJ)' : '👤 Pessoa Física (CPF)'}
+            </button>
+          ))}
+        </div>
+
+        {/* CNPJ / CPF — campo crítico */}
         <div style={{ marginBottom: '20px', padding: '20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          <label style={labelStyle}>CNPJ <span style={{ color: '#ef4444' }}>*</span></label>
+          <label style={labelStyle}>{isPF ? 'CPF' : 'CNPJ'} <span style={{ color: '#ef4444' }}>*</span></label>
           <input
             id="clinic-cnpj"
             type="text"
             required
             value={form.cnpj}
-            onChange={e => setForm(f => ({ ...f, cnpj: formatCnpj(e.target.value) }))}
-            placeholder="00.000.000/0000-00"
+            onChange={e => setForm(f => ({ ...f, cnpj: isPF ? formatCpf(e.target.value) : formatCnpj(e.target.value) }))}
+            placeholder={isPF ? '000.000.000-00' : '00.000.000/0000-00'}
             style={{
               ...inputStyle,
               borderColor: cnpjStatus === 'ok' ? '#10b981' : cnpjStatus === 'invalid' || cnpjStatus === 'taken' ? '#ef4444' : '#e2e8f0',
@@ -147,22 +188,24 @@ function NovaClincinaForm() {
           )}
         </div>
 
-        {/* Dados da clínica */}
+        {/* Dados da clínica / profissional */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
           <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>Nome fantasia <span style={{ color: '#ef4444' }}>*</span></label>
+            <label style={labelStyle}>{isPF ? 'Nome do consultório / profissional' : 'Nome fantasia'} <span style={{ color: '#ef4444' }}>*</span></label>
             <input id="clinic-nome" type="text" required value={form.nome_fantasia}
               onChange={e => setForm(f => ({ ...f, nome_fantasia: e.target.value }))} style={inputStyle} />
           </div>
 
-          <div>
-            <label style={labelStyle}>Razão social</label>
-            <input type="text" value={form.razao_social}
-              onChange={e => setForm(f => ({ ...f, razao_social: e.target.value }))} style={inputStyle} />
-          </div>
+          {!isPF && (
+            <div>
+              <label style={labelStyle}>Razão social</label>
+              <input type="text" value={form.razao_social}
+                onChange={e => setForm(f => ({ ...f, razao_social: e.target.value }))} style={inputStyle} />
+            </div>
+          )}
 
           <div>
-            <label style={labelStyle}>Responsável / Contato</label>
+            <label style={labelStyle}>{isPF ? 'Nome completo do titular' : 'Responsável / Contato'}</label>
             <input type="text" value={form.responsavel}
               onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} style={inputStyle} />
           </div>

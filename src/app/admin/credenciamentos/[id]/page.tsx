@@ -302,13 +302,25 @@ export default function OnboardingDetailPage() {
               {onboarding.trade_name}
             </h1>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: '700',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                background: onboarding.person_type === 'PF' ? '#ecfdf5' : '#eef2ff',
+                color: onboarding.person_type === 'PF' ? '#047857' : '#4040ca',
+              }}>
+                {onboarding.person_type === 'PF' ? 'PF (Pessoa Física)' : 'PJ (Pessoa Jurídica)'}
+              </span>
               <span style={{ fontSize: '13px', color: '#64748b' }}>{onboarding.contact_name}</span>
               <span style={{ fontSize: '13px', color: '#64748b' }}>•</span>
               <span style={{ fontSize: '13px', color: '#64748b' }}>{onboarding.city}/{onboarding.state}</span>
-              {onboarding.cnpj && (
+              {(onboarding.person_type === 'PF' ? onboarding.contact_cpf : onboarding.cnpj) && (
                 <>
                   <span style={{ fontSize: '13px', color: '#64748b' }}>•</span>
-                  <span style={{ fontSize: '13px', color: '#64748b', fontFamily: 'monospace' }}>{onboarding.cnpj}</span>
+                  <span style={{ fontSize: '13px', color: '#64748b', fontFamily: 'monospace' }}>
+                    {onboarding.person_type === 'PF' ? `CPF: ${onboarding.contact_cpf}` : onboarding.cnpj}
+                  </span>
                 </>
               )}
             </div>
@@ -345,7 +357,7 @@ export default function OnboardingDetailPage() {
         <div style={{ background: '#fef9ec', border: '1.5px solid #fde68a', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
           <span style={{ fontSize: '20px' }}>⚠️</span>
           <p style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#92400e' }}>
-            Titularidade bancária divergente — CNPJ da clínica não coincide com CPF/CNPJ do titular da conta. Validação manual necessária.
+            Titularidade bancária divergente — {onboarding.person_type === 'PF' ? 'CPF do titular' : 'CNPJ da clínica'} não coincide com o documento da conta bancária. Validação manual necessária.
           </p>
         </div>
       )}
@@ -509,11 +521,12 @@ export default function OnboardingDetailPage() {
         <>
           <Section title="Dados do pré-cadastro (Benavera)">
             <Grid>
-              <Field label="Nome da clínica" value={onboarding.trade_name} />
-              <Field label="Razão social" value={onboarding.legal_name} />
-              <Field label="CNPJ" value={onboarding.cnpj} />
-              <Field label="Responsável" value={onboarding.contact_name} />
-              <Field label="CPF do responsável" value={onboarding.contact_cpf} />
+              <Field label="Tipo de pessoa" value={onboarding.person_type === 'PF' ? 'Pessoa Física (PF)' : 'Pessoa Jurídica (PJ)'} />
+              <Field label={onboarding.person_type === 'PF' ? 'Consultório / Profissional' : 'Nome da clínica'} value={onboarding.trade_name} />
+              {onboarding.person_type !== 'PF' && <Field label="Razão social" value={onboarding.legal_name} />}
+              {onboarding.person_type !== 'PF' && <Field label="CNPJ" value={onboarding.cnpj} />}
+              <Field label={onboarding.person_type === 'PF' ? 'Nome completo do titular' : 'Responsável'} value={onboarding.contact_name} />
+              <Field label={onboarding.person_type === 'PF' ? 'CPF do titular' : 'CPF do responsável'} value={onboarding.contact_cpf} />
               <Field label="WhatsApp" value={onboarding.phone} />
               <Field label="E-mail" value={onboarding.email} />
               <Field label="Cidade/UF" value={`${onboarding.city}/${onboarding.state}`} />

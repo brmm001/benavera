@@ -55,7 +55,7 @@ export async function PATCH(
     const body = await request.json();
     // Apenas campos de pré-cadastro admin podem ser atualizados por aqui
     const allowed = [
-      'trade_name', 'legal_name', 'cnpj', 'contact_name', 'contact_cpf',
+      'person_type', 'trade_name', 'legal_name', 'cnpj', 'contact_name', 'contact_cpf',
       'phone', 'email', 'city', 'state', 'specialty', 'average_ticket',
       'internal_notes', 'assigned_to',
     ];

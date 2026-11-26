@@ -47,6 +47,7 @@ function PreCadastroModal({ onClose, onSuccess }: { onClose: () => void; onSucce
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
+    personType: 'PJ' as 'PJ' | 'PF',
     tradeName: '', legalName: '', cnpj: '', contactName: '', contactCpf: '',
     phone: '', email: '', city: '', state: 'SP', specialty: '',
     averageTicket: '', internalNotes: '',
@@ -105,12 +106,49 @@ function PreCadastroModal({ onClose, onSuccess }: { onClose: () => void; onSucce
         </div>
 
         <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Tipo de Cadastro (opcional — a clínica também pode escolher ao abrir o link)
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {([
+                { value: 'PJ' as const, label: '🏢 Pessoa Jurídica (PJ)' },
+                { value: 'PF' as const, label: '👤 Pessoa Física (PF)' },
+              ]).map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, personType: opt.value }))}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: `1.5px solid ${form.personType === opt.value ? '#6370f1' : '#e2e8f0'}`,
+                    background: form.personType === opt.value ? '#f0f4ff' : '#f8fafc',
+                    color: form.personType === opt.value ? '#1e1b4b' : '#475569',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-            <div style={{ gridColumn: '1/-1' }}>{field('Nome da Clínica', 'tradeName', { required: true, placeholder: 'Ex: Odonto Prime' })}</div>
-            {field('Razão Social', 'legalName', { placeholder: 'Se já informado' })}
-            {field('CNPJ', 'cnpj', { placeholder: 'Se já informado' })}
-            {field('Nome do Responsável', 'contactName', { required: true, placeholder: 'Nome completo' })}
-            {field('CPF do Responsável', 'contactCpf', { placeholder: 'Se já informado' })}
+            <div style={{ gridColumn: '1/-1' }}>
+              {field(
+                form.personType === 'PF' ? 'Nome do Consultório / Profissional' : 'Nome da Clínica',
+                'tradeName',
+                { required: true, placeholder: form.personType === 'PF' ? 'Ex: Consultório Dra. Ana Silva' : 'Ex: Odonto Prime' }
+              )}
+            </div>
+            {form.personType === 'PJ' && field('Razão Social', 'legalName', { placeholder: 'Se já informado' })}
+            {form.personType === 'PJ' && field('CNPJ', 'cnpj', { placeholder: 'Se já informado' })}
+            {field(form.personType === 'PF' ? 'Nome Completo do Titular' : 'Nome do Responsável', 'contactName', { required: true, placeholder: 'Nome completo' })}
+            {field(form.personType === 'PF' ? 'CPF do Titular' : 'CPF do Responsável', 'contactCpf', { placeholder: 'Se já informado' })}
             {field('WhatsApp', 'phone', { required: true, type: 'tel', placeholder: '(11) 99999-9999' })}
             {field('E-mail', 'email', { required: true, type: 'email', placeholder: 'contato@clinica.com.br' })}
             {field('Cidade', 'city', { required: true, placeholder: 'Ex: São Paulo' })}
@@ -325,7 +363,7 @@ export default function CredenciamentosPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
-                {['Clínica', 'CNPJ', 'Responsável', 'Cidade/UF', 'Criado', 'Enviado', 'Progresso', 'Status', 'Alertas', 'Ações'].map(h => (
+                {['Clínica / Profissional', 'CNPJ / CPF', 'Responsável', 'Cidade/UF', 'Criado', 'Enviado', 'Progresso', 'Status', 'Alertas', 'Ações'].map(h => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
                     {h}
                   </th>
@@ -343,12 +381,24 @@ export default function CredenciamentosPage() {
                     <td style={{ padding: '14px 16px' }}>
                       <Link href={`/admin/credenciamentos/${item.id}`}
                         style={{ textDecoration: 'none', textAlign: 'left', display: 'block' }}>
-                        <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: '#1c1d4c' }}>{item.trade_name}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: '#1c1d4c' }}>{item.trade_name}</p>
+                          <span style={{
+                            fontSize: '10px',
+                            fontWeight: '700',
+                            padding: '1px 6px',
+                            borderRadius: '10px',
+                            background: item.person_type === 'PF' ? '#ecfdf5' : '#eef2ff',
+                            color: item.person_type === 'PF' ? '#047857' : '#4040ca',
+                          }}>
+                            {item.person_type === 'PF' ? 'PF' : 'PJ'}
+                          </span>
+                        </div>
                         {item.specialty && <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#94a3b8' }}>{item.specialty}</p>}
                       </Link>
                     </td>
                     <td style={{ padding: '14px 16px', fontSize: '13px', color: '#475569', fontFamily: 'monospace' }}>
-                      {item.cnpj || '—'}
+                      {item.person_type === 'PF' ? (item.contact_cpf || '—') : (item.cnpj || '—')}
                     </td>
                     <td style={{ padding: '14px 16px' }}>
                       <p style={{ margin: 0, fontSize: '13px', color: '#334155' }}>{item.contact_name}</p>

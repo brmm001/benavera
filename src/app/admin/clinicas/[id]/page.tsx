@@ -8,6 +8,7 @@ import type { ResolvedModule } from '@/lib/clinic-modules';
 interface ClinicControlResponse {
   clinic: {
     id: string;
+    person_type?: 'PJ' | 'PF';
     nome_fantasia: string;
     razao_social: string;
     responsavel: string | null;
@@ -109,7 +110,9 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
       <div className="bv-header">
         <div>
           <h1 className="bv-title">{data.clinic.nome_fantasia || data.clinic.razao_social}</h1>
-          <p className="bv-subtitle">Responsável: {data.clinic.responsavel || '—'} · CNPJ {data.clinic.cnpj} · Plano efetivo: <strong>{data.entitlements.planName}</strong></p>
+          <p className="bv-subtitle">
+            Responsável: {data.clinic.responsavel || '—'} · {data.clinic.person_type === 'PF' ? 'CPF' : 'CNPJ'} {data.clinic.cnpj} · Plano efetivo: <strong>{data.entitlements.planName}</strong>
+          </p>
         </div>
       </div>
 

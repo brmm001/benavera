@@ -6,6 +6,7 @@ import { randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
 import { sql } from './benavera-db';
 import type { ClinicOnboarding } from './benavera-db';
+import { normalizePersonType, resolveClinicDocumentForStorage } from './onboarding-db';
 
 const UPPER = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 const LOWER = 'abcdefghjkmnpqrstuvwxyz';
@@ -74,6 +75,17 @@ export async function provisionClinicAccountFromOnboarding(
   }
 
   // 2. Garantir registro ativo em `clinics` e vínculo em `clinic_onboardings.clinic_id`
+  const personType = normalizePersonType(onboarding.person_type);
+  const clinicDocument = resolveClinicDocumentForStorage({
+    personType,
+    cnpj: onboarding.cnpj,
+    cpf: onboarding.contact_cpf || onboarding.legal_rep_cpf,
+    fallbackSeed: onboarding.id,
+  });
+  const clinicLegalName = personType === 'PF'
+    ? (onboarding.contact_name || onboarding.legal_rep_name || onboarding.trade_name)
+    : (onboarding.legal_name || onboarding.trade_name);
+
   let clinicId: string;
   if (onboarding.clinic_id) {
     clinicId = String(onboarding.clinic_id);
@@ -81,9 +93,10 @@ export async function provisionClinicAccountFromOnboarding(
       UPDATE clinics
       SET
         ativo = TRUE,
+        person_type = ${personType},
         nome_fantasia = COALESCE(${onboarding.trade_name || null}, nome_fantasia),
-        razao_social = COALESCE(${onboarding.legal_name || null}, razao_social),
-        cnpj = COALESCE(${onboarding.cnpj || null}, cnpj),
+        razao_social = COALESCE(${clinicLegalName || null}, razao_social),
+        cnpj = COALESCE(${clinicDocument}, cnpj),
         email = COALESCE(${cleanEmail}, email),
         cep = COALESCE(${onboarding.address_cep || null}, cep),
         logradouro = COALESCE(${onboarding.address_street || null}, logradouro),
@@ -112,9 +125,10 @@ export async function provisionClinicAccountFromOnboarding(
         UPDATE clinics
         SET
           ativo = TRUE,
+          person_type = ${personType},
           nome_fantasia = COALESCE(${onboarding.trade_name || null}, nome_fantasia),
-          razao_social = COALESCE(${onboarding.legal_name || null}, razao_social),
-          cnpj = COALESCE(${onboarding.cnpj || null}, cnpj),
+          razao_social = COALESCE(${clinicLegalName || null}, razao_social),
+          cnpj = COALESCE(${clinicDocument}, cnpj),
           email = COALESCE(${cleanEmail}, email),
           cep = COALESCE(${onboarding.address_cep || null}, cep),
           logradouro = COALESCE(${onboarding.address_street || null}, logradouro),
@@ -137,13 +151,14 @@ export async function provisionClinicAccountFromOnboarding(
     } else {
       const clinicRows = await sql`
         INSERT INTO clinics (
-          nome_fantasia, razao_social, cnpj, email, email_financeiro, telefone, whatsapp,
+          person_type, nome_fantasia, razao_social, cnpj, email, email_financeiro, telefone, whatsapp,
           responsavel, cpf_responsavel, cep, logradouro, numero, complemento, bairro,
           cidade, estado, especialidade, site, banco, agencia, conta, chave_pix, ativo
         ) VALUES (
+          ${personType},
           ${onboarding.trade_name},
-          ${onboarding.legal_name || onboarding.trade_name},
-          ${onboarding.cnpj || '00.000.000/0001-00'},
+          ${clinicLegalName},
+          ${clinicDocument},
           ${cleanEmail},
           ${onboarding.email_financial || cleanEmail},
           ${onboarding.phone},

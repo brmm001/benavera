@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { checkCnpjExists, normalizeCnpj, validateCnpj } from '@/lib/atendente-db';
+import { checkCnpjExists, validateCpfOrCnpj } from '@/lib/atendente-db';
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -12,23 +12,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
   }
 
-  const cnpj = request.nextUrl.searchParams.get('cnpj') || '';
-  const normalized = normalizeCnpj(cnpj);
+  const rawDoc = request.nextUrl.searchParams.get('cnpj') || request.nextUrl.searchParams.get('documento') || '';
+  const typeParam = request.nextUrl.searchParams.get('type')?.toUpperCase();
+  const requestedType = typeParam === 'PF' ? 'PF' : typeParam === 'PJ' ? 'PJ' : undefined;
+  const docCheck = validateCpfOrCnpj(rawDoc, requestedType);
+  const label = docCheck.personType === 'PF' ? 'CPF' : 'CNPJ';
 
-  if (!validateCnpj(normalized)) {
-    return NextResponse.json({ valid: false, available: false, message: 'CNPJ inválido.' });
+  if (!docCheck.valid) {
+    return NextResponse.json({ valid: false, available: false, personType: docCheck.personType, message: `${label} inválido.` });
   }
 
-  const check = await checkCnpjExists(normalized);
+  const check = await checkCnpjExists(docCheck.normalized);
 
   if (check.exists) {
     // Não expor a qual atendente pertence, apenas que não está disponível
     return NextResponse.json({
       valid: true,
       available: false,
-      message: 'Este CNPJ já está cadastrado. Solicite revisão ao administrador se necessário.',
+      personType: docCheck.personType,
+      message: `Este ${label} já está cadastrado. Solicite revisão ao administrador se necessário.`,
     });
   }
 
-  return NextResponse.json({ valid: true, available: true, message: 'CNPJ disponível para cadastro.' });
+  return NextResponse.json({
+    valid: true,
+    available: true,
+    personType: docCheck.personType,
+    message: `${label} disponível para cadastro.`,
+  });
 }

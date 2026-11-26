@@ -7,8 +7,7 @@ import {
   getAtendenteClinicas,
   createProspectClinica,
   checkCnpjExists,
-  normalizeCnpj,
-  validateCnpj,
+  validateCpfOrCnpj,
 } from '@/lib/atendente-db';
 
 function requireAtendente(session: Awaited<ReturnType<typeof getSession>>) {
@@ -44,30 +43,40 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { cnpj, nome_fantasia, razao_social, responsavel, telefone, email,
+    const { person_type, cnpj, cpf, nome_fantasia, razao_social, responsavel, telefone, email,
       cidade, estado, especialidade, clinic_lead_id } = body;
 
-    if (!cnpj || !nome_fantasia) {
-      return NextResponse.json({ error: 'CNPJ e nome fantasia são obrigatórios.' }, { status: 400 });
+    const requestedType = String(person_type || '').toUpperCase() === 'PF' ? 'PF' : String(person_type || '').toUpperCase() === 'PJ' ? 'PJ' : undefined;
+    const rawDoc = String(requestedType === 'PF' ? (cpf || cnpj || '') : (cnpj || cpf || '')).trim();
+
+    if (!rawDoc || !nome_fantasia) {
+      return NextResponse.json(
+        { error: requestedType === 'PF' ? 'CPF e nome do consultório/profissional são obrigatórios.' : 'CNPJ/CPF e nome são obrigatórios.' },
+        { status: 400 }
+      );
     }
 
-    const normalized = normalizeCnpj(cnpj);
-    if (!validateCnpj(normalized)) {
-      return NextResponse.json({ error: 'CNPJ inválido. Verifique os dígitos.' }, { status: 400 });
+    const docCheck = validateCpfOrCnpj(rawDoc, requestedType);
+    if (!docCheck.valid) {
+      return NextResponse.json(
+        { error: `${docCheck.personType === 'PF' ? 'CPF' : 'CNPJ'} inválido. Verifique os dígitos.` },
+        { status: 400 }
+      );
     }
 
     // Verificar unicidade antes de criar (proteção dupla: DB também tem UNIQUE)
-    const cnpjCheck = await checkCnpjExists(normalized);
+    const cnpjCheck = await checkCnpjExists(docCheck.normalized);
     if (cnpjCheck.exists) {
       return NextResponse.json({
-        error: 'Este CNPJ já está cadastrado no sistema. Caso acredite ser um erro, solicite revisão ao administrador.',
+        error: `Este ${docCheck.personType === 'PF' ? 'CPF' : 'CNPJ'} já está cadastrado no sistema. Caso acredite ser um erro, solicite revisão ao administrador.`,
       }, { status: 409 });
     }
 
     const result = await createProspectClinica({
-      cnpj: normalized,
+      person_type: docCheck.personType,
+      cnpj: docCheck.normalized,
       nome_fantasia,
-      razao_social,
+      razao_social: docCheck.personType === 'PF' ? (responsavel || nome_fantasia) : razao_social,
       responsavel,
       telefone,
       email,

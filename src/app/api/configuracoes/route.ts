@@ -38,6 +38,7 @@ export async function GET() {
 
     return NextResponse.json({
       clinic: {
+        personType: String(clinic.person_type || 'PJ'),
         nomeFantasia: String(clinic.nome_fantasia || ''),
         razaoSocial: String(clinic.razao_social || ''),
         cnpj: String(clinic.cnpj || ''),

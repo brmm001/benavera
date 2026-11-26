@@ -1,38 +1,102 @@
 'use client';
-// app/c/[token]/formulario/page.tsx — Wizard multi-etapas de credenciamento
+// app/c/[token]/formulario/page.tsx — Wizard multi-etapas de credenciamento (PJ e PF)
 
 import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import type { OnboardingDocument } from '@/lib/benavera-db';
+import type { OnboardingDocument, PersonType } from '@/lib/benavera-db';
 
-// ── Wizard steps ─────────────────────────────────────────────────────────────
-const STEPS = [
-  { id: 1, title: 'Dados da clínica', icon: '🏥' },
-  { id: 2, title: 'Responsável legal', icon: '👤' },
-  { id: 3, title: 'Resp. técnico', icon: '🩺' },
-  { id: 4, title: 'Dados bancários', icon: '🏦' },
-  { id: 5, title: 'Documentos', icon: '📄' },
-  { id: 6, title: 'Declarações', icon: '✍️' },
-  { id: 7, title: 'Revisão', icon: '✅' },
+type StepKey = 'dados' | 'responsavel' | 'tecnico' | 'bancario' | 'documentos' | 'declaracoes' | 'revisao';
+
+interface StepDef {
+  key: StepKey;
+  title: string;
+  icon: string;
+}
+
+const STEPS_PJ: StepDef[] = [
+  { key: 'dados', title: 'Dados da clínica', icon: '🏥' },
+  { key: 'responsavel', title: 'Responsável legal', icon: '👤' },
+  { key: 'tecnico', title: 'Resp. técnico', icon: '🩺' },
+  { key: 'bancario', title: 'Dados bancários', icon: '🏦' },
+  { key: 'documentos', title: 'Documentos', icon: '📄' },
+  { key: 'declaracoes', title: 'Declarações', icon: '✍️' },
+  { key: 'revisao', title: 'Revisão', icon: '✅' },
 ];
 
-// ── Declarações obrigatórias ─────────────────────────────────────────────────
-const DECLARATIONS = [
-  { id: 'declaration_1_veracidade', text: 'Declaro que todas as informações fornecidas são verdadeiras e corretas, e me responsabilizo por qualquer inexatidão.' },
-  { id: 'declaration_2_autenticidade', text: 'Declaro que todos os documentos enviados são autênticos, válidos e não foram adulterados.' },
-  { id: 'declaration_3_representacao', text: 'Declaro que tenho poderes legais para representar a clínica e assinar documentos em seu nome.' },
-  { id: 'declaration_4_regularidade', text: 'Declaro que a clínica está regularmente constituída e em plena atividade, sem impedimentos legais.' },
-  { id: 'declaration_5_alteracoes', text: 'Comprometo-me a informar qualquer alteração nos dados cadastrais, societários ou bancários em até 30 dias.' },
-  { id: 'declaration_6_no_ficticio', text: 'Declaro que as operações realizadas com os recursos da Benavera não serão fictícias ou simuladas.' },
-  { id: 'declaration_7_no_inexistentes', text: 'Declaro que não utilizarei os recursos para financiar serviços inexistentes, superfaturados ou já realizados.' },
-  { id: 'declaration_8_no_inflacao', text: 'Declaro que não haverá inflação de valores, duplicidade de cobranças ou qualquer forma de fraude.' },
-  { id: 'declaration_9_no_cpf_terceiros', text: 'Declaro que não utilizarei CPF de terceiros, laranjas ou pessoas sem vínculo real com a clínica.' },
-  { id: 'declaration_10_no_simulacao', text: 'Declaro que as operações refletem transações reais com pacientes legítimos.' },
-  { id: 'declaration_11_no_contornar', text: 'Declaro que não tentarei burlar regras, limites operacionais ou políticas da Benavera por meios diretos ou indiretos.' },
-  { id: 'declaration_12_credito_parceiro', text: 'Estou ciente de que o crédito é concedido pelo parceiro financeiro, e não pela Benavera.' },
-  { id: 'declaration_13_aprovacao_nao_garantida', text: 'Estou ciente de que a aprovação do credenciamento não garante a concessão de crédito, que depende de análise independente.' },
-  { id: 'privacy_policy', text: 'Li e concordo com a Política de Privacidade da Benavera e autorizo o tratamento dos dados da clínica para as finalidades do credenciamento.' },
+const STEPS_PF: StepDef[] = [
+  { key: 'dados', title: 'Dados do profissional', icon: '👤' },
+  { key: 'tecnico', title: 'Registro profissional', icon: '🩺' },
+  { key: 'bancario', title: 'Dados bancários', icon: '🏦' },
+  { key: 'documentos', title: 'Documentos', icon: '📄' },
+  { key: 'declaracoes', title: 'Declarações', icon: '✍️' },
+  { key: 'revisao', title: 'Revisão', icon: '✅' },
 ];
+
+function getDeclarations(isPF: boolean) {
+  return [
+    { id: 'declaration_1_veracidade', text: 'Declaro que todas as informações fornecidas são verdadeiras e corretas, e me responsabilizo por qualquer inexatidão.' },
+    { id: 'declaration_2_autenticidade', text: 'Declaro que todos os documentos enviados são autênticos, válidos e não foram adulterados.' },
+    {
+      id: 'declaration_3_representacao',
+      text: isPF
+        ? 'Declaro que atuo em nome próprio como profissional autônomo e possuo plena capacidade legal para firmar este credenciamento.'
+        : 'Declaro que tenho poderes legais para representar a clínica e assinar documentos em seu nome.',
+    },
+    {
+      id: 'declaration_4_regularidade',
+      text: isPF
+        ? 'Declaro estar em plena atividade profissional e regular perante meu conselho de classe, sem impedimentos legais.'
+        : 'Declaro que a clínica está regularmente constituída e em plena atividade, sem impedimentos legais.',
+    },
+    {
+      id: 'declaration_5_alteracoes',
+      text: isPF
+        ? 'Comprometo-me a informar qualquer alteração nos dados cadastrais, profissionais ou bancários em até 30 dias.'
+        : 'Comprometo-me a informar qualquer alteração nos dados cadastrais, societários ou bancários em até 30 dias.',
+    },
+    { id: 'declaration_6_no_ficticio', text: 'Declaro que as operações realizadas com os recursos da Benavera não serão fictícias ou simuladas.' },
+    { id: 'declaration_7_no_inexistentes', text: 'Declaro que não utilizarei os recursos para financiar serviços inexistentes, superfaturados ou já realizados.' },
+    { id: 'declaration_8_no_inflacao', text: 'Declaro que não haverá inflação de valores, duplicidade de cobranças ou qualquer forma de fraude.' },
+    {
+      id: 'declaration_9_no_cpf_terceiros',
+      text: isPF
+        ? 'Declaro que não utilizarei CPF de terceiros, laranjas ou pessoas sem vínculo real com o atendimento.'
+        : 'Declaro que não utilizarei CPF de terceiros, laranjas ou pessoas sem vínculo real com a clínica.',
+    },
+    { id: 'declaration_10_no_simulacao', text: 'Declaro que as operações refletem transações reais com pacientes legítimos.' },
+    { id: 'declaration_11_no_contornar', text: 'Declaro que não tentarei burlar regras, limites operacionais ou políticas da Benavera por meios diretos ou indiretos.' },
+    { id: 'declaration_12_credito_parceiro', text: 'Estou ciente de que o crédito é concedido pelo parceiro financeiro, e não pela Benavera.' },
+    { id: 'declaration_13_aprovacao_nao_garantida', text: 'Estou ciente de que a aprovação do credenciamento não garante a concessão de crédito, que depende de análise independente.' },
+    {
+      id: 'privacy_policy',
+      text: isPF
+        ? 'Li e concordo com a Política de Privacidade da Benavera e autorizo o tratamento dos meus dados para as finalidades do credenciamento.'
+        : 'Li e concordo com a Política de Privacidade da Benavera e autorizo o tratamento dos dados da clínica para as finalidades do credenciamento.',
+    },
+  ];
+}
+
+function formatCpfMask(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function formatCnpjMask(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 14);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+}
+
+function formatCpfOrCnpjMask(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  return digits.length <= 11 ? formatCpfMask(digits) : formatCnpjMask(digits);
+}
 
 type FormData = Record<string, string | boolean | null>;
 type Documents = Array<OnboardingDocument & { uploadProgress?: number; uploading?: boolean; uploadError?: string }>;
@@ -96,20 +160,41 @@ const SelectField = ({ label, field, options, required = false }: {
 const UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
 const UF_OPTIONS = UFS.map(uf => ({ value: uf, label: uf }));
 
+const COUNCIL_OPTIONS = [
+  { value: 'CRO', label: 'CRO — Odontologia' },
+  { value: 'CRM', label: 'CRM — Medicina' },
+  { value: 'CRBM', label: 'CRBM — Biomedicina' },
+  { value: 'CRP', label: 'CRP — Psicologia' },
+  { value: 'CREFITO', label: 'CREFITO — Fisioterapia' },
+  { value: 'CRN', label: 'CRN — Nutrição' },
+  { value: 'COREN', label: 'COREN — Enfermagem' },
+  { value: 'OUTRO', label: 'Outro' },
+];
+
 export default function WizardPage() {
   const router = useRouter();
   const { token } = useParams();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>({});
+  const [currentStepKey, setCurrentStepKey] = useState<StepKey>('dados');
+  const [formData, setFormData] = useState<FormData>({ person_type: 'PJ' });
   const [documents, setDocuments] = useState<Documents>([]);
   const [acceptances, setAcceptances] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [switchingType, setSwitchingType] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [progress, setProgress] = useState(0);
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const personType: PersonType = String(formData.person_type || 'PJ').toUpperCase() === 'PF' ? 'PF' : 'PJ';
+  const isPF = personType === 'PF';
+  const steps = isPF ? STEPS_PF : STEPS_PJ;
+  const declarations = getDeclarations(isPF);
+
+  // Garantir que currentStepKey existe na lista atual de etapas
+  const currentIndex = Math.max(0, steps.findIndex(s => s.key === currentStepKey));
+  const activeStepKey: StepKey = steps[currentIndex]?.key || 'dados';
 
   // ── Carregar dados ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -121,8 +206,14 @@ export default function WizardPage() {
           const data = await res.json();
           if (data.data) {
             const d = data.data as Record<string, any>;
+            const loadedType: PersonType = String(d.person_type || 'PJ').toUpperCase() === 'PF' ? 'PF' : 'PJ';
+            const defaultDoc = loadedType === 'PF' ? (d.contact_cpf || d.legal_rep_cpf || '') : (d.cnpj || '');
+            const defaultHolder = loadedType === 'PF'
+              ? (d.contact_name || d.legal_rep_name || d.trade_name || '')
+              : (d.legal_name || d.trade_name || '');
             const normalized: FormData = {
               ...d,
+              person_type: loadedType,
               legal_name: d.legal_name || d.trade_name || '',
               address_city: d.address_city || d.city || '',
               address_state: d.address_state || d.state || '',
@@ -137,9 +228,9 @@ export default function WizardPage() {
               tech_rep_cpf: d.tech_rep_cpf || d.contact_cpf || '',
               tech_rep_council_state: d.tech_rep_council_state || d.address_state || d.state || '',
               bank_account_type: d.bank_account_type || 'corrente',
-              bank_holder_name: d.bank_holder_name || d.legal_name || d.trade_name || '',
-              bank_holder_document: d.bank_holder_document || d.cnpj || '',
-              bank_pix_key: d.bank_pix_key || d.cnpj || '',
+              bank_holder_name: d.bank_holder_name || defaultHolder,
+              bank_holder_document: d.bank_holder_document || defaultDoc,
+              bank_pix_key: d.bank_pix_key || defaultDoc,
             };
             setFormData(normalized);
             setProgress(Number(d.progress_percent) || 0);
@@ -154,56 +245,149 @@ export default function WizardPage() {
     load();
   }, [token, router]);
 
-  // ── Autosave ─────────────────────────────────────────────────────────────
+  // ── Persistir imediatamente no backend ───────────────────────────────────
+  const persistNow = useCallback(async (data: FormData) => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/c/${token}/data`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        if (d.progress !== undefined) setProgress(d.progress);
+        if (Array.isArray(d.documents)) setDocuments(d.documents);
+      }
+    } catch { /* Silencioso */ }
+    finally { setSaving(false); }
+  }, [token]);
+
+  // ── Autosave com debounce ────────────────────────────────────────────────
   const scheduleAutosave = useCallback((data: FormData) => {
     if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
-    autosaveTimerRef.current = setTimeout(async () => {
-      setSaving(true);
-      try {
-        const res = await fetch(`/api/c/${token}/data`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-        if (res.ok) {
-          const d = await res.json();
-          if (d.progress !== undefined) setProgress(d.progress);
-        }
-      } catch { /* Silencioso */ }
-      finally { setSaving(false); }
+    autosaveTimerRef.current = setTimeout(() => {
+      persistNow(data);
     }, 1500);
-  }, [token]);
+  }, [persistNow]);
+
+  // ── Alternar PF / PJ com sincronização instantânea de documentos ─────────
+  const handleSelectPersonType = useCallback(async (nextType: PersonType) => {
+    if (nextType === personType) return;
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    setSwitchingType(true);
+    setError('');
+
+    let nextSnapshot: FormData = {};
+    setFormData(prev => {
+      const name = String(prev.contact_name || prev.legal_rep_name || prev.trade_name || '');
+      const cpf = String(prev.contact_cpf || prev.legal_rep_cpf || '');
+      const cnpj = String(prev.cnpj || '');
+      const next: FormData = {
+        ...prev,
+        person_type: nextType,
+        ...(nextType === 'PF'
+          ? {
+              legal_name: name || prev.legal_name || '',
+              legal_rep_name: name || prev.legal_rep_name || '',
+              legal_rep_cpf: cpf || prev.legal_rep_cpf || '',
+              legal_rep_role: 'Profissional Autônomo (PF)',
+              legal_rep_has_powers: true,
+              tech_rep_name: prev.tech_rep_name || name,
+              tech_rep_cpf: prev.tech_rep_cpf || cpf,
+              bank_holder_name: (!prev.bank_holder_name || prev.bank_holder_name === prev.trade_name) ? (name || prev.trade_name || '') : prev.bank_holder_name,
+              bank_holder_document: (!prev.bank_holder_document || prev.bank_holder_document === cnpj) ? cpf : prev.bank_holder_document,
+              bank_pix_key: (!prev.bank_pix_key || prev.bank_pix_key === cnpj) ? cpf : prev.bank_pix_key,
+            }
+          : {
+              legal_rep_role: prev.legal_rep_role === 'Profissional Autônomo (PF)' ? '' : prev.legal_rep_role,
+              bank_holder_document: (!prev.bank_holder_document || prev.bank_holder_document === cpf) ? cnpj : prev.bank_holder_document,
+            }),
+      };
+      nextSnapshot = next;
+      return next;
+    });
+
+    if (nextType === 'PF' && currentStepKey === 'responsavel') {
+      setCurrentStepKey('dados');
+    }
+
+    try {
+      await persistNow(nextSnapshot);
+    } finally {
+      setSwitchingType(false);
+    }
+  }, [personType, currentStepKey, persistNow]);
 
   const updateField = useCallback((field: string, value: string | boolean | null) => {
     let finalVal = value;
-    if (field === 'address_cep' && typeof value === 'string') {
-      const digits = value.replace(/\D/g, '').slice(0, 8);
-      finalVal = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
-      if (digits.length === 8) {
-        fetch(`https://viacep.com.br/ws/${digits}/json/`)
-          .then(r => r.json())
-          .then(cepData => {
-            if (cepData && !cepData.erro) {
-              setFormData(prev => {
-                const updated: FormData = {
-                  ...prev,
-                  address_cep: finalVal,
-                  address_street: cepData.logradouro || prev.address_street || '',
-                  address_neighborhood: cepData.bairro || prev.address_neighborhood || '',
-                  address_city: cepData.localidade || prev.address_city || '',
-                  address_state: cepData.uf || prev.address_state || '',
-                };
-                scheduleAutosave(updated);
-                return updated;
-              });
-            }
-          })
-          .catch(() => {});
+    if (typeof value === 'string') {
+      if (field === 'cnpj') {
+        finalVal = formatCnpjMask(value);
+      } else if (['contact_cpf', 'legal_rep_cpf', 'tech_rep_cpf', 'authorized_rep_cpf'].includes(field)) {
+        finalVal = formatCpfMask(value);
+      } else if (field === 'bank_holder_document') {
+        finalVal = formatCpfOrCnpjMask(value);
+      } else if (field === 'address_cep') {
+        const digits = value.replace(/\D/g, '').slice(0, 8);
+        finalVal = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+        if (digits.length === 8) {
+          fetch(`https://viacep.com.br/ws/${digits}/json/`)
+            .then(r => r.json())
+            .then(cepData => {
+              if (cepData && !cepData.erro) {
+                setFormData(prev => {
+                  const updated: FormData = {
+                    ...prev,
+                    address_cep: finalVal,
+                    address_street: cepData.logradouro || prev.address_street || '',
+                    address_neighborhood: cepData.bairro || prev.address_neighborhood || '',
+                    address_city: cepData.localidade || prev.address_city || '',
+                    address_state: cepData.uf || prev.address_state || '',
+                  };
+                  scheduleAutosave(updated);
+                  return updated;
+                });
+              }
+            })
+            .catch(() => {});
+        }
       }
     }
 
     setFormData(prev => {
-      const next = { ...prev, [field]: finalVal };
+      const next: FormData = { ...prev, [field]: finalVal };
+      // Em PF, manter dados do titular sincronizados com responsável legal e técnico
+      if (String(prev.person_type || 'PJ').toUpperCase() === 'PF') {
+        if (field === 'contact_name' && typeof finalVal === 'string') {
+          next.legal_rep_name = finalVal;
+          next.legal_name = finalVal;
+          if (!prev.tech_rep_name || prev.tech_rep_name === prev.contact_name) {
+            next.tech_rep_name = finalVal;
+          }
+          if (!prev.bank_holder_name || prev.bank_holder_name === prev.contact_name) {
+            next.bank_holder_name = finalVal;
+          }
+        }
+        if (field === 'contact_cpf' && typeof finalVal === 'string') {
+          next.legal_rep_cpf = finalVal;
+          if (!prev.tech_rep_cpf || prev.tech_rep_cpf === prev.contact_cpf) {
+            next.tech_rep_cpf = finalVal;
+          }
+          if (!prev.bank_holder_document || prev.bank_holder_document === prev.contact_cpf) {
+            next.bank_holder_document = finalVal;
+          }
+          if (!prev.bank_pix_key || prev.bank_pix_key === prev.contact_cpf) {
+            next.bank_pix_key = finalVal;
+          }
+        }
+        if (field === 'phone' && typeof finalVal === 'string') {
+          next.legal_rep_phone = finalVal;
+        }
+        if (field === 'email_admin' && typeof finalVal === 'string') {
+          next.legal_rep_email = finalVal;
+        }
+      }
       scheduleAutosave(next);
       return next;
     });
@@ -283,7 +467,7 @@ export default function WizardPage() {
       } else {
         setError(data.error || 'Erro ao enviar credenciamento.');
         if (data.pendingDocuments) {
-          setCurrentStep(5);
+          setCurrentStepKey('documentos');
         }
       }
     } catch {
@@ -314,7 +498,7 @@ export default function WizardPage() {
           Documentos enviados com sucesso!
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', lineHeight: '1.7', margin: '0 0 24px' }}>
-          Recebemos os dados e documentos da sua clínica. Seu credenciamento foi encaminhado para a equipe de compliance e administração da Benavera.
+          Recebemos seus dados e documentos ({isPF ? 'Pessoa Física' : 'Pessoa Jurídica'}). Seu credenciamento foi encaminhado para a equipe de compliance e administração da Benavera.
         </p>
 
         <div style={{ background: 'rgba(99,112,241,0.1)', border: '1px solid rgba(99,112,241,0.3)', borderRadius: '14px', padding: '20px', marginBottom: '28px', textAlign: 'left' }}>
@@ -348,8 +532,25 @@ export default function WizardPage() {
   );
 
   // ── Layout principal do wizard ───────────────────────────────────────────
-  const allDeclarationsAccepted = DECLARATIONS.every(d => acceptances[d.id]);
+  const allDeclarationsAccepted = declarations.every(d => acceptances[d.id]);
   const requiredDocsUploaded = documents.filter(d => d.is_required).every(d => d.storage_key);
+
+  const reviewChecklist = isPF
+    ? [
+        { label: 'Dados do profissional (PF)', ok: Boolean(formData.trade_name && (formData.contact_cpf || formData.legal_rep_cpf)), stepKey: 'dados' as StepKey },
+        { label: 'Registro profissional', ok: Boolean((formData.tech_rep_name || formData.contact_name) && formData.tech_rep_council_number), stepKey: 'tecnico' as StepKey },
+        { label: 'Dados bancários', ok: Boolean(formData.bank_name && formData.bank_account), stepKey: 'bancario' as StepKey },
+        { label: 'Documentos obrigatórios (PF)', ok: requiredDocsUploaded, stepKey: 'documentos' as StepKey },
+        { label: 'Declarações', ok: allDeclarationsAccepted, stepKey: 'declaracoes' as StepKey },
+      ]
+    : [
+        { label: 'Dados da clínica (PJ)', ok: Boolean(formData.trade_name && formData.cnpj), stepKey: 'dados' as StepKey },
+        { label: 'Responsável legal', ok: Boolean(formData.legal_rep_name && formData.legal_rep_cpf), stepKey: 'responsavel' as StepKey },
+        { label: 'Responsável técnico', ok: Boolean(formData.tech_rep_name && formData.tech_rep_council_number), stepKey: 'tecnico' as StepKey },
+        { label: 'Dados bancários', ok: Boolean(formData.bank_name && formData.bank_account), stepKey: 'bancario' as StepKey },
+        { label: 'Documentos obrigatórios (PJ)', ok: requiredDocsUploaded, stepKey: 'documentos' as StepKey },
+        { label: 'Declarações', ok: allDeclarationsAccepted, stepKey: 'declaracoes' as StepKey },
+      ];
 
   return (
     <FormContext.Provider value={{ formData, updateField }}>
@@ -361,11 +562,22 @@ export default function WizardPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '20px' }}>🪪</span>
           <span style={{ fontSize: '16px', fontWeight: '800', color: 'white' }}>Benavera</span>
-          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '14px', marginLeft: '8px' }}>Credenciamento</span>
+          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '14px', marginLeft: '4px' }}>Credenciamento</span>
+          <span style={{
+            fontSize: '11px',
+            fontWeight: '700',
+            padding: '3px 9px',
+            borderRadius: '20px',
+            background: isPF ? 'rgba(16,185,129,0.16)' : 'rgba(99,112,241,0.2)',
+            color: isPF ? '#6ee7b7' : '#a5b4fc',
+            border: `1px solid ${isPF ? 'rgba(16,185,129,0.35)' : 'rgba(99,112,241,0.35)'}`,
+          }}>
+            {isPF ? 'Pessoa Física (PF)' : 'Pessoa Jurídica (PJ)'}
+          </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {saving && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>💾 Salvando…</span>}
-          {!saving && progress > 0 && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>✓ Salvo</span>}
+          {(saving || switchingType) && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>💾 Salvando…</span>}
+          {!saving && !switchingType && progress > 0 && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>✓ Salvo</span>}
           <div style={{ width: '80px', height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px' }}>
             <div style={{ height: '100%', width: `${progress}%`, background: '#6370f1', borderRadius: '2px', transition: 'width 0.5s' }} />
           </div>
@@ -376,11 +588,11 @@ export default function WizardPage() {
       {/* Steps nav */}
       <div style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 24px', overflowX: 'auto' }}>
         <div style={{ display: 'flex', gap: '0', minWidth: 'max-content' }}>
-          {STEPS.map((step, i) => {
-            const isActive = currentStep === step.id;
-            const isDone = currentStep > step.id;
+          {steps.map((step, i) => {
+            const isActive = activeStepKey === step.key;
+            const isDone = currentIndex > i;
             return (
-              <button key={step.id} onClick={() => setCurrentStep(step.id)}
+              <button key={step.key} onClick={() => setCurrentStepKey(step.key)}
                 style={{ padding: '14px 20px', background: 'none', border: 'none', borderBottom: `2px solid ${isActive ? '#6370f1' : 'transparent'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: isActive ? '#a5b4fc' : isDone ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)', fontWeight: isActive ? '700' : '500', fontSize: '13px', fontFamily: 'inherit', transition: 'all 0.15s', flexShrink: 0 }}>
                 <span style={{ fontSize: '15px' }}>{isDone ? '✓' : step.icon}</span>
                 {step.title}
@@ -398,45 +610,145 @@ export default function WizardPage() {
           </div>
         )}
 
-        {/* Step 1: Dados da clínica */}
-        {currentStep === 1 && (
+        {/* Step: Dados */}
+        {activeStepKey === 'dados' && (
           <div>
-            <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>🏥 Dados da clínica</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 28px' }}>Confirme e complete as informações da sua clínica</p>
-            <Grid2>
-              <InputField label="Nome fantasia" field="trade_name" required placeholder="Como sua clínica é conhecida" />
-              <InputField label="Razão social" field="legal_name" required placeholder="Nome jurídico completo" />
-            </Grid2>
-            <Grid2>
-              <InputField label="CNPJ" field="cnpj" required placeholder="00.000.000/0000-00" />
-              <InputField label="Ins. Municipal" field="municipal_registration" placeholder="Se aplicável" />
-            </Grid2>
-            <Grid2>
-              <InputField label="CEP" field="address_cep" required placeholder="00000-000" />
-              <InputField label="Rua / Avenida" field="address_street" required placeholder="Nome da rua" />
-            </Grid2>
-            <Grid2>
-              <InputField label="Número" field="address_number" required placeholder="123" />
-              <InputField label="Complemento" field="address_complement" placeholder="Sala, bloco…" />
-            </Grid2>
-            <Grid2>
-              <InputField label="Bairro" field="address_neighborhood" required placeholder="Bairro" />
-              <InputField label="Cidade" field="address_city" required placeholder="Cidade" />
-            </Grid2>
-            <Grid2>
-              <SelectField label="Estado" field="address_state" options={UF_OPTIONS} required />
-              <InputField label="Telefone secundário" field="phone_secondary" type="tel" placeholder="(11) 3333-3333" />
-            </Grid2>
-            <Grid2>
-              <InputField label="E-mail administrativo" field="email_admin" type="email" placeholder="admin@clinica.com.br" />
-              <InputField label="E-mail financeiro" field="email_financial" type="email" placeholder="financeiro@clinica.com.br" />
-            </Grid2>
-            <InputField label="Site" field="website" placeholder="https://www.suaclinica.com.br" />
+            {/* Seletor PF / PJ */}
+            <div style={{ marginBottom: '28px' }}>
+              <p style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: '700', color: '#7c93b5', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Tipo de credenciamento <span style={{ color: '#ef4444' }}>*</span>
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                {[
+                  {
+                    type: 'PJ' as PersonType,
+                    icon: '🏢',
+                    title: 'Pessoa Jurídica (PJ)',
+                    desc: 'Clínica ou consultório com CNPJ e Contrato Social',
+                  },
+                  {
+                    type: 'PF' as PersonType,
+                    icon: '👤',
+                    title: 'Pessoa Física (PF)',
+                    desc: 'Profissional autônomo com CPF e registro no conselho',
+                  },
+                ].map(opt => {
+                  const selected = personType === opt.type;
+                  return (
+                    <button
+                      key={opt.type}
+                      type="button"
+                      disabled={switchingType}
+                      onClick={() => handleSelectPersonType(opt.type)}
+                      style={{
+                        textAlign: 'left',
+                        padding: '16px 18px',
+                        borderRadius: '14px',
+                        cursor: switchingType ? 'wait' : 'pointer',
+                        fontFamily: 'inherit',
+                        background: selected ? 'rgba(99,112,241,0.16)' : 'rgba(255,255,255,0.03)',
+                        border: `2px solid ${selected ? '#6370f1' : 'rgba(255,255,255,0.1)'}`,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '15px', fontWeight: '800', color: 'white' }}>
+                          {opt.icon} {opt.title}
+                        </span>
+                        {selected && (
+                          <span style={{ fontSize: '11px', fontWeight: '700', color: '#a5b4fc', background: 'rgba(99,112,241,0.25)', padding: '2px 8px', borderRadius: '12px' }}>
+                            Selecionado
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
+                        {opt.desc}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+              <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                {isPF
+                  ? 'Os campos e documentos serão adaptados automaticamente para Pessoa Física (sem Contrato Social).'
+                  : 'Os campos e documentos serão solicitados para Pessoa Jurídica (CNPJ e Contrato Social).'}
+              </p>
+            </div>
+
+            {isPF ? (
+              <>
+                <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>👤 Dados do profissional (PF)</h2>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 28px' }}>Confirme e complete suas informações pessoais e do local de atendimento</p>
+                <Grid2>
+                  <InputField label="Nome do consultório / atendimento" field="trade_name" required placeholder="Ex: Consultório Dra. Ana Silva" />
+                  <InputField label="Nome completo do titular" field="contact_name" required placeholder="Nome completo como no RG/CNH" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="CPF do titular" field="contact_cpf" required placeholder="000.000.000-00" />
+                  <InputField label="WhatsApp / Telefone" field="phone" type="tel" required placeholder="(11) 99999-9999" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="CEP do consultório" field="address_cep" required placeholder="00000-000" />
+                  <InputField label="Rua / Avenida" field="address_street" required placeholder="Nome da rua" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="Número" field="address_number" required placeholder="123" />
+                  <InputField label="Complemento" field="address_complement" placeholder="Sala, consultório…" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="Bairro" field="address_neighborhood" required placeholder="Bairro" />
+                  <InputField label="Cidade" field="address_city" required placeholder="Cidade" />
+                </Grid2>
+                <Grid2>
+                  <SelectField label="Estado" field="address_state" options={UF_OPTIONS} required />
+                  <InputField label="Telefone secundário" field="phone_secondary" type="tel" placeholder="(11) 3333-3333" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="E-mail principal" field="email_admin" type="email" placeholder="seuemail@dominio.com.br" />
+                  <InputField label="E-mail financeiro" field="email_financial" type="email" placeholder="financeiro@dominio.com.br" />
+                </Grid2>
+                <InputField label="Site ou Instagram profissional" field="website" placeholder="https://www.instagram.com/seu_perfil" />
+              </>
+            ) : (
+              <>
+                <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>🏥 Dados da clínica (PJ)</h2>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 28px' }}>Confirme e complete as informações da sua clínica</p>
+                <Grid2>
+                  <InputField label="Nome fantasia" field="trade_name" required placeholder="Como sua clínica é conhecida" />
+                  <InputField label="Razão social" field="legal_name" required placeholder="Nome jurídico completo" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="CNPJ" field="cnpj" required placeholder="00.000.000/0000-00" />
+                  <InputField label="Ins. Municipal" field="municipal_registration" placeholder="Se aplicável" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="CEP" field="address_cep" required placeholder="00000-000" />
+                  <InputField label="Rua / Avenida" field="address_street" required placeholder="Nome da rua" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="Número" field="address_number" required placeholder="123" />
+                  <InputField label="Complemento" field="address_complement" placeholder="Sala, bloco…" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="Bairro" field="address_neighborhood" required placeholder="Bairro" />
+                  <InputField label="Cidade" field="address_city" required placeholder="Cidade" />
+                </Grid2>
+                <Grid2>
+                  <SelectField label="Estado" field="address_state" options={UF_OPTIONS} required />
+                  <InputField label="Telefone secundário" field="phone_secondary" type="tel" placeholder="(11) 3333-3333" />
+                </Grid2>
+                <Grid2>
+                  <InputField label="E-mail administrativo" field="email_admin" type="email" placeholder="admin@clinica.com.br" />
+                  <InputField label="E-mail financeiro" field="email_financial" type="email" placeholder="financeiro@clinica.com.br" />
+                </Grid2>
+                <InputField label="Site" field="website" placeholder="https://www.suaclinica.com.br" />
+              </>
+            )}
           </div>
         )}
 
-        {/* Step 2: Responsável legal */}
-        {currentStep === 2 && (
+        {/* Step: Responsável legal (somente PJ) */}
+        {activeStepKey === 'responsavel' && !isPF && (
           <div>
             <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>👤 Responsável legal</h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 28px' }}>Pessoa física com poderes para assinar contratos em nome da clínica</p>
@@ -507,50 +819,53 @@ export default function WizardPage() {
           </div>
         )}
 
-        {/* Step 3: Responsável técnico */}
-        {currentStep === 3 && (
+        {/* Step: Responsável técnico / Registro profissional */}
+        {activeStepKey === 'tecnico' && (
           <div>
-            <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>🩺 Responsável técnico</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 18px' }}>Profissional de saúde responsável técnico pela clínica</p>
-            <div style={{ marginBottom: '22px' }}>
-              <button
-                type="button"
-                onClick={copyLegalToTechRep}
-                style={{
-                  padding: '10px 16px',
-                  background: (formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
-                    ? 'rgba(74,222,128,0.14)'
-                    : 'rgba(99,112,241,0.16)',
-                  color: (formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
-                    ? '#86efac'
-                    : '#c7d2fe',
-                  border: `1px solid ${(formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf) ? 'rgba(74,222,128,0.35)' : 'rgba(99,112,241,0.35)'}`,
-                  borderRadius: '10px',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                {(formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
-                  ? '✓ Mesmo que o Responsável Legal (dados aplicados)'
-                  : '👤 O Responsável Técnico é o mesmo que o Responsável Legal'}
-              </button>
-            </div>
+            <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>
+              {isPF ? '🩺 Registro profissional' : '🩺 Responsável técnico'}
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 18px' }}>
+              {isPF
+                ? 'Dados do seu registro no conselho profissional de saúde'
+                : 'Profissional de saúde responsável técnico pela clínica'}
+            </p>
+            {!isPF && (
+              <div style={{ marginBottom: '22px' }}>
+                <button
+                  type="button"
+                  onClick={copyLegalToTechRep}
+                  style={{
+                    padding: '10px 16px',
+                    background: (formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
+                      ? 'rgba(74,222,128,0.14)'
+                      : 'rgba(99,112,241,0.16)',
+                    color: (formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
+                      ? '#86efac'
+                      : '#c7d2fe',
+                    border: `1px solid ${(formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf) ? 'rgba(74,222,128,0.35)' : 'rgba(99,112,241,0.35)'}`,
+                    borderRadius: '10px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  {(formData.legal_rep_name && formData.tech_rep_name === formData.legal_rep_name && formData.legal_rep_cpf && formData.tech_rep_cpf === formData.legal_rep_cpf)
+                    ? '✓ Mesmo que o Responsável Legal (dados aplicados)'
+                    : '👤 O Responsável Técnico é o mesmo que o Responsável Legal'}
+                </button>
+              </div>
+            )}
             <Grid2>
-              <InputField label="Nome completo" field="tech_rep_name" required placeholder="Nome como no conselho" />
+              <InputField label={isPF ? 'Nome no conselho' : 'Nome completo'} field="tech_rep_name" required placeholder="Nome como no conselho" />
               <InputField label="CPF" field="tech_rep_cpf" required placeholder="000.000.000-00" />
             </Grid2>
             <Grid2>
-              <SelectField label="Conselho profissional" field="tech_rep_council" required options={[
-                { value: 'CRO', label: 'CRO — Odontologia' }, { value: 'CRM', label: 'CRM — Medicina' },
-                { value: 'CRP', label: 'CRP — Psicologia' }, { value: 'CREFITO', label: 'CREFITO — Fisioterapia' },
-                { value: 'CRN', label: 'CRN — Nutrição' }, { value: 'COREN', label: 'COREN — Enfermagem' },
-                { value: 'OUTRO', label: 'Outro' },
-              ]} />
+              <SelectField label="Conselho profissional" field="tech_rep_council" required options={COUNCIL_OPTIONS} />
               <InputField label="Número de registro" field="tech_rep_council_number" required placeholder="Ex: 12345" />
             </Grid2>
             <Grid2>
@@ -564,14 +879,16 @@ export default function WizardPage() {
           </div>
         )}
 
-        {/* Step 4: Dados bancários */}
-        {currentStep === 4 && (
+        {/* Step: Dados bancários */}
+        {activeStepKey === 'bancario' && (
           <div>
             <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>🏦 Dados bancários</h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 28px' }}>Conta para recebimento dos valores das operações</p>
-            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.08)', fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: '1.7' }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.08)', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: '1.7' }}>
               🔒 Nunca informe senha bancária, token ou CVV — esses dados não são solicitados aqui.<br/>
-              Prefira conta corrente em nome do CNPJ da clínica para evitar divergência de titularidade.
+              {isPF
+                ? 'Prefira conta bancária em nome do seu próprio CPF para evitar divergência de titularidade.'
+                : 'Prefira conta corrente em nome do CNPJ da clínica para evitar divergência de titularidade.'}
             </div>
             <Grid2>
               <InputField label="Nome do banco" field="bank_name" required placeholder="Ex: Banco do Brasil, Itaú, Nubank" />
@@ -587,20 +904,46 @@ export default function WizardPage() {
                 { value: 'poupanca', label: 'Conta poupança' },
                 { value: 'pagamento', label: 'Conta de pagamento' },
               ]} />
-              <InputField label="Chave Pix (opcional)" field="bank_pix_key" placeholder="CPF, CNPJ, e-mail ou chave aleatória" />
+              <InputField label="Chave Pix (opcional)" field="bank_pix_key" placeholder={isPF ? 'CPF, e-mail, telefone ou chave aleatória' : 'CNPJ, e-mail ou chave aleatória'} />
             </Grid2>
             <Grid2>
               <InputField label="Nome do titular da conta" field="bank_holder_name" required placeholder="Nome exato como no banco" />
-              <InputField label="CPF ou CNPJ do titular" field="bank_holder_document" required placeholder="CPF ou CNPJ" />
+              <InputField label={isPF ? 'CPF do titular' : 'CPF ou CNPJ do titular'} field="bank_holder_document" required placeholder={isPF ? '000.000.000-00' : 'CPF ou CNPJ'} />
             </Grid2>
           </div>
         )}
 
-        {/* Step 5: Documentos */}
-        {currentStep === 5 && (
+        {/* Step: Documentos */}
+        {activeStepKey === 'documentos' && (
           <div>
-            <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>📄 Documentos</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 8px' }}>Envie os documentos necessários. Formatos aceitos: PDF, JPG, PNG. Tamanho máximo: 20MB por arquivo.</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '6px' }}>
+              <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: 0 }}>
+                📄 Documentos ({isPF ? 'Pessoa Física' : 'Pessoa Jurídica'})
+              </h2>
+              <button
+                type="button"
+                disabled={switchingType}
+                onClick={() => handleSelectPersonType(isPF ? 'PJ' : 'PF')}
+                style={{
+                  padding: '6px 12px',
+                  background: 'rgba(255,255,255,0.06)',
+                  color: '#c7d2fe',
+                  border: '1px solid rgba(255,255,255,0.14)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {switchingType ? 'Atualizando…' : isPF ? 'Alterar para Pessoa Jurídica (PJ)' : 'Alterar para Pessoa Física (PF)'}
+              </button>
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '14px', margin: '0 0 8px' }}>
+              {isPF
+                ? 'Lista adaptada para profissional autônomo (CPF) — sem necessidade de Contrato Social. Formatos aceitos: PDF, JPG, PNG (máx. 20MB).'
+                : 'Envie os documentos da clínica (CNPJ). Formatos aceitos: PDF, JPG, PNG. Tamanho máximo: 20MB por arquivo.'}
+            </p>
             <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px', margin: '0 0 28px' }}>
               Buscamos concentrar toda a documentação necessária nesta etapa. Em situações excepcionais (alterações cadastrais, exigências regulatórias, prevenção à fraude ou solicitações do parceiro financeiro), documentação complementar poderá ser solicitada.
             </p>
@@ -685,8 +1028,8 @@ export default function WizardPage() {
           </div>
         )}
 
-        {/* Step 6: Declarações */}
-        {currentStep === 6 && (
+        {/* Step: Declarações */}
+        {activeStepKey === 'declaracoes' && (
           <div>
             <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>✍️ Declarações</h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 18px' }}>Leia cada item com atenção e marque sua concordância individualmente</p>
@@ -696,7 +1039,7 @@ export default function WizardPage() {
                 onClick={() => {
                   const nextVal = !allDeclarationsAccepted;
                   const nextMap: Record<string, boolean> = {};
-                  DECLARATIONS.forEach(d => { nextMap[d.id] = nextVal; });
+                  declarations.forEach(d => { nextMap[d.id] = nextVal; });
                   setAcceptances(nextMap);
                 }}
                 style={{ padding: '8px 14px', background: 'rgba(99,112,241,0.16)', color: '#c7d2fe', border: '1px solid rgba(99,112,241,0.35)', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}
@@ -705,7 +1048,7 @@ export default function WizardPage() {
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {DECLARATIONS.map((decl, i) => (
+              {declarations.map((decl, i) => (
                 <label key={decl.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: acceptances[decl.id] ? 'rgba(99,112,241,0.08)' : 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '14px', border: `1px solid ${acceptances[decl.id] ? 'rgba(99,112,241,0.25)' : 'rgba(255,255,255,0.07)'}`, cursor: 'pointer', transition: 'all 0.15s' }}>
                   <input type="checkbox" checked={Boolean(acceptances[decl.id])} onChange={e => setAcceptances(prev => ({ ...prev, [decl.id]: e.target.checked }))}
                     style={{ marginTop: '2px', accentColor: '#6370f1', flexShrink: 0, width: '16px', height: '16px' }} />
@@ -718,34 +1061,34 @@ export default function WizardPage() {
             </div>
             {!allDeclarationsAccepted && (
               <p style={{ marginTop: '16px', fontSize: '13px', color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
-                {DECLARATIONS.length - Object.values(acceptances).filter(Boolean).length} declaração(ões) pendente(s)
+                {declarations.length - Object.values(acceptances).filter(Boolean).length} declaração(ões) pendente(s)
               </p>
             )}
           </div>
         )}
 
-        {/* Step 7: Revisão e envio */}
-        {currentStep === 7 && (
+        {/* Step: Revisão e envio */}
+        {activeStepKey === 'revisao' && (
           <div>
             <h2 style={{ color: 'white', fontSize: '22px', fontWeight: '800', margin: '0 0 6px' }}>✅ Revisão e envio</h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 28px' }}>Verifique as informações antes de enviar</p>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', margin: '0 0 28px' }}>
+              Verifique as informações do seu credenciamento ({isPF ? 'Pessoa Física' : 'Pessoa Jurídica'}) antes de enviar
+            </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
-              {[
-                { label: 'Dados da clínica', ok: Boolean(formData.trade_name && formData.cnpj) },
-                { label: 'Responsável legal', ok: Boolean(formData.legal_rep_name && formData.legal_rep_cpf) },
-                { label: 'Responsável técnico', ok: Boolean(formData.tech_rep_name && formData.tech_rep_council_number) },
-                { label: 'Dados bancários', ok: Boolean(formData.bank_name && formData.bank_account) },
-                { label: 'Documentos obrigatórios', ok: requiredDocsUploaded },
-                { label: 'Declarações', ok: allDeclarationsAccepted },
-              ].map(item => (
-                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 18px', background: item.ok ? 'rgba(74,222,128,0.06)' : 'rgba(248,113,113,0.06)', borderRadius: '10px', border: `1px solid ${item.ok ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)'}` }}>
+              {reviewChecklist.map(item => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => setCurrentStepKey(item.stepKey)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 18px', background: item.ok ? 'rgba(74,222,128,0.06)' : 'rgba(248,113,113,0.06)', borderRadius: '10px', border: `1px solid ${item.ok ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)'}`, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', width: '100%' }}
+                >
                   <span style={{ fontSize: '18px' }}>{item.ok ? '✅' : '⭕'}</span>
-                  <span style={{ fontSize: '14px', color: item.ok ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)', fontWeight: item.ok ? '500' : '400' }}>{item.label}</span>
+                  <span style={{ fontSize: '14px', color: item.ok ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.5)', fontWeight: item.ok ? '500' : '400' }}>{item.label}</span>
                   {!item.ok && (
-                    <span style={{ fontSize: '12px', color: '#f87171', marginLeft: 'auto' }}>Pendente</span>
+                    <span style={{ fontSize: '12px', color: '#f87171', marginLeft: 'auto' }}>Pendente →</span>
                   )}
-                </div>
+                </button>
               ))}
             </div>
 
@@ -763,14 +1106,14 @@ export default function WizardPage() {
 
         {/* Navegação */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '36px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <button onClick={() => setCurrentStep(s => Math.max(1, s - 1))}
-            disabled={currentStep === 1}
-            style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: currentStep === 1 ? 'not-allowed' : 'pointer', fontSize: '14px', fontFamily: 'inherit', opacity: currentStep === 1 ? 0.4 : 1 }}>
+          <button onClick={() => currentIndex > 0 && setCurrentStepKey(steps[currentIndex - 1].key)}
+            disabled={currentIndex === 0}
+            style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', cursor: currentIndex === 0 ? 'not-allowed' : 'pointer', fontSize: '14px', fontFamily: 'inherit', opacity: currentIndex === 0 ? 0.4 : 1 }}>
             ← Anterior
           </button>
-          <button onClick={() => currentStep < 7 ? setCurrentStep(s => s + 1) : undefined}
-            disabled={currentStep === 7}
-            style={{ padding: '12px 28px', background: currentStep < 7 ? 'linear-gradient(135deg,#6370f1,#4040ca)' : 'rgba(255,255,255,0.04)', color: 'white', border: 'none', borderRadius: '10px', cursor: currentStep === 7 ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '700', fontFamily: 'inherit', opacity: currentStep === 7 ? 0.3 : 1 }}>
+          <button onClick={() => currentIndex < steps.length - 1 && setCurrentStepKey(steps[currentIndex + 1].key)}
+            disabled={currentIndex === steps.length - 1}
+            style={{ padding: '12px 28px', background: currentIndex < steps.length - 1 ? 'linear-gradient(135deg,#6370f1,#4040ca)' : 'rgba(255,255,255,0.04)', color: 'white', border: 'none', borderRadius: '10px', cursor: currentIndex === steps.length - 1 ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '700', fontFamily: 'inherit', opacity: currentIndex === steps.length - 1 ? 0.3 : 1 }}>
             Próximo →
           </button>
         </div>

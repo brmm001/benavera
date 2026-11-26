@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 interface Clinic {
   id: string;
+  person_type?: 'PJ' | 'PF';
   nome_fantasia: string;
   razao_social: string;
   cnpj: string;
@@ -27,6 +28,7 @@ export default function AdminClinicasPage() {
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
+    person_type: 'PJ' as 'PJ' | 'PF',
     nome_fantasia: '',
     razao_social: '',
     cnpj: '',
@@ -58,7 +60,7 @@ export default function AdminClinicasPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nome_fantasia || !form.cnpj) {
-      alert('Nome Fantasia e CNPJ são obrigatórios.');
+      alert(form.person_type === 'PF' ? 'Nome e CPF são obrigatórios.' : 'Nome Fantasia e CNPJ são obrigatórios.');
       return;
     }
 
@@ -77,6 +79,7 @@ export default function AdminClinicasPage() {
 
       setShowModal(false);
       setForm({
+        person_type: 'PJ',
         nome_fantasia: '',
         razao_social: '',
         cnpj: '',
@@ -146,8 +149,8 @@ export default function AdminClinicasPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontWeight: '600', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                <th style={{ padding: '14px 20px' }}>Clínica</th>
-                <th style={{ padding: '14px 20px' }}>CNPJ</th>
+                <th style={{ padding: '14px 20px' }}>Clínica / Profissional</th>
+                <th style={{ padding: '14px 20px' }}>CNPJ / CPF</th>
                 <th style={{ padding: '14px 20px' }}>Localização</th>
                 <th style={{ padding: '14px 20px' }}>Contato</th>
                 <th style={{ padding: '14px 20px', textAlign: 'center' }}>Solicitações</th>
@@ -160,7 +163,19 @@ export default function AdminClinicasPage() {
               {clinics.map((c) => (
                 <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '16px 20px' }}>
-                    <div style={{ fontWeight: '700', color: '#0f172a' }}>{c.nome_fantasia}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontWeight: '700', color: '#0f172a' }}>{c.nome_fantasia}</span>
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        padding: '2px 6px',
+                        borderRadius: '10px',
+                        backgroundColor: c.person_type === 'PF' ? '#ecfdf5' : '#eef2ff',
+                        color: c.person_type === 'PF' ? '#047857' : '#4040ca',
+                      }}>
+                        {c.person_type === 'PF' ? 'PF' : 'PJ'}
+                      </span>
+                    </div>
                     <div style={{ fontSize: '12px', color: '#64748b' }}>{c.razao_social}</div>
                   </td>
                   <td style={{ padding: '16px 20px', fontFamily: 'monospace', color: '#475569', fontSize: '13px' }}>
@@ -216,37 +231,65 @@ export default function AdminClinicasPage() {
             <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 20px' }}>Insira as informações cadastrais da clínica parceira.</p>
 
             <form onSubmit={handleCreate}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                {(['PJ', 'PF'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setForm({ ...form, person_type: t, cnpj: '' })}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: `1.5px solid ${form.person_type === t ? '#4040ca' : '#e2e8f0'}`,
+                      background: form.person_type === t ? '#eef2ff' : '#f8fafc',
+                      color: form.person_type === t ? '#1e1b4b' : '#475569',
+                      fontWeight: '700',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {t === 'PJ' ? '🏢 Pessoa Jurídica (CNPJ)' : '👤 Pessoa Física (CPF)'}
+                  </button>
+                ))}
+              </div>
+
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>Nome Fantasia *</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                  {form.person_type === 'PF' ? 'Nome do Consultório / Profissional *' : 'Nome Fantasia *'}
+                </label>
                 <input
                   type="text"
                   required
                   value={form.nome_fantasia}
                   onChange={(e) => setForm({ ...form, nome_fantasia: e.target.value })}
-                  placeholder="Ex: OdontoPrime Clínica Integrada"
+                  placeholder={form.person_type === 'PF' ? 'Ex: Consultório Dra. Ana Silva' : 'Ex: OdontoPrime Clínica Integrada'}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>Razão Social</label>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                    {form.person_type === 'PF' ? 'Nome Completo do Titular' : 'Razão Social'}
+                  </label>
                   <input
                     type="text"
                     value={form.razao_social}
                     onChange={(e) => setForm({ ...form, razao_social: e.target.value })}
-                    placeholder="Razão Social LTDA"
+                    placeholder={form.person_type === 'PF' ? 'Nome completo' : 'Razão Social LTDA'}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>CNPJ *</label>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                    {form.person_type === 'PF' ? 'CPF *' : 'CNPJ *'}
+                  </label>
                   <input
                     type="text"
                     required
                     value={form.cnpj}
                     onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
-                    placeholder="00.000.000/0001-00"
+                    placeholder={form.person_type === 'PF' ? '000.000.000-00' : '00.000.000/0001-00'}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
                   />
                 </div>

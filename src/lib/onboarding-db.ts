@@ -1,19 +1,26 @@
 // lib/onboarding-db.ts
 // Serviço de banco de dados para o módulo de credenciamento de clínicas
 
+import { randomBytes } from 'crypto';
 import { sql } from './benavera-db';
-import type { ClinicOnboarding, OnboardingStatus, OnboardingDocument, DocumentReviewStatus } from './benavera-db';
+import type { ClinicOnboarding, OnboardingStatus, OnboardingDocument, DocumentReviewStatus, PersonType } from './benavera-db';
 import { logAuditEvent } from './onboarding-audit';
 
 // ── Campos críticos que geram registro de auditoria de alteração ──────────────
 const CRITICAL_FIELDS = new Set([
-  'cnpj', 'contact_cpf', 'legal_name', 'legal_rep_cpf',
+  'person_type', 'cnpj', 'contact_cpf', 'legal_name', 'legal_rep_cpf',
   'bank_account', 'bank_agency', 'bank_holder_document',
   'bank_code', 'bank_account_type', 'bank_pix_key',
 ]);
 
-// ── Tipos de documentos obrigatórios ─────────────────────────────────────────
-export const REQUIRED_DOCUMENTS = [
+export interface OnboardingDocumentSpec {
+  type: string;
+  label: string;
+  required: boolean;
+}
+
+// ── Tipos de documentos obrigatórios por tipo de pessoa (PJ x PF) ─────────────
+export const REQUIRED_DOCUMENTS_PJ: OnboardingDocumentSpec[] = [
   { type: 'contrato_social', label: 'Contrato Social / Ato Constitutivo', required: true },
   { type: 'doc_representante', label: 'Documento do Representante Legal (CNH ou RG)', required: true },
   { type: 'doc_resp_tecnico', label: 'Documento / Registro do Responsável Técnico', required: true },
@@ -23,6 +30,118 @@ export const REQUIRED_DOCUMENTS = [
   { type: 'procuracao', label: 'Procuração (quando representante não tem poderes)', required: false },
   { type: 'outros', label: 'Outros Documentos', required: false },
 ];
+
+export const REQUIRED_DOCUMENTS_PF: OnboardingDocumentSpec[] = [
+  { type: 'doc_representante', label: 'Documento de Identidade com Foto (RG ou CNH)', required: true },
+  { type: 'doc_resp_tecnico', label: 'Carteira do Conselho Profissional (CRO, CRM, etc.)', required: true },
+  { type: 'comprovante_residencia', label: 'Comprovante de Endereço (Residência ou Consultório)', required: true },
+  { type: 'comprovante_bancario', label: 'Comprovante de Titularidade Bancária (em nome do CPF)', required: true },
+  { type: 'licenca_sanitaria', label: 'Licença ou Alvará Sanitário', required: false },
+  { type: 'alvara_funcionamento', label: 'Alvará de Funcionamento do Consultório', required: false },
+  { type: 'outros', label: 'Outros Documentos', required: false },
+];
+
+// Mantido para retrocompatibilidade com imports existentes
+export const REQUIRED_DOCUMENTS = REQUIRED_DOCUMENTS_PJ;
+
+export function normalizePersonType(value: unknown): PersonType {
+  return String(value || '').trim().toUpperCase() === 'PF' ? 'PF' : 'PJ';
+}
+
+export function getRequiredDocumentsForPersonType(personType: PersonType): OnboardingDocumentSpec[] {
+  return personType === 'PF' ? REQUIRED_DOCUMENTS_PF : REQUIRED_DOCUMENTS_PJ;
+}
+
+/**
+ * Resolve o valor gravado em `clinics.cnpj` (VARCHAR(18) UNIQUE NOT NULL)
+ * para clínicas PJ (CNPJ) e PF (CPF), evitando colisão de placeholder fixo.
+ */
+export function resolveClinicDocumentForStorage(params: {
+  personType: PersonType;
+  cnpj?: string | null;
+  cpf?: string | null;
+  fallbackSeed?: string;
+}): string {
+  const raw = params.personType === 'PF'
+    ? String(params.cpf || params.cnpj || '').trim()
+    : String(params.cnpj || '').trim();
+  const digits = raw.replace(/\D/g, '');
+
+  if (params.personType === 'PF' && digits.length === 11) {
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  }
+  if (params.personType === 'PJ' && digits.length === 14) {
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+  }
+  if (raw && raw !== '00.000.000/0001-00' && raw.length <= 18) {
+    return raw;
+  }
+
+  const seed = params.fallbackSeed
+    ? params.fallbackSeed.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)
+    : randomBytes(6).toString('hex');
+  return `${params.personType}-${seed}`.slice(0, 18);
+}
+
+/**
+ * Sincroniza os slots de `onboarding_documents` quando o usuário alterna entre PF e PJ,
+ * preservando qualquer arquivo já enviado sem perda de dados.
+ */
+export async function syncOnboardingDocumentsForPersonType(
+  onboardingId: string,
+  personType: PersonType
+): Promise<void> {
+  const desired = getRequiredDocumentsForPersonType(personType);
+  const desiredByType = new Map(desired.map(d => [d.type, d]));
+
+  const existingRows = await sql`
+    SELECT id, document_type, storage_key
+    FROM onboarding_documents
+    WHERE onboarding_id = ${onboardingId}
+  `;
+
+  const existingByType = new Map<string, { id: string; storage_key: string | null }>();
+  for (const r of existingRows) {
+    existingByType.set(String(r.document_type), {
+      id: String(r.id),
+      storage_key: r.storage_key ? String(r.storage_key) : null,
+    });
+  }
+
+  // 1. Criar ou atualizar rótulo/obrigatoriedade dos documentos aplicáveis ao tipo atual
+  for (const spec of desired) {
+    const found = existingByType.get(spec.type);
+    if (found) {
+      await sql`
+        UPDATE onboarding_documents
+        SET document_label = ${spec.label},
+            is_required = ${spec.required},
+            updated_at = NOW()
+        WHERE id = ${found.id}
+      `;
+    } else {
+      await sql`
+        INSERT INTO onboarding_documents (onboarding_id, document_type, document_label, is_required)
+        VALUES (${onboardingId}, ${spec.type}, ${spec.label}, ${spec.required})
+      `;
+    }
+  }
+
+  // 2. Documentos exclusivos do outro tipo: remover se vazios, ou tornar opcionais se já possuem arquivo
+  for (const [docType, found] of existingByType.entries()) {
+    if (!desiredByType.has(docType)) {
+      if (!found.storage_key) {
+        await sql`DELETE FROM onboarding_documents WHERE id = ${found.id}`;
+      } else {
+        await sql`
+          UPDATE onboarding_documents
+          SET is_required = FALSE, updated_at = NOW()
+          WHERE id = ${found.id}
+        `;
+      }
+    }
+  }
+}
 
 // ── Máquina de estados ────────────────────────────────────────────────────────
 const VALID_STATUS_TRANSITIONS: Record<OnboardingStatus, OnboardingStatus[]> = {
@@ -51,6 +170,7 @@ export function canTransitionOnboarding(from: OnboardingStatus, to: OnboardingSt
 
 // ── Criar pré-cadastro ─────────────────────────────────────────────────────────
 export async function createOnboarding(params: {
+  personType?: PersonType;
   tradeName: string;
   legalName?: string;
   cnpj?: string;
@@ -72,10 +192,16 @@ export async function createOnboarding(params: {
   createdBy: string;
   assignedTo?: string;
 }): Promise<{ id: string }> {
+  const personType = normalizePersonType(params.personType);
   const cleanEmail = params.email.toLowerCase().trim();
+  const resolvedLegalName = personType === 'PF'
+    ? (params.contactName || params.tradeName)
+    : (params.legalName || params.tradeName);
+  const resolvedCnpj = personType === 'PF' ? null : (params.cnpj || null);
+
   const rows = await sql`
     INSERT INTO clinic_onboardings (
-      trade_name, legal_name, cnpj, contact_name, contact_cpf,
+      person_type, trade_name, legal_name, cnpj, contact_name, contact_cpf,
       phone, email, city, state,
       address_cep, address_street, address_number, address_complement, address_neighborhood,
       address_city, address_state, email_admin,
@@ -83,7 +209,7 @@ export async function createOnboarding(params: {
       specialty, average_ticket,
       internal_notes, created_by, assigned_to, status
     ) VALUES (
-      ${params.tradeName}, ${params.legalName || params.tradeName}, ${params.cnpj || null},
+      ${personType}, ${params.tradeName}, ${resolvedLegalName}, ${resolvedCnpj},
       ${params.contactName}, ${params.contactCpf || null},
       ${params.phone}, ${cleanEmail},
       ${params.city}, ${params.state},
@@ -91,7 +217,7 @@ export async function createOnboarding(params: {
       ${params.addressNumber || null}, ${params.addressComplement || null},
       ${params.addressNeighborhood || null},
       ${params.city}, ${params.state}, ${cleanEmail},
-      ${params.contactName}, ${params.contactCpf || null}, ${params.legalRepRole || null},
+      ${params.contactName}, ${params.contactCpf || null}, ${params.legalRepRole || (personType === 'PF' ? 'Profissional Autônomo (PF)' : null)},
       ${cleanEmail}, ${params.phone},
       ${params.specialty || null},
       ${params.averageTicket || null}, ${params.internalNotes || null},
@@ -109,11 +235,11 @@ export async function createOnboarding(params: {
     action: 'onboarding_created',
     entityType: 'onboarding',
     entityId: id,
-    metadata: { trade_name: params.tradeName, city: params.city, state: params.state },
+    metadata: { person_type: personType, trade_name: params.tradeName, city: params.city, state: params.state },
   });
 
-  // Criar slots de documentos obrigatórios
-  for (const doc of REQUIRED_DOCUMENTS) {
+  // Criar slots de documentos adequados ao tipo de pessoa (PJ ou PF)
+  for (const doc of getRequiredDocumentsForPersonType(personType)) {
     await sql`
       INSERT INTO onboarding_documents (onboarding_id, document_type, document_label, is_required)
       VALUES (${id}, ${doc.type}, ${doc.label}, ${doc.required})
@@ -383,6 +509,7 @@ export async function updateOnboardingData(params: {
 
   // Construir SET dinamicamente (apenas campos permitidos)
   const allowedFields = [
+    'person_type',
     'trade_name', 'legal_name', 'trade_name_confirmed', 'cnpj', 'address_cep', 'address_street',
     'address_number', 'address_complement', 'address_neighborhood', 'address_city',
     'address_state', 'phone_secondary', 'email_admin', 'email_financial', 'website',
@@ -404,6 +531,13 @@ export async function updateOnboardingData(params: {
 
   // Manter city e state sincronizados com address_city e address_state
   const updateMap = new Map<string, unknown>(updates);
+  const currentPersonType = normalizePersonType(current.person_type);
+  const nextPersonType = updateMap.has('person_type')
+    ? normalizePersonType(updateMap.get('person_type'))
+    : currentPersonType;
+  if (updateMap.has('person_type')) {
+    updateMap.set('person_type', nextPersonType);
+  }
   if (updateMap.has('address_city') && !updateMap.has('city') && updateMap.get('address_city')) {
     updateMap.set('city', updateMap.get('address_city'));
   }
@@ -411,16 +545,20 @@ export async function updateOnboardingData(params: {
     updateMap.set('state', updateMap.get('address_state'));
   }
 
-  // Verificar divergência bancária
-  const hasNewBankData = Array.from(updateMap.keys()).some(k => k.startsWith('bank_'));
+  // Verificar divergência bancária (em PJ compara com CNPJ; em PF compara com CPF do titular)
+  const hasNewBankData = Array.from(updateMap.keys()).some(
+    k => k.startsWith('bank_') || k === 'person_type' || k === 'cnpj' || k === 'contact_cpf' || k === 'legal_rep_cpf'
+  );
   if (hasNewBankData) {
-    const bankHolder = updateMap.get('bank_holder_document');
-    const cnpj = updateMap.get('cnpj') || current.cnpj;
-    if (bankHolder && cnpj && String(bankHolder).replace(/\D/g, '') !== String(cnpj).replace(/\D/g, '')) {
+    const bankHolder = updateMap.get('bank_holder_document') ?? current.bank_holder_document;
+    const expectedDoc = nextPersonType === 'PF'
+      ? (updateMap.get('contact_cpf') ?? updateMap.get('legal_rep_cpf') ?? current.contact_cpf ?? current.legal_rep_cpf)
+      : (updateMap.get('cnpj') ?? current.cnpj);
+    if (bankHolder && expectedDoc && String(bankHolder).replace(/\D/g, '') !== String(expectedDoc).replace(/\D/g, '')) {
       await sql`
         UPDATE clinic_onboardings SET bank_titularity_divergence = TRUE WHERE id = ${params.id}
       `;
-    } else if (bankHolder && cnpj) {
+    } else if (bankHolder && expectedDoc) {
       await sql`
         UPDATE clinic_onboardings SET bank_titularity_divergence = FALSE WHERE id = ${params.id}
       `;
@@ -435,16 +573,33 @@ export async function updateOnboardingData(params: {
     );
   }
 
+  // Se alternou entre PF e PJ, sincronizar os slots de documentos exigidos
+  if (updateMap.has('person_type') && nextPersonType !== currentPersonType) {
+    await syncOnboardingDocumentsForPersonType(params.id, nextPersonType);
+  }
+
   // Sincronizar endereço e dados cadastrais/bancários com a tabela clinics se já houver clinic_id
   if (current.clinic_id) {
     try {
       const merged = { ...current, ...Object.fromEntries(updateMap.entries()) } as Record<string, any>;
+      const mergedPersonType = normalizePersonType(merged.person_type);
+      const rawDoc = mergedPersonType === 'PF'
+        ? (merged.contact_cpf || merged.legal_rep_cpf || null)
+        : (merged.cnpj || null);
+      const formattedDoc = rawDoc
+        ? resolveClinicDocumentForStorage({
+            personType: mergedPersonType,
+            cnpj: merged.cnpj,
+            cpf: merged.contact_cpf || merged.legal_rep_cpf,
+          })
+        : null;
       await sql`
         UPDATE clinics
         SET
+          person_type = ${mergedPersonType},
           nome_fantasia = COALESCE(${merged.trade_name || null}, nome_fantasia),
-          razao_social = COALESCE(${merged.legal_name || null}, razao_social),
-          cnpj = COALESCE(${merged.cnpj || null}, cnpj),
+          razao_social = COALESCE(${mergedPersonType === 'PF' ? (merged.contact_name || merged.legal_rep_name || merged.trade_name || null) : (merged.legal_name || null)}, razao_social),
+          cnpj = COALESCE(${formattedDoc}, cnpj),
           cep = COALESCE(${merged.address_cep || null}, cep),
           logradouro = COALESCE(${merged.address_street || null}, logradouro),
           numero = COALESCE(${merged.address_number || null}, numero),
@@ -475,7 +630,7 @@ export async function getOnboardingByToken(
 ): Promise<Partial<ClinicOnboarding> | null> {
   const rows = await sql`
     SELECT
-      id, trade_name, legal_name, cnpj, contact_name, contact_cpf,
+      id, person_type, trade_name, legal_name, cnpj, contact_name, contact_cpf,
       phone, email, city, state, specialty, average_ticket,
       trade_name_confirmed, address_cep, address_street, address_number,
       address_complement, address_neighborhood, address_city, address_state,
@@ -666,22 +821,42 @@ export async function calculateProgress(onboardingId: string): Promise<number> {
     if (value !== null && value !== undefined && value !== '') score++;
   };
 
-  // Etapa 1: Dados da clínica
-  check(data.trade_name); check(data.cnpj); check(data.legal_name);
-  check(data.city); check(data.state); check(data.email);
-  check(data.address_street); check(data.address_cep);
+  const isPF = normalizePersonType(data.person_type) === 'PF';
 
-  // Etapa 2: Responsável
-  check(data.legal_rep_name); check(data.legal_rep_cpf);
-  check(data.legal_rep_role); check(data.legal_rep_email);
+  if (isPF) {
+    // Etapa 1: Dados do profissional / consultório PF
+    check(data.trade_name);
+    check(data.contact_name || data.legal_rep_name);
+    check(data.contact_cpf || data.legal_rep_cpf);
+    check(data.city); check(data.state); check(data.email);
+    check(data.address_street); check(data.address_cep);
 
-  // Etapa 3: Responsável técnico
-  check(data.tech_rep_name); check(data.tech_rep_council);
-  check(data.tech_rep_council_number);
+    // Etapa 2: Registro profissional
+    check(data.tech_rep_name || data.contact_name);
+    check(data.tech_rep_council);
+    check(data.tech_rep_council_number);
 
-  // Etapa 4: Bancário
-  check(data.bank_name); check(data.bank_agency);
-  check(data.bank_account); check(data.bank_holder_name);
+    // Etapa 3: Bancário
+    check(data.bank_name); check(data.bank_agency);
+    check(data.bank_account); check(data.bank_holder_name);
+  } else {
+    // Etapa 1: Dados da clínica PJ
+    check(data.trade_name); check(data.cnpj); check(data.legal_name);
+    check(data.city); check(data.state); check(data.email);
+    check(data.address_street); check(data.address_cep);
+
+    // Etapa 2: Responsável legal
+    check(data.legal_rep_name); check(data.legal_rep_cpf);
+    check(data.legal_rep_role); check(data.legal_rep_email);
+
+    // Etapa 3: Responsável técnico
+    check(data.tech_rep_name); check(data.tech_rep_council);
+    check(data.tech_rep_council_number);
+
+    // Etapa 4: Bancário
+    check(data.bank_name); check(data.bank_agency);
+    check(data.bank_account); check(data.bank_holder_name);
+  }
 
   const percent = Math.round((score / total) * 100);
 
@@ -747,8 +922,14 @@ function mapOnboardingRow(r: Record<string, unknown>): ClinicOnboarding {
   const contactName = r.contact_name ? String(r.contact_name).trim() : '';
   const contactCpf = r.contact_cpf ? String(r.contact_cpf).trim() : null;
 
+  const personType = normalizePersonType(r.person_type);
+  const defaultDoc = personType === 'PF'
+    ? (contactCpf || (r.legal_rep_cpf ? String(r.legal_rep_cpf) : null))
+    : (r.cnpj ? String(r.cnpj) : null);
+
   return {
     id: String(r.id),
+    person_type: personType,
     trade_name: String(r.trade_name),
     legal_name: r.legal_name ? String(r.legal_name) : String(r.trade_name || ''),
     cnpj: r.cnpj ? String(r.cnpj) : null,
@@ -799,9 +980,11 @@ function mapOnboardingRow(r: Record<string, unknown>): ClinicOnboarding {
     bank_agency: r.bank_agency ? String(r.bank_agency) : null,
     bank_account: r.bank_account ? String(r.bank_account) : null,
     bank_account_type: r.bank_account_type ? String(r.bank_account_type) : 'corrente',
-    bank_holder_name: r.bank_holder_name ? String(r.bank_holder_name) : (r.legal_name ? String(r.legal_name) : String(r.trade_name || '')),
-    bank_holder_document: r.bank_holder_document ? String(r.bank_holder_document) : (r.cnpj ? String(r.cnpj) : null),
-    bank_pix_key: r.bank_pix_key ? String(r.bank_pix_key) : (r.cnpj ? String(r.cnpj) : null),
+    bank_holder_name: r.bank_holder_name
+      ? String(r.bank_holder_name)
+      : (personType === 'PF' ? (contactName || String(r.trade_name || '')) : (r.legal_name ? String(r.legal_name) : String(r.trade_name || ''))),
+    bank_holder_document: r.bank_holder_document ? String(r.bank_holder_document) : defaultDoc,
+    bank_pix_key: r.bank_pix_key ? String(r.bank_pix_key) : defaultDoc,
     status: (r.status as OnboardingStatus) || 'DRAFT',
     progress_percent: Number(r.progress_percent || 0),
     assigned_to: r.assigned_to ? String(r.assigned_to) : null,

@@ -8,6 +8,7 @@ export default function ConfiguracoesPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [clinicData, setClinicData] = useState({
+    personType: 'PJ',
     nomeFantasia: '',
     razaoSocial: '',
     cnpj: '',
@@ -103,23 +104,27 @@ export default function ConfiguracoesPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>Nome Fantasia *</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                {clinicData.personType === 'PF' ? 'Nome do Consultório / Profissional *' : 'Nome Fantasia *'}
+              </label>
               <input
                 type="text"
                 required
                 value={clinicData.nomeFantasia}
                 onChange={(e) => setClinicData({ ...clinicData, nomeFantasia: e.target.value })}
-                placeholder="Nome fantasia da clínica"
+                placeholder={clinicData.personType === 'PF' ? 'Nome do consultório ou profissional' : 'Nome fantasia da clínica'}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>Razão Social</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                {clinicData.personType === 'PF' ? 'Nome Completo do Titular' : 'Razão Social'}
+              </label>
               <input
                 type="text"
                 value={clinicData.razaoSocial}
                 onChange={(e) => setClinicData({ ...clinicData, razaoSocial: e.target.value })}
-                placeholder="Razão social"
+                placeholder={clinicData.personType === 'PF' ? 'Nome completo' : 'Razão social'}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
@@ -127,7 +132,9 @@ export default function ConfiguracoesPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>CNPJ</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#475569', marginBottom: '4px' }}>
+                {clinicData.personType === 'PF' ? 'CPF' : 'CNPJ'}
+              </label>
               <input
                 type="text"
                 disabled

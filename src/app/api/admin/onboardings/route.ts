@@ -9,7 +9,8 @@ import type { OnboardingStatus } from '@/lib/benavera-db';
 import { z } from 'zod';
 
 const createOnboardingSchema = z.object({
-  tradeName: z.string().min(2, 'Nome da clínica obrigatório').max(200),
+  personType: z.enum(['PJ', 'PF']).optional().default('PJ'),
+  tradeName: z.string().min(2, 'Nome da clínica ou consultório obrigatório').max(200),
   legalName: z.string().max(200).optional(),
   cnpj: z.string().max(20).optional(),
   contactName: z.string().min(2, 'Nome do responsável obrigatório').max(200),

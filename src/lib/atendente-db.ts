@@ -12,6 +12,7 @@ export type DistribuicaoResultado = 'distribuido' | 'sem_atendentes' | 'limite_a
 
 export interface ProspectClinic {
   id: string;
+  person_type?: 'PJ' | 'PF';
   cnpj: string;
   nome_fantasia: string;
   razao_social: string | null;
@@ -93,6 +94,42 @@ export interface AtendimentoNote {
 
 export function normalizeCnpj(cnpj: string): string {
   return cnpj.replace(/\D/g, '');
+}
+
+export function validateCpf(cpf: string): boolean {
+  const digits = normalizeCnpj(cpf);
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1+$/.test(digits)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(digits[i]) * (10 - i);
+  let d1 = (sum * 10) % 11;
+  if (d1 === 10) d1 = 0;
+  if (parseInt(digits[9]) !== d1) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(digits[i]) * (11 - i);
+  let d2 = (sum * 10) % 11;
+  if (d2 === 10) d2 = 0;
+  return parseInt(digits[10]) === d2;
+}
+
+export function validateCpfOrCnpj(doc: string, personType?: 'PJ' | 'PF'): {
+  valid: boolean;
+  personType: 'PJ' | 'PF';
+  normalized: string;
+} {
+  const normalized = normalizeCnpj(doc);
+  if (personType === 'PF') {
+    return { valid: validateCpf(normalized), personType: 'PF', normalized };
+  }
+  if (personType === 'PJ') {
+    return { valid: validateCnpj(normalized), personType: 'PJ', normalized };
+  }
+  if (normalized.length === 11) {
+    return { valid: validateCpf(normalized), personType: 'PF', normalized };
+  }
+  return { valid: validateCnpj(normalized), personType: 'PJ', normalized };
 }
 
 export function validateCnpj(cnpj: string): boolean {
@@ -201,6 +238,7 @@ export async function getClinicaById(id: string, atendenteId?: string): Promise<
 }
 
 export async function createProspectClinica(data: {
+  person_type?: 'PJ' | 'PF';
   cnpj: string;
   nome_fantasia: string;
   razao_social?: string;
@@ -215,6 +253,7 @@ export async function createProspectClinica(data: {
   created_by: string;
 }): Promise<{ success: boolean; clinic?: ProspectClinic; error?: string }> {
   const normalized = normalizeCnpj(data.cnpj);
+  const personType: 'PJ' | 'PF' = data.person_type === 'PF' || normalized.length === 11 ? 'PF' : 'PJ';
 
   // Verificar unicidade com lock para prevenir duplicidade concorrente
   const existing = await sql`
@@ -223,17 +262,17 @@ export async function createProspectClinica(data: {
   if (existing.length > 0) {
     return {
       success: false,
-      error: 'Este CNPJ já está cadastrado no sistema. Para rever ou transferir o vínculo, contate o administrador.',
+      error: `Este ${personType === 'PF' ? 'CPF' : 'CNPJ'} já está cadastrado no sistema. Para rever ou transferir o vínculo, contate o administrador.`,
     };
   }
 
   const rows = await sql`
     INSERT INTO prospect_clinics (
-      cnpj, nome_fantasia, razao_social, responsavel, telefone, email,
+      person_type, cnpj, nome_fantasia, razao_social, responsavel, telefone, email,
       cidade, estado, especialidade, clinic_lead_id,
       assigned_to, created_by
     ) VALUES (
-      ${normalized}, ${data.nome_fantasia}, ${data.razao_social ?? null},
+      ${personType}, ${normalized}, ${data.nome_fantasia}, ${data.razao_social ?? null},
       ${data.responsavel ?? null}, ${data.telefone ?? null}, ${data.email ?? null},
       ${data.cidade ?? null}, ${data.estado ?? null}, ${data.especialidade ?? null},
       ${data.clinic_lead_id ?? null}, ${data.assigned_to}::uuid, ${data.created_by}::uuid
@@ -668,6 +707,7 @@ export async function getDistribuicaoLog(options?: { limit?: number }) {
 function mapProspectClinic(row: Record<string, unknown>): ProspectClinic {
   return {
     id: String(row.id),
+    person_type: String(row.person_type || 'PJ').toUpperCase() === 'PF' ? 'PF' : 'PJ',
     cnpj: String(row.cnpj),
     nome_fantasia: String(row.nome_fantasia),
     razao_social: row.razao_social ? String(row.razao_social) : null,

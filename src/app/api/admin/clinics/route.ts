@@ -37,15 +37,20 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { nome_fantasia, razao_social, cnpj, telefone, email, endereco_cidade, endereco_uf } = body;
+    const { person_type, nome_fantasia, razao_social, cnpj, cpf, telefone, email, endereco_cidade, endereco_uf } = body;
+    const personType = String(person_type || 'PJ').toUpperCase() === 'PF' ? 'PF' : 'PJ';
+    const doc = personType === 'PF' ? String(cpf || cnpj || '').trim() : String(cnpj || '').trim();
 
-    if (!nome_fantasia || !cnpj) {
-      return NextResponse.json({ error: 'Nome fantasia e CNPJ são obrigatórios.' }, { status: 400 });
+    if (!nome_fantasia || !doc) {
+      return NextResponse.json(
+        { error: personType === 'PF' ? 'Nome do consultório/profissional e CPF são obrigatórios.' : 'Nome fantasia e CNPJ são obrigatórios.' },
+        { status: 400 }
+      );
     }
 
     const rows = await sql`
-      INSERT INTO clinics (nome_fantasia, razao_social, cnpj, telefone, email, cidade, estado, ativo)
-      VALUES (${nome_fantasia}, ${razao_social || nome_fantasia}, ${cnpj}, ${telefone || null}, ${email || null}, ${endereco_cidade || null}, ${endereco_uf || null}, TRUE)
+      INSERT INTO clinics (person_type, nome_fantasia, razao_social, cnpj, cpf_responsavel, telefone, email, cidade, estado, ativo)
+      VALUES (${personType}, ${nome_fantasia}, ${razao_social || nome_fantasia}, ${doc.slice(0, 18)}, ${personType === 'PF' ? doc.slice(0, 14) : null}, ${telefone || null}, ${email || null}, ${endereco_cidade || null}, ${endereco_uf || null}, TRUE)
       RETURNING id
     `;
 

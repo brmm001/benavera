@@ -31,6 +31,14 @@ function formatCNPJ(value: string): string {
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
 }
 
+function formatCPF(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
   if (digits.length <= 2) return digits.length ? `(${digits}` : '';
@@ -52,8 +60,10 @@ export default function CredenciamentoPage() {
   const [error, setError] = useState('');
 
   // Form states
+  const [personType, setPersonType] = useState<'PJ' | 'PF'>('PJ');
   const [nomeClinica, setNomeClinica] = useState('');
   const [cnpj, setCnpj] = useState('');
+  const [cpf, setCpf] = useState('');
   const [especialidade, setEspecialidade] = useState(especialidades[0]);
   const [cep, setCep] = useState('');
   const [rua, setRua] = useState('');
@@ -132,8 +142,10 @@ export default function CredenciamentoPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          personType,
           nomeClinica,
-          cnpj,
+          cnpj: personType === 'PJ' ? cnpj : '',
+          cpf: personType === 'PF' ? cpf : '',
           especialidade,
           cep,
           rua,
@@ -143,7 +155,7 @@ export default function CredenciamentoPage() {
           cidade,
           estado,
           nomeResponsavel,
-          cargo,
+          cargo: personType === 'PF' ? (cargo || 'Profissional Autônomo (PF)') : cargo,
           whatsapp,
           email,
           password,
@@ -210,14 +222,22 @@ export default function CredenciamentoPage() {
           <h2 id="antes-do-cadastro" style={{ fontSize: '1.15rem', fontWeight: 750, color: '#2f3181', marginBottom: '0.5rem' }}>O que acontece após o cadastro?</h2>
           <p>Você preenche os dados da clínica e do responsável e cria seu acesso. Depois, envia os documentos no ambiente protegido. A liberação do portal depende da validação pela Benavera.</p>
           <details style={{ marginTop: '0.75rem' }}>
-            <summary style={{ cursor: 'pointer', fontWeight: 650 }}>Quais documentos preparar?</summary>
-            <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', marginTop: '0.5rem' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 650 }}>Quais documentos preparar? (PJ ou PF)</summary>
+            <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>Para Pessoa Jurídica (CNPJ):</p>
+            <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', marginTop: '0.25rem' }}>
               <li>Contrato social ou ato constitutivo.</li>
               <li>Documento do representante legal (CNH ou RG).</li>
               <li>Documento ou registro do responsável técnico.</li>
               <li>Comprovante de titularidade bancária.</li>
             </ul>
-            <p>O CNPJ é opcional nesta primeira tela; a validação posterior exige o preenchimento cadastral e a documentação aplicável. Outros documentos podem ser solicitados conforme a situação.</p>
+            <p style={{ marginTop: '0.75rem', fontWeight: 600 }}>Para Pessoa Física (Profissional Autônomo / CPF):</p>
+            <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', marginTop: '0.25rem' }}>
+              <li>Documento de identidade com foto (RG ou CNH).</li>
+              <li>Carteira do conselho profissional (CRO, CRM, CRBM, etc.).</li>
+              <li>Comprovante de endereço (residência ou consultório).</li>
+              <li>Comprovante de titularidade bancária em nome do CPF.</li>
+            </ul>
+            <p style={{ marginTop: '0.5rem' }}>O CNPJ ou CPF é opcional nesta primeira tela; você também pode alternar entre PJ e PF na etapa de envio de documentos.</p>
           </details>
           <p style={{ marginTop: '0.75rem' }}>O cadastro não garante aprovação de crédito para pacientes. Consulte as <Link href="/condicoes" style={{ textDecoration: 'underline' }}>condições comerciais</Link> e o <Link href={CLINIC_FINANCING_PATH} style={{ textDecoration: 'underline' }}>financiamento odontológico para clínicas</Link>.</p>
         </section>
@@ -263,31 +283,83 @@ export default function CredenciamentoPage() {
             {step === 1 && (
               <div>
                 <h2 style={{ fontSize: 'clamp(1.125rem, 2.5vw, 1.25rem)', fontWeight: '800', color: '#0f172a', margin: '0 0 1.25rem' }}>
-                  1. Dados da Clínica
+                  1. {personType === 'PF' ? 'Dados do Profissional / Consultório' : 'Dados da Clínica'}
                 </h2>
+
+                {/* Seletor PJ / PF */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                  {[
+                    { value: 'PJ' as const, title: '🏢 Pessoa Jurídica (PJ)', sub: 'Clínica ou consultório com CNPJ' },
+                    { value: 'PF' as const, title: '👤 Pessoa Física (PF)', sub: 'Profissional autônomo com CPF' },
+                  ].map((opt) => {
+                    const active = personType === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setPersonType(opt.value);
+                          if (opt.value === 'PF' && cargo === 'Diretor / Sócio') {
+                            setCargo('Profissional Autônomo (PF)');
+                          } else if (opt.value === 'PJ' && cargo === 'Profissional Autônomo (PF)') {
+                            setCargo('Diretor / Sócio');
+                          }
+                        }}
+                        style={{
+                          textAlign: 'left',
+                          padding: '0.875rem 1rem',
+                          borderRadius: '12px',
+                          border: `2px solid ${active ? '#4040ca' : '#e2e8f0'}`,
+                          background: active ? '#eef2ff' : '#f8fafc',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.875rem', fontWeight: '800', color: active ? '#1e1b4b' : '#0f172a' }}>{opt.title}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>{opt.sub}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <div className="credenciamento-form-grid">
                   <div style={{ gridColumn: '1 / -1' }}>
-                    <label className="portal-form-label">Nome Fantasia da Clínica *</label>
+                    <label className="portal-form-label">
+                      {personType === 'PF' ? 'Nome do Consultório ou Profissional *' : 'Nome Fantasia da Clínica *'}
+                    </label>
                     <input
                       type="text"
                       required
-                      placeholder="Ex: Instituto Odontológico Excelência"
+                      placeholder={personType === 'PF' ? 'Ex: Consultório Dra. Ana Paula' : 'Ex: Instituto Odontológico Excelência'}
                       value={nomeClinica}
                       onChange={(e) => setNomeClinica(e.target.value)}
                       className="portal-form-input"
                     />
                   </div>
 
-                  <div>
-                    <label className="portal-form-label">CNPJ (opcional para análise)</label>
-                    <input
-                      type="text"
-                      placeholder="00.000.000/0001-00"
-                      value={cnpj}
-                      onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
-                      className="portal-form-input"
-                    />
-                  </div>
+                  {personType === 'PF' ? (
+                    <div>
+                      <label className="portal-form-label">CPF (opcional para análise)</label>
+                      <input
+                        type="text"
+                        placeholder="000.000.000-00"
+                        value={cpf}
+                        onChange={(e) => setCpf(formatCPF(e.target.value))}
+                        className="portal-form-input"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="portal-form-label">CNPJ (opcional para análise)</label>
+                      <input
+                        type="text"
+                        placeholder="00.000.000/0001-00"
+                        value={cnpj}
+                        onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
+                        className="portal-form-input"
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <label className="portal-form-label">Especialidade Principal *</label>

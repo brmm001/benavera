@@ -108,8 +108,13 @@ export async function PATCH(
     });
 
     const progress = await calculateProgress(session.onboardingId);
+    const rawDocs = await getOnboardingDocuments(session.onboardingId);
+    const documents = rawDocs.map(({ storage_key, sha256: _, ...safe }) => ({
+      ...safe,
+      storage_key: storage_key ? 'uploaded' : null,
+    }));
 
-    return NextResponse.json({ success: true, progress });
+    return NextResponse.json({ success: true, progress, documents });
   } catch (err) {
     console.error('[Clinic Data PATCH]', err);
     return NextResponse.json({ error: 'Erro ao salvar dados.' }, { status: 500 });

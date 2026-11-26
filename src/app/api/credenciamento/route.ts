@@ -3,7 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/benavera-db';
 import bcrypt from 'bcryptjs';
 import { sendClinicWelcomeEmail } from '@/lib/email';
-import { REQUIRED_DOCUMENTS } from '@/lib/onboarding-db';
+import {
+  getRequiredDocumentsForPersonType,
+  normalizePersonType,
+  resolveClinicDocumentForStorage,
+  syncOnboardingDocumentsForPersonType,
+} from '@/lib/onboarding-db';
 import { createInvite } from '@/lib/onboarding-tokens';
 import { SignJWT } from 'jose';
 import { getRepresentanteByCodigo, vincularClinica } from '@/lib/representantes-db';
@@ -15,8 +20,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
+      personType: rawPersonType,
       nomeClinica,
       cnpj,
+      cpf,
       especialidade,
       cep,
       rua,
@@ -33,6 +40,10 @@ export async function POST(req: NextRequest) {
       volumeMensal,
       ticketMedio,
     } = body;
+
+    const personType = normalizePersonType(rawPersonType);
+    const cleanCpf = typeof cpf === 'string' && cpf.trim() ? cpf.trim() : null;
+    const cleanCnpj = personType === 'PF' ? null : (typeof cnpj === 'string' && cnpj.trim() ? cnpj.trim() : null);
 
     if (!nomeClinica || !whatsapp || !email || !password) {
       return NextResponse.json(
@@ -95,9 +106,11 @@ export async function POST(req: NextRequest) {
         await sql`
           UPDATE clinic_onboardings
           SET
+            person_type = ${personType},
             trade_name = COALESCE(${nomeClinica || null}, trade_name),
-            legal_name = COALESCE(legal_name, ${nomeClinica || null}),
-            cnpj = COALESCE(cnpj, ${cnpj || null}),
+            legal_name = COALESCE(legal_name, ${personType === 'PF' ? (nomeResponsavel || nomeClinica || null) : (nomeClinica || null)}),
+            cnpj = ${personType === 'PF' ? null : cleanCnpj},
+            contact_cpf = COALESCE(${cleanCpf}, contact_cpf),
             address_cep = COALESCE(address_cep, ${cep || null}),
             address_street = COALESCE(address_street, ${rua || null}),
             address_number = COALESCE(address_number, ${numero || null}),
@@ -110,17 +123,25 @@ export async function POST(req: NextRequest) {
             email_admin = COALESCE(email_admin, email, ${cleanEmail}),
             email_financial = COALESCE(email_financial, email, ${cleanEmail}),
             legal_rep_name = COALESCE(legal_rep_name, contact_name, ${nomeResponsavel || null}),
-            legal_rep_role = COALESCE(legal_rep_role, ${cargo || null}),
+            legal_rep_cpf = COALESCE(${cleanCpf}, legal_rep_cpf),
+            legal_rep_role = COALESCE(legal_rep_role, ${cargo || (personType === 'PF' ? 'Profissional Autônomo (PF)' : null)}),
             legal_rep_email = COALESCE(legal_rep_email, email, ${cleanEmail}),
             legal_rep_phone = COALESCE(legal_rep_phone, phone, ${whatsapp || null}),
             updated_at = NOW()
           WHERE id = ${onboardingId}
         `;
+        await syncOnboardingDocumentsForPersonType(onboardingId, personType);
 
         if (existingUser[0].clinic_id) {
+          const resumedDoc = cleanCpf || cleanCnpj
+            ? resolveClinicDocumentForStorage({ personType, cnpj: cleanCnpj, cpf: cleanCpf })
+            : null;
           await sql`
             UPDATE clinics
             SET
+              person_type = ${personType},
+              cnpj = COALESCE(${resumedDoc}, cnpj),
+              cpf_responsavel = COALESCE(${cleanCpf}, cpf_responsavel),
               cep = COALESCE(cep, ${cep || null}),
               logradouro = COALESCE(logradouro, ${rua || null}),
               numero = COALESCE(numero, ${numero || null}),
@@ -173,12 +194,19 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Insere a clínica no banco com ativo = FALSE (bloqueada até admin aprovar após envio de docs)
+    const clinicDocForStorage = resolveClinicDocumentForStorage({
+      personType,
+      cnpj: cleanCnpj,
+      cpf: cleanCpf,
+    });
+    const clinicLegalName = personType === 'PF' ? (nomeResponsavel || nomeClinica) : nomeClinica;
+
     const clinicRows = await sql`
       INSERT INTO clinics (
-        nome_fantasia, razao_social, cnpj, telefone, whatsapp, email, email_financeiro,
+        person_type, nome_fantasia, razao_social, cnpj, cpf_responsavel, telefone, whatsapp, email, email_financeiro,
         responsavel, cep, logradouro, numero, complemento, bairro, cidade, estado, especialidade, ativo
       ) VALUES (
-        ${nomeClinica}, ${nomeClinica}, ${cnpj || '00.000.000/0001-00'}, ${whatsapp}, ${whatsapp}, ${cleanEmail}, ${cleanEmail},
+        ${personType}, ${nomeClinica}, ${clinicLegalName}, ${clinicDocForStorage}, ${cleanCpf}, ${whatsapp}, ${whatsapp}, ${cleanEmail}, ${cleanEmail},
         ${nomeResponsavel || null}, ${cep || null}, ${rua || null}, ${numero || null}, ${complemento || null}, ${bairro || null},
         ${cleanCity}, ${cleanState},
         ${especialidade || 'Geral'}, FALSE
@@ -223,26 +251,28 @@ export async function POST(req: NextRequest) {
     const userId = userRows[0].id;
 
     // 5. Cria o registro de credenciamento (clinic_onboardings) já com endereço e responsável pré-preenchidos
+    const bankDocDefault = personType === 'PF' ? cleanCpf : cleanCnpj;
+    const bankHolderDefault = personType === 'PF' ? (nomeResponsavel || nomeClinica) : nomeClinica;
     const onboardingRows = await sql`
       INSERT INTO clinic_onboardings (
-        trade_name, legal_name, cnpj, contact_name,
+        person_type, trade_name, legal_name, cnpj, contact_name, contact_cpf,
         phone, email, city, state, specialty,
         address_cep, address_street, address_number, address_complement, address_neighborhood,
         address_city, address_state,
         email_admin, email_financial,
-        legal_rep_name, legal_rep_role, legal_rep_email, legal_rep_phone, legal_rep_has_powers,
-        tech_rep_name, tech_rep_council_state,
+        legal_rep_name, legal_rep_cpf, legal_rep_role, legal_rep_email, legal_rep_phone, legal_rep_has_powers,
+        tech_rep_name, tech_rep_cpf, tech_rep_council_state,
         bank_account_type, bank_holder_name, bank_holder_document, bank_pix_key,
         status, progress_percent, clinic_id, created_by
       ) VALUES (
-        ${nomeClinica}, ${nomeClinica}, ${cnpj || null}, ${nomeResponsavel || nomeClinica},
+        ${personType}, ${nomeClinica}, ${clinicLegalName}, ${cleanCnpj}, ${nomeResponsavel || nomeClinica}, ${cleanCpf},
         ${whatsapp}, ${cleanEmail}, ${cleanCity}, ${cleanState}, ${especialidade || 'Geral'},
         ${cep || null}, ${rua || null}, ${numero || null}, ${complemento || null}, ${bairro || null},
         ${cleanCity}, ${cleanState},
         ${cleanEmail}, ${cleanEmail},
-        ${nomeResponsavel || nomeClinica}, ${cargo || 'Diretor / Sócio'}, ${cleanEmail}, ${whatsapp}, TRUE,
-        ${nomeResponsavel || null}, ${cleanState},
-        'corrente', ${nomeClinica}, ${cnpj || null}, ${cnpj || null},
+        ${nomeResponsavel || nomeClinica}, ${cleanCpf}, ${cargo || (personType === 'PF' ? 'Profissional Autônomo (PF)' : 'Diretor / Sócio')}, ${cleanEmail}, ${whatsapp}, TRUE,
+        ${nomeResponsavel || null}, ${cleanCpf}, ${cleanState},
+        'corrente', ${bankHolderDefault}, ${bankDocDefault}, ${bankDocDefault},
         'IN_PROGRESS', 35, ${clinicId}, ${userId}
       )
       RETURNING id
@@ -250,8 +280,8 @@ export async function POST(req: NextRequest) {
 
     const onboardingId = String(onboardingRows[0].id);
 
-    // 6. Cria os slots para todos os documentos obrigatórios e opcionais
-    for (const doc of REQUIRED_DOCUMENTS) {
+    // 6. Cria os slots para todos os documentos obrigatórios e opcionais conforme PF ou PJ
+    for (const doc of getRequiredDocumentsForPersonType(personType)) {
       await sql`
         INSERT INTO onboarding_documents (onboarding_id, document_type, document_label, is_required)
         VALUES (${onboardingId}, ${doc.type}, ${doc.label}, ${doc.required})
