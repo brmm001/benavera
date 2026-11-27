@@ -7,6 +7,7 @@ import {
   sanitizeMercadoPagoUrl,
   createMpPreapproval,
   createMpBoletoPayment,
+  cancelMpPreapprovalVerified,
 } from '../src/lib/mercadopago';
 import { calculateSubscriptionPricing, computeNextPeriod, GRACE_DAYS } from '../src/lib/billing-service';
 
@@ -237,6 +238,74 @@ describe('Mercado Pago Billing — Assinatura Webhook, Preços e Ciclos', () => 
         /CPF.*CNPJ/
       );
     } finally {
+      server.close();
+      if (prevBase === undefined) delete process.env.MERCADOPAGO_API_BASE;
+      else process.env.MERCADOPAGO_API_BASE = prevBase;
+      if (prevToken === undefined) delete process.env.MERCADOPAGO_ACCESS_TOKEN;
+      else process.env.MERCADOPAGO_ACCESS_TOKEN = prevToken;
+    }
+  });
+
+  it('cancelMpPreapprovalVerified confirma cancelamento, trata já-cancelada/404 e lança erro se MP recusar', async () => {
+    const statuses: Record<string, string> = {
+      pre_ok: 'authorized',
+      pre_already: 'cancelled',
+      pre_stuck: 'authorized',
+    };
+
+    const server = http.createServer(async (req, res) => {
+      const id = (req.url || '').split('/')[2];
+      if (req.method === 'PUT') {
+        if (id === 'pre_ok') {
+          statuses[id] = 'cancelled';
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ id, status: 'cancelled' }));
+        }
+        if (id === 'pre_already') {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ message: 'Cannot modify a cancelled preapproval' }));
+        }
+        if (id === 'pre_missing') {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ message: 'Not found' }));
+        }
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ message: 'Internal MP failure' }));
+      }
+      if (req.method === 'GET') {
+        if (!statuses[id]) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ message: 'Not found' }));
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ id, status: statuses[id] }));
+      }
+      res.writeHead(404).end();
+    });
+
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+    const addr = server.address() as { port: number };
+    const prevBase = process.env.MERCADOPAGO_API_BASE;
+    const prevToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+    process.env.MERCADOPAGO_API_BASE = `http://127.0.0.1:${addr.port}`;
+    process.env.MERCADOPAGO_ACCESS_TOKEN = 'TEST-unit-token';
+
+    try {
+      const r1 = await cancelMpPreapprovalVerified('pre_ok');
+      assert.equal(r1.status, 'cancelled');
+      assert.equal(r1.alreadyCancelled, false);
+
+      const r2 = await cancelMpPreapprovalVerified('pre_already');
+      assert.equal(r2.status, 'cancelled');
+      assert.equal(r2.alreadyCancelled, true);
+
+      const r3 = await cancelMpPreapprovalVerified('pre_missing');
+      assert.equal(r3.status, 'not_found');
+
+      // Se MP falhar e o status continuar authorized, DEVE lançar erro (jamais silenciar!)
+      await assert.rejects(() => cancelMpPreapprovalVerified('pre_stuck'), /não confirmou|Não foi possível cancelar/i);
+    } finally {
+      server.closeAllConnections?.();
       server.close();
       if (prevBase === undefined) delete process.env.MERCADOPAGO_API_BASE;
       else process.env.MERCADOPAGO_API_BASE = prevBase;

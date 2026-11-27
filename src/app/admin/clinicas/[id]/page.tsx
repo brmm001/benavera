@@ -18,7 +18,21 @@ interface ClinicControlResponse {
     allow_new_applications?: boolean;
     new_applications_block_reason?: string | null;
   };
-  subscription: { plan_id: string | null; status: string; billing_cycle: string; custom_price: number | null; discount_percent: number; is_exempt: boolean; notes: string | null } | null;
+  subscription: {
+    plan_id: string | null;
+    status: string;
+    billing_cycle: string;
+    custom_price: number | null;
+    discount_percent: number;
+    is_exempt: boolean;
+    notes: string | null;
+    mp_preapproval_id?: string | null;
+    next_billing_at?: string | null;
+    current_period_end?: string | null;
+    cancel_at_period_end?: boolean;
+    cancelled_at?: string | null;
+    payment_method?: string | null;
+  } | null;
   plans: { id: string; name: string }[];
   users: { id: string; name: string; email: string; role: string; ativo: boolean }[];
   auditLogs: { id: string; actor_name: string | null; scope: string; target_id: string; action: string; created_at: string }[];
@@ -118,6 +132,39 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
     }
   }
 
+  async function cancelSubscriptionAdmin(immediate: boolean) {
+    const promptMsg = immediate
+      ? 'Cancelar a recorrência no Mercado Pago e ENCERRAR/BLOQUEAR a assinatura imediatamente?\n(Informe um motivo opcional ou deixe em branco)'
+      : 'Cancelar a renovação automática no Mercado Pago mantendo o acesso até o fim do período já pago?\n(Informe um motivo opcional ou deixe em branco)';
+    const reason = prompt(promptMsg);
+    if (reason === null) return;
+    setBillingBusy(true);
+    try {
+      const res = await fetch(`/api/admin/clinicas/${id}/cobranca`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'cancel',
+          immediate,
+          reason: reason.trim() || undefined,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        alert(d.error || 'Não foi possível cancelar a assinatura no Mercado Pago.');
+      } else {
+        setMsg(
+          immediate
+            ? 'Assinatura e recorrência no Mercado Pago canceladas e encerradas imediatamente.'
+            : 'Renovação automática cancelada no Mercado Pago com sucesso.'
+        );
+        load();
+      }
+    } finally {
+      setBillingBusy(false);
+    }
+  }
+
   async function toggleNewApplications(allow: boolean) {
     setSavingFinancing(true);
     try {
@@ -158,9 +205,12 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ kind: 'subscription', ...sub }),
     });
+    const d = await res.json();
     if (res.ok) {
       setMsg('Assinatura e condições comerciais da clínica atualizadas.');
       load();
+    } else {
+      alert(d.error || 'Erro ao salvar assinatura.');
     }
   }
 
@@ -270,6 +320,56 @@ export default function AdminClinicaControlePage({ params }: { params: Promise<{
           <div><label className="bv-label">Observações comerciais</label><input className="bv-input" value={sub.notes} onChange={(e) => setSub({ ...sub, notes: e.target.value })} /></div>
         </div>
         <button className="bv-btn">Salvar assinatura da clínica</button>
+
+        {/* Estado da recorrência Mercado Pago & Botões de Cancelamento Real */}
+        {data.subscription && !data.subscription.is_exempt && (
+          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.6 }}>
+              {data.subscription.mp_preapproval_id ? (
+                <div>
+                  <span style={{ color: '#047857', fontWeight: '700' }}>● Recorrência automática ativa no Mercado Pago</span>{' '}
+                  (<code style={{ fontSize: '11px' }}>{data.subscription.mp_preapproval_id}</code>)
+                </div>
+              ) : data.subscription.cancel_at_period_end || data.subscription.status === 'CANCELLED' ? (
+                <div style={{ color: '#64748b' }}>
+                  <strong>✓ Recorrência cancelada no Mercado Pago</strong>
+                  {data.subscription.cancelled_at ? ` em ${new Date(data.subscription.cancelled_at).toLocaleDateString('pt-BR')}` : ''}.
+                </div>
+              ) : (
+                <div>Sem recorrência ativa no cartão (pagamento avulso/manual).</div>
+              )}
+              {data.subscription.current_period_end && (
+                <div>
+                  Fim do ciclo atual: <strong>{new Date(data.subscription.current_period_end).toLocaleDateString('pt-BR')}</strong>
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {(data.subscription.mp_preapproval_id || (!data.subscription.cancel_at_period_end && data.subscription.status !== 'CANCELLED')) && (
+                <button
+                  type="button"
+                  className="bv-btn ghost sm"
+                  style={{ color: '#b45309', borderColor: '#fde68a' }}
+                  disabled={billingBusy}
+                  onClick={() => cancelSubscriptionAdmin(false)}
+                >
+                  {billingBusy ? 'Cancelando…' : 'Cancelar renovação no MP'}
+                </button>
+              )}
+              {data.subscription.status !== 'CANCELLED' && (
+                <button
+                  type="button"
+                  className="bv-btn sm"
+                  style={{ background: '#dc2626' }}
+                  disabled={billingBusy}
+                  onClick={() => cancelSubscriptionAdmin(true)}
+                >
+                  {billingBusy ? 'Cancelando…' : 'Cancelar no MP e encerrar agora'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </form>
 
       {/* Cobranças e Faturas Mercado Pago */}

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/benavera-db';
 import { getAdminSession } from '@/lib/auth';
 import { logModuleAudit, resolveClinicEntitlements } from '@/lib/clinic-modules';
+import { cancelMpPreapprovalVerified, isMercadoPagoConfigured } from '@/lib/mercadopago';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getAdminSession();
@@ -90,6 +91,38 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         newValue: { allow_new_applications: allowNew, block_reason: blockReason },
       });
     } else if (body.kind === 'subscription') {
+      const nextStatus = String(body.status || 'EXEMPT');
+      const nextExempt = Boolean(body.is_exempt) || nextStatus === 'EXEMPT';
+      // Se o admin mudar para CANCELLED ou EXEMPT via seletor, cancelar qualquer recorrência ativa no Mercado Pago!
+      const shouldStopMpRecurring = nextStatus === 'CANCELLED' || nextExempt;
+      const cancelledPreIds: string[] = [];
+      if (shouldStopMpRecurring) {
+        const [curSubRows, openPreRows] = await Promise.all([
+          sql`SELECT mp_preapproval_id FROM clinic_subscriptions WHERE clinic_id = ${id}::uuid LIMIT 1`,
+          sql`
+            SELECT DISTINCT mp_preapproval_id FROM saas_invoices
+            WHERE clinic_id = ${id}::uuid AND mp_preapproval_id IS NOT NULL AND COALESCE(mp_status, '') <> 'cancelled'
+          `,
+        ]);
+        const preIds = new Set<string>();
+        if (curSubRows[0]?.mp_preapproval_id) preIds.add(String(curSubRows[0].mp_preapproval_id));
+        for (const r of openPreRows) {
+          if (r.mp_preapproval_id) preIds.add(String(r.mp_preapproval_id));
+        }
+        if (preIds.size > 0) {
+          if (!isMercadoPagoConfigured()) {
+            return NextResponse.json(
+              { error: 'Esta clínica tem recorrência ativa no Mercado Pago, mas o gateway não está configurado para cancelá-la.' },
+              { status: 400 }
+            );
+          }
+          for (const preId of preIds) {
+            await cancelMpPreapprovalVerified(preId);
+            cancelledPreIds.push(preId);
+          }
+        }
+      }
+
       await sql`
         INSERT INTO clinic_subscriptions (
           clinic_id, plan_id, status, billing_cycle, custom_price, discount_percent, is_exempt,
@@ -97,11 +130,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ) VALUES (
           ${id}::uuid,
           ${body.plan_id || null},
-          ${body.status || 'EXEMPT'},
+          ${nextStatus},
           ${body.billing_cycle || 'LIFETIME_FREE'},
           ${body.custom_price !== '' && body.custom_price !== null && body.custom_price !== undefined ? Number(body.custom_price) : null},
           ${Number(body.discount_percent) || 0},
-          ${Boolean(body.is_exempt)},
+          ${nextExempt},
           ${body.coupon_code || null},
           ${body.due_day ? Number(body.due_day) : null},
           ${body.grace_until || null},
@@ -122,9 +155,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           grace_until = EXCLUDED.grace_until,
           trial_ends_at = EXCLUDED.trial_ends_at,
           notes = EXCLUDED.notes,
+          mp_preapproval_id = CASE WHEN ${shouldStopMpRecurring} THEN NULL ELSE clinic_subscriptions.mp_preapproval_id END,
+          next_billing_at = CASE WHEN ${shouldStopMpRecurring} THEN NULL ELSE clinic_subscriptions.next_billing_at END,
+          cancel_at_period_end = CASE WHEN ${nextStatus === 'CANCELLED'} THEN TRUE ELSE clinic_subscriptions.cancel_at_period_end END,
+          cancelled_at = CASE WHEN ${nextStatus === 'CANCELLED'} THEN COALESCE(clinic_subscriptions.cancelled_at, NOW()) ELSE clinic_subscriptions.cancelled_at END,
           updated_by = EXCLUDED.updated_by,
           updated_at = NOW()
       `;
+      if (shouldStopMpRecurring) {
+        await sql`
+          UPDATE saas_invoices SET status = 'CANCELLED', mp_status = 'cancelled', updated_at = NOW()
+          WHERE clinic_id = ${id}::uuid AND status = 'PENDING'
+        `;
+        if (cancelledPreIds.length > 0) {
+          await sql`
+            UPDATE saas_invoices SET mp_status = 'cancelled', updated_at = NOW()
+            WHERE clinic_id = ${id}::uuid AND mp_preapproval_id = ANY(${cancelledPreIds}::text[])
+          `;
+        }
+      }
       await logModuleAudit({
         clinicId: id,
         actorId: session.userId,
@@ -140,6 +189,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ success: true, entitlements: resolved });
   } catch (err) {
     console.error('[API Admin Clinica Controle PATCH]', err);
-    return NextResponse.json({ error: 'Erro ao atualizar clínica.' }, { status: 500 });
+    const msg = err instanceof Error ? err.message : 'Erro ao atualizar clínica.';
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 }

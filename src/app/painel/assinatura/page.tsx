@@ -54,10 +54,13 @@ interface Subscription {
   billing_cycle: string;
   is_exempt: boolean;
   payment_method: string | null;
+  mp_preapproval_id: string | null;
+  next_billing_at: string | null;
   current_period_end: string | null;
   grace_until: string | null;
   trial_ends_at: string | null;
   cancel_at_period_end: boolean;
+  cancelled_at: string | null;
   coupon_code: string | null;
   discount_percent: number;
   custom_price: number | null;
@@ -137,6 +140,8 @@ export default function PainelAssinaturaPage() {
   const [couponCode, setCouponCode] = useState('');
   const [busyPlan, setBusyPlan] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
 
   // Checkout Transparente ativo na tela
   const [activePix, setActivePix] = useState<ActivePix | null>(null);
@@ -387,22 +392,28 @@ export default function PainelAssinaturaPage() {
   }
 
   async function handleCancel() {
-    if (!confirm('Deseja cancelar a renovação automática? Seu acesso permanecerá ativo até o fim do período já pago.')) return;
     setCancelling(true);
+    setBannerMsg(null);
     try {
-      const res = await fetch('/api/painel/assinatura/cancelar', { method: 'POST' });
+      const res = await fetch('/api/painel/assinatura/cancelar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: cancelReason.trim() || undefined }),
+      });
       const d = await res.json();
       if (res.ok) {
+        setShowCancelConfirm(false);
+        setCancelReason('');
         setBannerMsg({
-          type: 'warn',
+          type: 'ok',
           text: d.keepUntilPeriodEnd
-            ? 'Renovação cancelada. Seu acesso continua normalmente até o fim do ciclo atual.'
-            : 'Assinatura cancelada.',
+            ? `Cancelamento confirmado no Mercado Pago! Nenhuma nova cobrança será feita no cartão e seu acesso permanece liberado até ${d.currentPeriodEnd ? new Date(d.currentPeriodEnd).toLocaleDateString('pt-BR') : 'o fim do ciclo atual'}.`
+            : 'Assinatura e cobrança recorrente canceladas com sucesso no Mercado Pago! Nenhuma nova cobrança será realizada.',
         });
         await load();
         router.refresh();
       } else {
-        setBannerMsg({ type: 'err', text: d.error || 'Erro ao cancelar assinatura.' });
+        setBannerMsg({ type: 'err', text: d.error || 'Não foi possível cancelar a assinatura no Mercado Pago. Tente novamente.' });
       }
     } finally {
       setCancelling(false);
@@ -717,18 +728,82 @@ export default function PainelAssinaturaPage() {
               )}
               {subscription?.payment_method && (
                 <span>
-                  Forma: <strong>{subscription.payment_method === 'CARD_RECURRING' ? 'Cartão Recorrente' : subscription.payment_method}</strong>
+                  Forma: <strong>{subscription.payment_method === 'CARD_RECURRING' ? 'Cartão Recorrente Automático' : subscription.payment_method}</strong>
+                </span>
+              )}
+              {subscription?.mp_preapproval_id && (
+                <span style={{ color: '#047857', fontWeight: '700' }}>
+                  ● Débito automático ativo no cartão
                 </span>
               )}
             </div>
+            {(subscription?.cancel_at_period_end || subscription?.status === 'CANCELLED') && !subscription?.is_exempt && (
+              <div style={{ marginTop: '10px', padding: '10px 12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', fontSize: '12px', color: '#334155' }}>
+                <strong>✓ Renovação automática cancelada no Mercado Pago</strong>
+                {subscription.cancelled_at ? ` em ${new Date(subscription.cancelled_at).toLocaleDateString('pt-BR')}` : ''}.
+                {' '}Nenhuma nova cobrança será feita no seu cartão.
+                {subscription.status === 'ACTIVE' && subscription.current_period_end
+                  ? ` Seu acesso segue liberado até ${new Date(subscription.current_period_end).toLocaleDateString('pt-BR')}.`
+                  : ' Você pode reativar escolhendo um plano abaixo quando quiser.'}
+              </div>
+            )}
           </div>
 
-          {subscription && !subscription.is_exempt && subscription.status === 'ACTIVE' && !subscription.cancel_at_period_end && (
-            <button type="button" className="bv-btn ghost sm" disabled={cancelling} onClick={handleCancel}>
-              {cancelling ? 'Cancelando…' : 'Cancelar renovação'}
-            </button>
-          )}
+          {subscription &&
+            !subscription.is_exempt &&
+            ['ACTIVE', 'TRIAL', 'GRACE', 'PENDING_PAYMENT', 'PAST_DUE'].includes(subscription.status) &&
+            (!subscription.cancel_at_period_end || Boolean(subscription.mp_preapproval_id)) && (
+              <button
+                type="button"
+                className="bv-btn ghost sm"
+                style={{ color: '#b91c1c', borderColor: '#fecaca' }}
+                disabled={cancelling}
+                onClick={() => setShowCancelConfirm(true)}
+              >
+                Cancelar assinatura
+              </button>
+            )}
         </div>
+
+        {showCancelConfirm && (
+          <div style={{ marginTop: '16px', padding: '16px', borderRadius: '10px', background: '#fef2f2', border: '1px solid #fecaca' }}>
+            <div style={{ fontWeight: '800', fontSize: '14px', color: '#991b1b', marginBottom: '6px' }}>
+              Confirmar cancelamento da assinatura recorrente
+            </div>
+            <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#7f1d1d', lineHeight: 1.55 }}>
+              Vamos cancelar imediatamente a cobrança automática no Mercado Pago para que <strong>nenhuma nova fatura seja debitada</strong>.
+              {subscription?.status === 'ACTIVE' && subscription.current_period_end
+                ? ` Você continuará com acesso normal até ${new Date(subscription.current_period_end).toLocaleDateString('pt-BR')}.`
+                : ' Seus contratos antigos e repasses continuarão disponíveis para consulta.'}
+            </p>
+            <input
+              className="bv-input"
+              placeholder="Motivo do cancelamento (opcional)"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              style={{ marginBottom: '10px', background: 'white' }}
+            />
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="bv-btn sm"
+                style={{ background: '#dc2626' }}
+                disabled={cancelling}
+                onClick={handleCancel}
+              >
+                {cancelling ? 'Cancelando no Mercado Pago…' : 'Confirmar cancelamento real'}
+              </button>
+              <button
+                type="button"
+                className="bv-btn ghost sm"
+                disabled={cancelling}
+                onClick={() => setShowCancelConfirm(false)}
+              >
+                Voltar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Escolha de Plano e Pagamento Transparente */}

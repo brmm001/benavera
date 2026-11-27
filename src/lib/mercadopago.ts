@@ -267,6 +267,59 @@ export async function cancelMpPreapproval(id: string): Promise<MpPreapprovalResp
   });
 }
 
+/**
+ * Cancela uma assinatura recorrente (/preapproval) no Mercado Pago e VERIFICA o estado final.
+ * - Se já estiver cancelada ou não existir (404), confirma com segurança.
+ * - Se falhar e o Mercado Pago continuar cobrando (status !== 'cancelled'), lança erro explícito
+ *   para jamais fingir cancelamento deixando o cartão em cobrança recorrente.
+ */
+export async function cancelMpPreapprovalVerified(id: string): Promise<{
+  id: string;
+  status: 'cancelled' | 'not_found';
+  alreadyCancelled: boolean;
+}> {
+  const cleanId = String(id || '').trim();
+  if (!cleanId) {
+    return { id: cleanId, status: 'not_found', alreadyCancelled: true };
+  }
+
+  try {
+    const res = await cancelMpPreapproval(cleanId);
+    if (String(res.status || '').toLowerCase() === 'cancelled') {
+      return { id: cleanId, status: 'cancelled', alreadyCancelled: false };
+    }
+  } catch (err) {
+    if (err instanceof MercadoPagoApiError && err.status === 404) {
+      return { id: cleanId, status: 'not_found', alreadyCancelled: true };
+    }
+    // Se MP recusou o PUT (ex: já estava cancelada), consulta o estado real antes de decidir
+    try {
+      const current = await getMpPreapproval(cleanId);
+      if (String(current.status || '').toLowerCase() === 'cancelled') {
+        return { id: cleanId, status: 'cancelled', alreadyCancelled: true };
+      }
+      throw new Error(
+        `Mercado Pago não confirmou o cancelamento da recorrência ${cleanId} (status atual: ${current.status}).`
+      );
+    } catch (getErr) {
+      if (getErr instanceof MercadoPagoApiError && getErr.status === 404) {
+        return { id: cleanId, status: 'not_found', alreadyCancelled: true };
+      }
+      const msg = err instanceof Error ? err.message : 'Erro ao comunicar com Mercado Pago';
+      throw new Error(`Não foi possível cancelar a assinatura recorrente no Mercado Pago (${cleanId}): ${msg}`);
+    }
+  }
+
+  // Reconfirmação explícita quando PUT respondeu 200 mas com status inesperado
+  const check = await getMpPreapproval(cleanId);
+  if (String(check.status || '').toLowerCase() === 'cancelled') {
+    return { id: cleanId, status: 'cancelled', alreadyCancelled: false };
+  }
+  throw new Error(
+    `Mercado Pago não confirmou o cancelamento da recorrência ${cleanId} (status atual: ${check.status}).`
+  );
+}
+
 // ── 2. Pagamento Pix Nativo (/v1/payments) ───────────────────────────────────
 
 export interface CreatePixPaymentInput {

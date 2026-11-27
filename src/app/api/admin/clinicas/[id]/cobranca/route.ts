@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getAdminSession } from '@/lib/auth';
 import { sql } from '@/lib/benavera-db';
-import { applyPaidInvoice, startClinicCheckout } from '@/lib/billing-service';
+import { applyPaidInvoice, cancelClinicSubscription, startClinicCheckout } from '@/lib/billing-service';
 
 const actionSchema = z.discriminatedUnion('action', [
   z.object({
@@ -17,6 +17,11 @@ const actionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('mark_paid'),
     invoiceId: z.string().uuid(),
+  }),
+  z.object({
+    action: z.literal('cancel'),
+    immediate: z.boolean().optional().default(false),
+    reason: z.string().max(400).optional().nullable(),
   }),
 ]);
 
@@ -71,6 +76,16 @@ export async function POST(
         sendInvoiceEmail: parsed.data.sendEmail,
       });
       return NextResponse.json({ success: true, ...result }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+    } else if (parsed.data.action === 'cancel') {
+      const result = await cancelClinicSubscription({
+        clinicId: id,
+        immediate: parsed.data.immediate,
+        reason: parsed.data.reason || null,
+        cancelledBy: 'ADMIN',
+        actorId: session.userId,
+        actorName: session.name,
+      });
+      return NextResponse.json({ success: true, ...result }, { headers: { 'Cache-Control': 'no-store' } });
     } else {
       // Verifica se a fatura pertence à clínica
       const check = await sql`SELECT id FROM saas_invoices WHERE id = ${parsed.data.invoiceId}::uuid AND clinic_id = ${id}::uuid LIMIT 1`;

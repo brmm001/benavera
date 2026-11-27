@@ -765,6 +765,48 @@ export async function sendSubscriptionSuspendedEmail(opts: {
   });
 }
 
+export async function sendSubscriptionCancelledEmail(opts: {
+  to: string;
+  clinicName: string;
+  clinicId?: string;
+  planName: string;
+  keepUntilPeriodEnd: boolean;
+  accessUntilDate?: string | null;
+  cancelledByLabel: string;
+  reason?: string | null;
+}): Promise<EmailDispatchResult> {
+  const detailMsg = opts.keepUntilPeriodEnd && opts.accessUntilDate
+    ? `A renovação automática no Mercado Pago foi cancelada e <strong>nenhuma cobrança futura será realizada no seu cartão</strong>. Seu acesso ao plano ${escapeHtml(opts.planName)} continua liberado até <strong>${escapeHtml(opts.accessUntilDate)}</strong>.`
+    : `A assinatura do plano <strong>${escapeHtml(opts.planName)}</strong> e a cobrança recorrente no Mercado Pago foram canceladas imediatamente. <strong>Nenhuma nova cobrança será realizada</strong>. Seus contratos antigos e repasses continuam livres para consulta.`;
+
+  const content = `
+    <div style="border-top:4px solid #64748b;padding:36px;">
+      <div style="font-size:30px;margin-bottom:10px;">🛑</div>
+      <h1 style="font-size:21px;font-weight:800;color:#0f172a;margin:0 0 8px;">Assinatura cancelada com sucesso</h1>
+      <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">
+        Confirmamos o cancelamento da assinatura da <strong>${escapeHtml(opts.clinicName)}</strong> (${escapeHtml(opts.cancelledByLabel)}).
+      </p>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:16px 0;font-size:14px;color:#334155;line-height:1.6;">
+        ${detailMsg}
+        ${opts.reason ? `<p style="margin:10px 0 0;font-size:13px;color:#64748b;"><strong>Motivo registrado:</strong> ${escapeHtml(opts.reason)}</p>` : ''}
+      </div>
+      ${ctaButton('Reativar assinatura quando quiser →', safeHref(null, '/painel/assinatura'), '#4040ca')}
+    </div>
+  `;
+
+  return dispatchEmail({
+    to: opts.to,
+    recipientName: opts.clinicName,
+    recipientType: 'CLINIC',
+    recipientId: opts.clinicId || null,
+    category: 'BILLING',
+    template: 'subscription_cancelled',
+    subject: `🛑 Cancelamento confirmado — Assinatura Benavera (${opts.clinicName})`,
+    html: baseLayout(content, 'A cobrança recorrente da sua assinatura Benavera foi cancelada no Mercado Pago.'),
+    metadata: { keepUntilPeriodEnd: opts.keepUntilPeriodEnd, cancelledBy: opts.cancelledByLabel },
+  });
+}
+
 // ─── 3. Repasses para Clínicas ───────────────────────────────────────────────
 
 export function buildClinicPayoutEmail(opts: {

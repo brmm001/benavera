@@ -5,7 +5,7 @@ import { sql } from './benavera-db';
 import { logModuleAudit } from './clinic-modules';
 import { syncComissoes } from './representantes-db';
 import {
-  cancelMpPreapproval,
+  cancelMpPreapprovalVerified,
   createMpBoletoPayment,
   createMpCheckoutPreference,
   createMpPixPayment,
@@ -17,6 +17,7 @@ import {
   MercadoPagoApiError,
 } from './mercadopago';
 import {
+  sendSubscriptionCancelledEmail,
   sendSubscriptionGraceWarningEmail,
   sendSubscriptionInvoiceEmail,
   sendSubscriptionPaymentConfirmedEmail,
@@ -231,13 +232,18 @@ export async function startClinicCheckout(params: {
     coupon,
   });
 
-  // Plano gratuito ou 100% descontado → ativa sem cobrar no Mercado Pago
+  // Plano gratuito ou 100% descontado → cancela eventual recorrência ativa no Mercado Pago antes de ativar
   if (pricing.isFree) {
+    if (currentSub?.mp_preapproval_id && isMercadoPagoConfigured()) {
+      await cancelMpPreapprovalVerified(String(currentSub.mp_preapproval_id));
+    }
     await sql`
       INSERT INTO clinic_subscriptions (
-        clinic_id, plan_id, status, billing_cycle, is_exempt, coupon_code, payment_method, updated_by, updated_at
+        clinic_id, plan_id, status, billing_cycle, is_exempt, coupon_code, payment_method,
+        mp_preapproval_id, next_billing_at, cancel_at_period_end, updated_by, updated_at
       ) VALUES (
-        ${params.clinicId}::uuid, ${plan.id}::uuid, 'EXEMPT', 'LIFETIME_FREE', TRUE, ${pricing.appliedCoupon}, 'MANUAL', ${params.actorName || 'Sistema'}, NOW()
+        ${params.clinicId}::uuid, ${plan.id}::uuid, 'EXEMPT', 'LIFETIME_FREE', TRUE, ${pricing.appliedCoupon}, 'MANUAL',
+        NULL, NULL, FALSE, ${params.actorName || 'Sistema'}, NOW()
       )
       ON CONFLICT (clinic_id) DO UPDATE SET
         plan_id = EXCLUDED.plan_id,
@@ -245,6 +251,9 @@ export async function startClinicCheckout(params: {
         billing_cycle = 'LIFETIME_FREE',
         is_exempt = TRUE,
         coupon_code = EXCLUDED.coupon_code,
+        mp_preapproval_id = NULL,
+        next_billing_at = NULL,
+        cancel_at_period_end = FALSE,
         grace_until = NULL,
         updated_by = EXCLUDED.updated_by,
         updated_at = NOW()
@@ -346,11 +355,16 @@ export async function startClinicCheckout(params: {
     mpStatusInitial = String(pre.status || 'pending').toLowerCase();
     mpRaw = pre.raw;
 
-    await sql`
-      UPDATE clinic_subscriptions
-      SET mp_preapproval_id = ${mpPreapprovalId}, updated_at = NOW()
-      WHERE id = ${subscriptionId}::uuid
-    `;
+    // Só grava mp_preapproval_id diretamente se ainda não houver recorrência ativa diferente;
+    // se já existir outra, evita perder a referência antes da nova ser autorizada (evita cobrança dupla).
+    const existingPreId = currentSub?.mp_preapproval_id ? String(currentSub.mp_preapproval_id) : null;
+    if (!existingPreId || existingPreId === mpPreapprovalId) {
+      await sql`
+        UPDATE clinic_subscriptions
+        SET mp_preapproval_id = ${mpPreapprovalId}, updated_at = NOW()
+        WHERE id = ${subscriptionId}::uuid
+      `;
+    }
   } else if (params.paymentMethod === 'PIX') {
     const pix = await createMpPixPayment({
       amount: pricing.finalAmount,
@@ -520,7 +534,8 @@ export async function applyPaidInvoice(params: {
 }): Promise<{ alreadyPaid: boolean; clinicId: string; periodEnd?: string }> {
   const rows = await sql`
     SELECT i.*, c.nome_fantasia, c.email, c.email_financeiro,
-           cs.plan_id AS sub_plan_id, cs.scheduled_plan_id, cs.current_period_end
+           cs.plan_id AS sub_plan_id, cs.scheduled_plan_id, cs.current_period_end,
+           cs.mp_preapproval_id AS current_mp_preapproval_id
     FROM saas_invoices i
     JOIN clinics c ON c.id = i.clinic_id
     LEFT JOIN clinic_subscriptions cs ON cs.clinic_id = i.clinic_id
@@ -577,17 +592,28 @@ export async function applyPaidInvoice(params: {
   const payloadObj = (typeof inv.payload === 'string' ? JSON.parse(inv.payload) : inv.payload || {}) as Record<string, unknown>;
   const targetPlanId = (payloadObj.plan_id as string | undefined) || (inv.scheduled_plan_id ? String(inv.scheduled_plan_id) : null) || (inv.sub_plan_id ? String(inv.sub_plan_id) : null);
 
+  // Se uma NOVA recorrência (/preapproval) foi ativada enquanto havia outra antiga, cancela a antiga no Mercado Pago para evitar cobrança dupla!
+  const newPreId = params.mpPreapprovalId || (inv.mp_preapproval_id ? String(inv.mp_preapproval_id) : null);
+  const oldPreId = inv.current_mp_preapproval_id ? String(inv.current_mp_preapproval_id) : null;
+  if (newPreId && oldPreId && oldPreId !== newPreId && isMercadoPagoConfigured()) {
+    try {
+      await cancelMpPreapprovalVerified(oldPreId);
+    } catch (swapErr) {
+      console.error('[Billing] Falha ao cancelar recorrência anterior na troca de plano:', oldPreId, swapErr);
+    }
+  }
+
   await sql`
     INSERT INTO clinic_subscriptions (
       clinic_id, plan_id, status, billing_cycle, is_exempt, payment_method,
       mp_preapproval_id, current_period_start, current_period_end, next_billing_at,
-      grace_until, last_payment_at, failed_payment_count, cancel_at_period_end, updated_by, updated_at
+      grace_until, last_payment_at, failed_payment_count, cancel_at_period_end, cancelled_at, updated_by, updated_at
     ) VALUES (
       ${clinicId}::uuid, ${targetPlanId}::uuid, 'ACTIVE', ${cycle}, FALSE,
       ${params.paymentMethod || inv.payment_method || 'PIX'},
-      ${params.mpPreapprovalId || inv.mp_preapproval_id || null},
+      ${newPreId},
       ${periodStart.toISOString()}, ${periodEnd.toISOString()}, ${periodEnd.toISOString()},
-      NULL, ${paidAt.toISOString()}, 0, FALSE, ${params.actorName || 'Mercado Pago'}, NOW()
+      NULL, ${paidAt.toISOString()}, 0, FALSE, NULL, ${params.actorName || 'Mercado Pago'}, NOW()
     )
     ON CONFLICT (clinic_id) DO UPDATE SET
       plan_id = COALESCE(${targetPlanId}::uuid, clinic_subscriptions.plan_id),
@@ -596,7 +622,7 @@ export async function applyPaidInvoice(params: {
       billing_cycle = ${cycle},
       is_exempt = FALSE,
       payment_method = COALESCE(${params.paymentMethod || inv.payment_method || null}, clinic_subscriptions.payment_method),
-      mp_preapproval_id = COALESCE(${params.mpPreapprovalId || inv.mp_preapproval_id || null}, clinic_subscriptions.mp_preapproval_id),
+      mp_preapproval_id = COALESCE(${newPreId}, clinic_subscriptions.mp_preapproval_id),
       current_period_start = ${periodStart.toISOString()},
       current_period_end = ${periodEnd.toISOString()},
       next_billing_at = ${periodEnd.toISOString()},
@@ -604,6 +630,7 @@ export async function applyPaidInvoice(params: {
       last_payment_at = ${paidAt.toISOString()},
       failed_payment_count = 0,
       cancel_at_period_end = FALSE,
+      cancelled_at = NULL,
       updated_by = ${params.actorName || 'Mercado Pago'},
       updated_at = NOW()
   `;
@@ -825,11 +852,24 @@ export async function processMercadoPagoWebhook(params: {
       const preId = String(pre.id);
       const st = String(pre.status || '').toLowerCase();
 
-      const subRows = await sql`
+      let subRows = await sql`
         SELECT id, clinic_id, current_period_end, status FROM clinic_subscriptions
         WHERE mp_preapproval_id = ${preId}
         LIMIT 1
       `;
+      // Também permite localizar trocas de plano/cartão pendentes via saas_invoices
+      if (!subRows[0]) {
+        const invRef = await sql`
+          SELECT clinic_id FROM saas_invoices WHERE mp_preapproval_id = ${preId} ORDER BY created_at DESC LIMIT 1
+        `;
+        if (invRef[0]) {
+          subRows = await sql`
+            SELECT id, clinic_id, current_period_end, status FROM clinic_subscriptions
+            WHERE clinic_id = ${invRef[0].clinic_id}::uuid
+            LIMIT 1
+          `;
+        }
+      }
       if (subRows[0]) {
         if (st === 'authorized') {
           // Se há fatura PENDING vinculada a este preapproval (primeira cobrança aprovada na adesão), quitar
@@ -851,28 +891,26 @@ export async function processMercadoPagoWebhook(params: {
               SET status = 'ACTIVE',
                   next_billing_at = COALESCE(${pre.next_payment_date || null}::timestamptz, next_billing_at),
                   updated_at = NOW()
-              WHERE id = ${subRows[0].id}::uuid
+              WHERE id = ${subRows[0].id}::uuid AND mp_preapproval_id = ${preId}
             `;
           }
           action = 'preapproval_authorized';
         } else if (st === 'cancelled') {
-          const stillWithinPeriod =
-            subRows[0].current_period_end && new Date(String(subRows[0].current_period_end)).getTime() > Date.now();
-          await sql`
-            UPDATE clinic_subscriptions
-            SET cancel_at_period_end = TRUE,
-                cancelled_at = COALESCE(cancelled_at, NOW()),
-                status = ${stillWithinPeriod ? String(subRows[0].status) : 'CANCELLED'},
-                updated_at = NOW()
-            WHERE id = ${subRows[0].id}::uuid
-          `;
+          await cancelClinicSubscription({
+            clinicId: String(subRows[0].clinic_id),
+            immediate: false,
+            cancelledBy: 'MERCADO_PAGO',
+            actorName: 'Mercado Pago (Webhook)',
+            reason: 'Cancelamento confirmado via Mercado Pago',
+            skipRemoteCancelIds: [preId],
+          });
           action = 'preapproval_cancelled';
         } else if (st === 'paused') {
           const graceUntil = new Date(Date.now() + GRACE_DAYS * 24 * 60 * 60 * 1000).toISOString();
           await sql`
             UPDATE clinic_subscriptions
             SET status = 'GRACE', grace_until = COALESCE(grace_until, ${graceUntil}::timestamptz), updated_at = NOW()
-            WHERE id = ${subRows[0].id}::uuid AND status = 'ACTIVE'
+            WHERE id = ${subRows[0].id}::uuid AND status = 'ACTIVE' AND mp_preapproval_id = ${preId}
           `;
           action = 'preapproval_paused_grace';
         }
@@ -900,54 +938,181 @@ export async function processMercadoPagoWebhook(params: {
   }
 }
 
-// ── Cancelar assinatura pela clínica ─────────────────────────────────────────
+// ── Cancelar assinatura (pela clínica, pelo admin ou via webhook MP) ─────────
+// Garante cancelamento REAL e VERIFICADO no Mercado Pago antes de marcar cancelado no banco.
+
+function toIsoOrNull(val: unknown): string | null {
+  if (!val) return null;
+  const d = val instanceof Date ? val : new Date(String(val));
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
 
 export async function cancelClinicSubscription(params: {
   clinicId: string;
+  immediate?: boolean;
+  reason?: string | null;
+  cancelledBy?: 'CLINIC' | 'ADMIN' | 'MERCADO_PAGO';
   actorId?: string | null;
   actorName?: string | null;
+  skipRemoteCancelIds?: string[];
 }) {
-  const rows = await sql`
-    SELECT * FROM clinic_subscriptions WHERE clinic_id = ${params.clinicId}::uuid LIMIT 1
-  `;
-  const sub = rows[0];
-  if (!sub) throw new Error('Nenhuma assinatura encontrada para esta clínica.');
+  const [subRows, clinicRows, openPreRows] = await Promise.all([
+    sql`
+      SELECT cs.*, sp.name AS plan_name
+      FROM clinic_subscriptions cs
+      LEFT JOIN saas_plans sp ON sp.id = cs.plan_id
+      WHERE cs.clinic_id = ${params.clinicId}::uuid
+      LIMIT 1
+    `,
+    sql`
+      SELECT id, nome_fantasia, email, email_financeiro
+      FROM clinics WHERE id = ${params.clinicId}::uuid LIMIT 1
+    `,
+    sql`
+      SELECT DISTINCT mp_preapproval_id
+      FROM saas_invoices
+      WHERE clinic_id = ${params.clinicId}::uuid
+        AND mp_preapproval_id IS NOT NULL
+        AND COALESCE(mp_status, '') <> 'cancelled'
+    `,
+  ]);
 
-  if (sub.mp_preapproval_id && isMercadoPagoConfigured()) {
-    try {
-      await cancelMpPreapproval(String(sub.mp_preapproval_id));
-    } catch (err) {
-      console.warn('[MP Cancel Preapproval]', err);
+  const sub = subRows[0];
+  if (!sub) throw new Error('Nenhuma assinatura encontrada para esta clínica.');
+  const clinic = clinicRows[0];
+
+  const immediate = Boolean(params.immediate);
+  const skipSet = new Set((params.skipRemoteCancelIds || []).map(String));
+
+  // Coletar TODOS os mp_preapproval_id possivelmente ativos da clínica (evita recorrência órfã!)
+  const preIds = new Set<string>();
+  if (sub.mp_preapproval_id) preIds.add(String(sub.mp_preapproval_id));
+  for (const r of openPreRows) {
+    if (r.mp_preapproval_id) preIds.add(String(r.mp_preapproval_id));
+  }
+
+  const cancelledPreapprovalIds: string[] = [];
+  if (preIds.size > 0) {
+    const toCancelRemotely = Array.from(preIds).filter(id => !skipSet.has(id));
+    if (toCancelRemotely.length > 0 && !isMercadoPagoConfigured()) {
+      throw new Error(
+        'Mercado Pago não configurado no servidor; não foi possível cancelar a cobrança recorrente no gateway.'
+      );
+    }
+    for (const preId of toCancelRemotely) {
+      // Estrito: se o Mercado Pago não confirmar o cancelamento, lança erro e NÃO mascara no banco!
+      await cancelMpPreapprovalVerified(preId);
+      cancelledPreapprovalIds.push(preId);
+    }
+    for (const skippedId of skipSet) {
+      if (preIds.has(skippedId)) cancelledPreapprovalIds.push(skippedId);
     }
   }
 
-  const stillWithinPeriod =
-    sub.current_period_end && new Date(String(sub.current_period_end)).getTime() > Date.now();
+  const alreadyCancelledFully =
+    String(sub.status) === 'CANCELLED' &&
+    !sub.mp_preapproval_id &&
+    cancelledPreapprovalIds.length === 0;
+
+  const currentPeriodEndIso = toIsoOrNull(sub.current_period_end);
+
+  if (alreadyCancelledFully) {
+    return {
+      cancelled: true,
+      alreadyCancelled: true,
+      immediate,
+      keepUntilPeriodEnd: false,
+      cancelledPreapprovalIds: [],
+      currentPeriodEnd: currentPeriodEndIso,
+      status: 'CANCELLED',
+    };
+  }
+
+  const periodEndDate = currentPeriodEndIso ? new Date(currentPeriodEndIso) : null;
+  const hasFuturePaidPeriod = Boolean(periodEndDate && periodEndDate.getTime() > Date.now());
+  const canKeepUntilEnd =
+    !immediate && hasFuturePaidPeriod && (String(sub.status) === 'ACTIVE' || String(sub.status) === 'TRIAL');
+  const nextStatus = canKeepUntilEnd ? String(sub.status) : 'CANCELLED';
+  const nextPeriodEndIso = immediate ? new Date().toISOString() : currentPeriodEndIso;
 
   await sql`
     UPDATE clinic_subscriptions
     SET cancel_at_period_end = TRUE,
-        cancelled_at = NOW(),
-        status = ${stillWithinPeriod ? String(sub.status) : 'CANCELLED'},
+        cancelled_at = COALESCE(cancelled_at, NOW()),
+        status = ${nextStatus},
+        mp_preapproval_id = NULL,
+        next_billing_at = NULL,
+        grace_until = NULL,
+        scheduled_plan_id = NULL,
+        current_period_end = ${nextPeriodEndIso},
         updated_by = ${params.actorName || 'Clínica'},
         updated_at = NOW()
     WHERE clinic_id = ${params.clinicId}::uuid
   `;
 
+  // Cancelar faturas PENDING abertas para não ficarem cobranças fantasmas pendentes
+  await sql`
+    UPDATE saas_invoices
+    SET status = 'CANCELLED', mp_status = 'cancelled', updated_at = NOW()
+    WHERE clinic_id = ${params.clinicId}::uuid AND status = 'PENDING'
+  `;
+
+  // Marcar mp_status = 'cancelled' nos registros de preapproval cancelados (preservando status PAID das já pagas)
+  if (cancelledPreapprovalIds.length > 0) {
+    await sql`
+      UPDATE saas_invoices
+      SET mp_status = 'cancelled', updated_at = NOW()
+      WHERE clinic_id = ${params.clinicId}::uuid
+        AND mp_preapproval_id = ANY(${cancelledPreapprovalIds}::text[])
+    `;
+  }
+
+  const cancelledBy = params.cancelledBy || 'CLINIC';
   await logModuleAudit({
     clinicId: params.clinicId,
     actorId: params.actorId || null,
-    actorName: params.actorName || 'Clínica',
+    actorName: params.actorName || (cancelledBy === 'ADMIN' ? 'Administrador' : 'Clínica'),
     scope: 'SUBSCRIPTION',
     targetId: String(sub.id),
-    action: 'CANCEL_SUBSCRIPTION',
-    newValue: { keepUntilPeriodEnd: Boolean(stillWithinPeriod) },
+    action: immediate ? 'CANCEL_SUBSCRIPTION_IMMEDIATE' : 'CANCEL_SUBSCRIPTION',
+    newValue: {
+      cancelledBy,
+      immediate,
+      keepUntilPeriodEnd: canKeepUntilEnd,
+      cancelledPreapprovalIds,
+      reason: params.reason || null,
+    },
   });
+
+  // Enviar e-mail de confirmação de cancelamento via Resend
+  const toEmail = String(clinic?.email_financeiro || clinic?.email || '').trim();
+  if (toEmail) {
+    const byLabel =
+      cancelledBy === 'ADMIN'
+        ? `solicitado pelo administrador (${params.actorName || 'Benavera'})`
+        : cancelledBy === 'MERCADO_PAGO'
+          ? 'confirmado no Mercado Pago'
+          : 'solicitado pela clínica';
+    await sendSubscriptionCancelledEmail({
+      to: toEmail,
+      clinicName: String(clinic?.nome_fantasia || 'Clínica'),
+      clinicId: params.clinicId,
+      planName: String(sub.plan_name || 'Plano Benavera'),
+      keepUntilPeriodEnd: canKeepUntilEnd,
+      accessUntilDate: nextPeriodEndIso ? new Date(nextPeriodEndIso).toLocaleDateString('pt-BR') : null,
+      cancelledByLabel: byLabel,
+      reason: params.reason || null,
+    }).catch(() => {});
+  }
 
   return {
     cancelled: true,
-    keepUntilPeriodEnd: Boolean(stillWithinPeriod),
-    currentPeriodEnd: sub.current_period_end ? String(sub.current_period_end) : null,
+    alreadyCancelled: false,
+    immediate,
+    keepUntilPeriodEnd: canKeepUntilEnd,
+    cancelledPreapprovalIds,
+    currentPeriodEnd: nextPeriodEndIso,
+    status: nextStatus,
   };
 }
 
@@ -967,7 +1132,7 @@ export async function runSubscriptionLifecycleSweep(): Promise<{
     SET status = 'CANCELLED', updated_by = 'Cron Billing', updated_at = NOW()
     WHERE is_exempt = FALSE
       AND cancel_at_period_end = TRUE
-      AND status IN ('ACTIVE', 'GRACE')
+      AND status IN ('ACTIVE', 'GRACE', 'TRIAL')
       AND current_period_end IS NOT NULL
       AND current_period_end < NOW()
     RETURNING clinic_id
