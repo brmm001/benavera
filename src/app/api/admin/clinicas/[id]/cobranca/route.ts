@@ -65,6 +65,7 @@ export async function POST(
         cycle: parsed.data.cycle,
         paymentMethod: parsed.data.paymentMethod,
         couponCode: parsed.data.couponCode,
+        allowHostedFallback: true,
         actorId: session.userId,
         actorName: session.name,
         sendInvoiceEmail: parsed.data.sendEmail,

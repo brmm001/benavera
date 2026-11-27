@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { sql } from '@/lib/benavera-db';
-import { isMercadoPagoConfigured } from '@/lib/mercadopago';
+import { getMercadoPagoPublicKey, isMercadoPagoConfigured } from '@/lib/mercadopago';
 import { GRACE_DAYS } from '@/lib/billing-service';
 
 export async function GET() {
@@ -12,7 +12,7 @@ export async function GET() {
   }
 
   try {
-    const [subRows, plansRows, invoicesRows, clinicRows] = await Promise.all([
+    const [subRows, plansRows, invoicesRows, clinicRows, obRows] = await Promise.all([
       sql`
         SELECT cs.*, sp.name AS plan_name, sp.slug AS plan_slug, sp.price_monthly, sp.price_annual, sp.is_free AS plan_is_free
         FROM clinic_subscriptions cs
@@ -29,21 +29,52 @@ export async function GET() {
       sql`
         SELECT id, amount, status, cycle, due_date, paid_at, payment_method, mp_status,
                checkout_url, pix_qr_code, pix_qr_code_base64, pix_expires_at,
+               boleto_digitable_line, boleto_barcode, boleto_pdf_url, boleto_expires_at,
                period_start, period_end, discount_amount, coupon_code, created_at
         FROM saas_invoices
         WHERE clinic_id = ${session.clinicId}::uuid
         ORDER BY created_at DESC
         LIMIT 30
       `,
-      sql`SELECT id, nome_fantasia, email, email_financeiro FROM clinics WHERE id = ${session.clinicId}::uuid LIMIT 1`,
+      sql`
+        SELECT id, nome_fantasia, razao_social, responsavel, email, email_financeiro,
+               cnpj, cpf_responsavel, cep, logradouro, numero, bairro, cidade, estado
+        FROM clinics WHERE id = ${session.clinicId}::uuid LIMIT 1
+      `,
+      sql`
+        SELECT address_cep, address_street, address_number, address_neighborhood, address_city, address_state
+        FROM clinic_onboardings WHERE clinic_id = ${session.clinicId}::uuid
+        ORDER BY created_at DESC LIMIT 1
+      `,
     ]);
+
+    const c = clinicRows[0] || null;
+    const ob = obRows[0] || null;
+    const clinicInfo = c
+      ? {
+          id: c.id,
+          nome_fantasia: c.nome_fantasia,
+          razao_social: c.razao_social,
+          responsavel: c.responsavel,
+          email: c.email,
+          email_financeiro: c.email_financeiro,
+          document: c.cnpj || c.cpf_responsavel || '',
+          cep: c.cep || ob?.address_cep || '',
+          logradouro: c.logradouro || ob?.address_street || '',
+          numero: c.numero || ob?.address_number || '',
+          bairro: c.bairro || ob?.address_neighborhood || '',
+          cidade: c.cidade || ob?.address_city || '',
+          estado: c.estado || ob?.address_state || '',
+        }
+      : null;
 
     return NextResponse.json(
       {
         success: true,
         mercadoPagoConfigured: isMercadoPagoConfigured(),
+        mercadoPagoPublicKey: getMercadoPagoPublicKey() || null,
         graceDays: GRACE_DAYS,
-        clinic: clinicRows[0] || null,
+        clinic: clinicInfo,
         subscription: subRows[0] || null,
         plans: plansRows,
         invoices: invoicesRows,

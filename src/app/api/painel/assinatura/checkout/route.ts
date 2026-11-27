@@ -10,6 +10,20 @@ const checkoutSchema = z.object({
   paymentMethod: z.enum(['CARD_RECURRING', 'PIX', 'BOLETO']),
   couponCode: z.string().max(50).optional().nullable(),
   payerEmail: z.string().email().optional().nullable(),
+  cardTokenId: z.string().min(8).max(160).optional().nullable(),
+  payerName: z.string().max(120).optional().nullable(),
+  payerDocument: z.string().max(24).optional().nullable(),
+  payerAddress: z
+    .object({
+      zipCode: z.string().max(16).optional().nullable(),
+      streetName: z.string().max(120).optional().nullable(),
+      streetNumber: z.string().max(20).optional().nullable(),
+      neighborhood: z.string().max(80).optional().nullable(),
+      city: z.string().max(80).optional().nullable(),
+      federalUnit: z.string().max(4).optional().nullable(),
+    })
+    .optional()
+    .nullable(),
 });
 
 export async function POST(request: NextRequest) {
@@ -24,7 +38,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await request.json().catch(() => ({}));
+  const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+  // Defesa PCI-DSS: jamais aceitar número de cartão ou CVV em texto plano no backend
+  if ('cardNumber' in body || 'cvv' in body || 'securityCode' in body) {
+    return NextResponse.json(
+      { error: 'Dados sensíveis de cartão devem ser tokenizados diretamente no Mercado Pago (cardTokenId).' },
+      { status: 400 }
+    );
+  }
+
   const parsed = checkoutSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
@@ -41,6 +63,10 @@ export async function POST(request: NextRequest) {
       paymentMethod: parsed.data.paymentMethod,
       couponCode: parsed.data.couponCode,
       payerEmail: parsed.data.payerEmail || session.email,
+      cardTokenId: parsed.data.cardTokenId,
+      payerName: parsed.data.payerName,
+      payerDocument: parsed.data.payerDocument,
+      payerAddress: parsed.data.payerAddress,
       actorId: session.userId,
       actorName: session.name,
     });

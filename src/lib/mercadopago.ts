@@ -28,6 +28,10 @@ export function isMercadoPagoConfigured(): boolean {
   return Boolean((process.env.MERCADOPAGO_ACCESS_TOKEN || '').trim());
 }
 
+export function getMercadoPagoPublicKey(): string {
+  return (process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || process.env.MERCADOPAGO_PUBLIC_KEY || '').trim();
+}
+
 export function getMercadoPagoWebhookSecret(): string {
   return (process.env.MERCADOPAGO_WEBHOOK_SECRET || '').trim();
 }
@@ -185,6 +189,8 @@ export interface CreatePreapprovalInput {
   frequencyType: 'months';
   backUrl: string;
   idempotencyKey: string;
+  /** Token gerado no navegador pelo Mercado Pago JS SDK v2 (Checkout Transparente PCI-compliant) */
+  cardTokenId?: string | null;
 }
 
 export interface MpPreapprovalResponse {
@@ -208,7 +214,8 @@ export async function createMpPreapproval(input: CreatePreapprovalInput): Promis
   checkoutUrl: string | null;
   raw: MpPreapprovalResponse;
 }> {
-  const payload = {
+  const token = (input.cardTokenId || '').trim();
+  const payload: Record<string, unknown> = {
     reason: input.reason.slice(0, 250),
     external_reference: input.externalReference,
     payer_email: input.payerEmail,
@@ -219,8 +226,11 @@ export async function createMpPreapproval(input: CreatePreapprovalInput): Promis
       currency_id: 'BRL',
     },
     back_url: input.backUrl,
-    status: 'pending',
+    status: token ? 'authorized' : 'pending',
   };
+  if (token) {
+    payload.card_token_id = token;
+  }
 
   const raw = await mpRequest<MpPreapprovalResponse>('/preapproval', {
     method: 'POST',
@@ -231,7 +241,7 @@ export async function createMpPreapproval(input: CreatePreapprovalInput): Promis
   const checkoutUrl = sanitizeMercadoPagoUrl(raw.init_point || raw.sandbox_init_point);
   return {
     id: String(raw.id),
-    status: String(raw.status || 'pending'),
+    status: String(raw.status || (token ? 'authorized' : 'pending')),
     checkoutUrl,
     raw,
   };
@@ -277,10 +287,18 @@ export interface MpPaymentResponse {
       qr_code?: string;
       qr_code_base64?: string;
       ticket_url?: string;
+      digitable_line?: string;
     };
+  };
+  barcode?: {
+    content?: string;
   };
   transaction_details?: {
     external_resource_url?: string;
+    digitable_line?: string;
+    barcode?: {
+      content?: string;
+    };
   };
   preapproval_id?: string;
 }
@@ -339,6 +357,110 @@ export async function createMpPixPayment(input: CreatePixPaymentInput): Promise<
 
 export async function getMpPayment(id: string): Promise<MpPaymentResponse> {
   return mpRequest<MpPaymentResponse>(`/v1/payments/${encodeURIComponent(id)}`);
+}
+
+// ── 2B. Boleto Bancário Nativo Transparente (/v1/payments · bolbradesco) ─────
+
+export interface CreateBoletoPaymentInput {
+  amount: number;
+  description: string;
+  externalReference: string;
+  payerEmail: string;
+  payerFullName: string;
+  payerDocument: string;
+  payerAddress: {
+    zipCode: string;
+    streetName: string;
+    streetNumber: string;
+    neighborhood: string;
+    city: string;
+    federalUnit: string;
+  };
+  notificationUrl?: string;
+  idempotencyKey: string;
+  expiresInDays?: number;
+}
+
+export async function createMpBoletoPayment(input: CreateBoletoPaymentInput): Promise<{
+  id: string;
+  status: string;
+  digitableLine: string | null;
+  barcode: string | null;
+  pdfUrl: string | null;
+  expiresAt: string;
+  raw: MpPaymentResponse;
+}> {
+  const docDigits = (input.payerDocument || '').replace(/\D/g, '');
+  if (docDigits.length !== 11 && docDigits.length !== 14) {
+    throw new Error('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido para emitir o boleto.');
+  }
+  const zipDigits = (input.payerAddress.zipCode || '').replace(/\D/g, '');
+  if (zipDigits.length !== 8) {
+    throw new Error('Informe um CEP válido (8 dígitos) para emitir o boleto.');
+  }
+  const uf = (input.payerAddress.federalUnit || '').trim().toUpperCase().slice(0, 2);
+  if (!input.payerAddress.streetName?.trim() || !input.payerAddress.city?.trim() || uf.length !== 2) {
+    throw new Error('Informe rua, cidade e UF completos para emitir o boleto bancário.');
+  }
+
+  const nameParts = (input.payerFullName || 'Clínica Benavera').trim().split(/\s+/).filter(Boolean);
+  const firstName = (nameParts[0] || 'Clínica').slice(0, 60);
+  const lastName = (nameParts.slice(1).join(' ') || 'Benavera').slice(0, 60);
+  const expiresAt = new Date(Date.now() + (input.expiresInDays || 3) * 24 * 60 * 60 * 1000).toISOString();
+
+  const payload: Record<string, unknown> = {
+    transaction_amount: Number(input.amount.toFixed(2)),
+    description: input.description.slice(0, 250),
+    payment_method_id: 'bolbradesco',
+    external_reference: input.externalReference,
+    date_of_expiration: expiresAt,
+    payer: {
+      email: input.payerEmail,
+      first_name: firstName,
+      last_name: lastName,
+      identification: {
+        type: docDigits.length === 11 ? 'CPF' : 'CNPJ',
+        number: docDigits,
+      },
+      address: {
+        zip_code: zipDigits,
+        street_name: input.payerAddress.streetName.trim().slice(0, 120),
+        street_number: (input.payerAddress.streetNumber || 'S/N').trim().slice(0, 20),
+        neighborhood: (input.payerAddress.neighborhood || 'Centro').trim().slice(0, 80),
+        city: input.payerAddress.city.trim().slice(0, 80),
+        federal_unit: uf,
+      },
+    },
+  };
+  if (input.notificationUrl) {
+    payload.notification_url = input.notificationUrl;
+  }
+
+  const raw = await mpRequest<MpPaymentResponse>('/v1/payments', {
+    method: 'POST',
+    body: payload,
+    idempotencyKey: input.idempotencyKey,
+  });
+
+  const barcode = raw.barcode?.content || raw.transaction_details?.barcode?.content || null;
+  const digitableLine =
+    raw.transaction_details?.digitable_line ||
+    raw.point_of_interaction?.transaction_data?.digitable_line ||
+    barcode;
+  const pdfUrl = sanitizeMercadoPagoUrl(
+    raw.transaction_details?.external_resource_url ||
+      raw.point_of_interaction?.transaction_data?.ticket_url
+  );
+
+  return {
+    id: String(raw.id),
+    status: String(raw.status || 'pending'),
+    digitableLine,
+    barcode,
+    pdfUrl,
+    expiresAt: raw.date_of_expiration || expiresAt,
+    raw,
+  };
 }
 
 // ── 3. Checkout Pro / Boleto (/checkout/preferences) ─────────────────────────

@@ -1,7 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'crypto';
-import { verifyMercadoPagoSignature, sanitizeMercadoPagoUrl } from '../src/lib/mercadopago';
+import http from 'node:http';
+import {
+  verifyMercadoPagoSignature,
+  sanitizeMercadoPagoUrl,
+  createMpPreapproval,
+  createMpBoletoPayment,
+} from '../src/lib/mercadopago';
 import { calculateSubscriptionPricing, computeNextPeriod, GRACE_DAYS } from '../src/lib/billing-service';
 
 describe('Mercado Pago Billing — Assinatura Webhook, Preços e Ciclos', () => {
@@ -130,5 +136,112 @@ describe('Mercado Pago Billing — Assinatura Webhook, Preços e Ciclos', () => 
     const overdue = computeNextPeriod({ currentPeriodEnd: pastEnd, cycle: 'ANNUAL', now });
     assert.equal(overdue.periodStart.toISOString(), '2026-11-26T12:00:00.000Z');
     assert.equal(overdue.periodEnd.toISOString(), '2027-11-26T12:00:00.000Z');
+  });
+
+  it('Checkout Transparente: createMpPreapproval envia card_token_id + status authorized e createMpBoletoPayment emite bolbradesco', async () => {
+    const received: Array<{ path: string; body: Record<string, unknown> }> = [];
+    const server = http.createServer(async (req, res) => {
+      const chunks: Buffer[] = [];
+      for await (const c of req) chunks.push(c as Buffer);
+      const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+      received.push({ path: req.url || '', body });
+
+      if (req.url === '/preapproval') {
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ id: 'pre_transp_1', status: body.status }));
+        return;
+      }
+      if (req.url === '/v1/payments') {
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            id: '987654',
+            status: 'pending',
+            barcode: { content: '23791234500000299900000012345678901234567890' },
+            transaction_details: {
+              digitable_line: '23790.00009 12345.678901 23456.789012 1 23450000029990',
+              external_resource_url: 'https://www.mercadopago.com.br/payments/987654/ticket?caller_id=1',
+            },
+          })
+        );
+        return;
+      }
+      res.writeHead(404).end();
+    });
+
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+    const addr = server.address() as { port: number };
+    const prevBase = process.env.MERCADOPAGO_API_BASE;
+    const prevToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+    process.env.MERCADOPAGO_API_BASE = `http://127.0.0.1:${addr.port}`;
+    process.env.MERCADOPAGO_ACCESS_TOKEN = 'TEST-unit-token';
+
+    try {
+      const pre = await createMpPreapproval({
+        reason: 'Benavera Pro',
+        externalReference: 'inv-1',
+        payerEmail: 'clinica@test.com',
+        amount: 299.9,
+        frequency: 1,
+        frequencyType: 'months',
+        backUrl: 'https://www.benavera.com.br/painel/assinatura',
+        idempotencyKey: 'key-1',
+        cardTokenId: 'tok_card_abc123456',
+      });
+      assert.equal(pre.status, 'authorized');
+      assert.equal(received[0].body.card_token_id, 'tok_card_abc123456');
+      assert.equal(received[0].body.status, 'authorized');
+
+      const bol = await createMpBoletoPayment({
+        amount: 299.9,
+        description: 'Benavera Pro',
+        externalReference: 'inv-2',
+        payerEmail: 'clinica@test.com',
+        payerFullName: 'Maria Silva',
+        payerDocument: '12.345.678/0001-95',
+        payerAddress: {
+          zipCode: '89010-000',
+          streetName: 'Rua XV de Novembro',
+          streetNumber: '100',
+          neighborhood: 'Centro',
+          city: 'Blumenau',
+          federalUnit: 'sc',
+        },
+        idempotencyKey: 'key-2',
+      });
+      assert.equal(bol.id, '987654');
+      assert.equal(bol.digitableLine, '23790.00009 12345.678901 23456.789012 1 23450000029990');
+      assert.ok(bol.pdfUrl?.startsWith('https://www.mercadopago.com.br/payments/987654/ticket'));
+      assert.equal(received[1].body.payment_method_id, 'bolbradesco');
+
+      // Valida erro claro para documento inválido
+      await assert.rejects(
+        () =>
+          createMpBoletoPayment({
+            amount: 100,
+            description: 'Teste',
+            externalReference: 'inv-3',
+            payerEmail: 'a@b.com',
+            payerFullName: 'Teste',
+            payerDocument: '123',
+            payerAddress: {
+              zipCode: '89010000',
+              streetName: 'Rua A',
+              streetNumber: '1',
+              neighborhood: 'Centro',
+              city: 'Blumenau',
+              federalUnit: 'SC',
+            },
+            idempotencyKey: 'key-3',
+          }),
+        /CPF.*CNPJ/
+      );
+    } finally {
+      server.close();
+      if (prevBase === undefined) delete process.env.MERCADOPAGO_API_BASE;
+      else process.env.MERCADOPAGO_API_BASE = prevBase;
+      if (prevToken === undefined) delete process.env.MERCADOPAGO_ACCESS_TOKEN;
+      else process.env.MERCADOPAGO_ACCESS_TOKEN = prevToken;
+    }
   });
 });

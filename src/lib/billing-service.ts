@@ -6,6 +6,7 @@ import { logModuleAudit } from './clinic-modules';
 import { syncComissoes } from './representantes-db';
 import {
   cancelMpPreapproval,
+  createMpBoletoPayment,
   createMpCheckoutPreference,
   createMpPixPayment,
   createMpPreapproval,
@@ -169,14 +170,37 @@ export async function startClinicCheckout(params: {
   paymentMethod: 'CARD_RECURRING' | 'PIX' | 'BOLETO';
   couponCode?: string | null;
   payerEmail?: string | null;
+  /** Token de cartão gerado no front-end pelo Mercado Pago JS SDK v2 (Checkout Transparente) */
+  cardTokenId?: string | null;
+  payerName?: string | null;
+  payerDocument?: string | null;
+  payerAddress?: {
+    zipCode?: string | null;
+    streetName?: string | null;
+    streetNumber?: string | null;
+    neighborhood?: string | null;
+    city?: string | null;
+    federalUnit?: string | null;
+  } | null;
+  /** Permite fallback para Checkout Pro (usado pelo Admin se a clínica não tiver endereço para boleto nativo) */
+  allowHostedFallback?: boolean;
   actorId?: string | null;
   actorName?: string | null;
   sendInvoiceEmail?: boolean;
 }) {
-  const [clinicRows, planRows, subRows] = await Promise.all([
-    sql`SELECT id, nome_fantasia, razao_social, email, email_financeiro, cnpj, cpf_responsavel, responsavel FROM clinics WHERE id = ${params.clinicId}::uuid LIMIT 1`,
+  const [clinicRows, planRows, subRows, obRows] = await Promise.all([
+    sql`
+      SELECT id, nome_fantasia, razao_social, email, email_financeiro, cnpj, cpf_responsavel, responsavel,
+             cep, logradouro, numero, bairro, cidade, estado
+      FROM clinics WHERE id = ${params.clinicId}::uuid LIMIT 1
+    `,
     sql`SELECT * FROM saas_plans WHERE id = ${params.planId}::uuid AND archived = FALSE LIMIT 1`,
     sql`SELECT * FROM clinic_subscriptions WHERE clinic_id = ${params.clinicId}::uuid LIMIT 1`,
+    sql`
+      SELECT address_cep, address_street, address_number, address_neighborhood, address_city, address_state
+      FROM clinic_onboardings WHERE clinic_id = ${params.clinicId}::uuid
+      ORDER BY created_at DESC LIMIT 1
+    `,
   ]);
 
   const clinic = clinicRows[0];
@@ -184,6 +208,7 @@ export async function startClinicCheckout(params: {
   const plan = planRows[0];
   if (!plan) throw new Error('Plano não encontrado ou arquivado.');
   const currentSub = subRows[0] || null;
+  const obAddr = obRows[0] || null;
 
   const coupon = params.couponCode ? await validateAndLoadCoupon(params.couponCode) : null;
   if (params.couponCode && !coupon) {
@@ -293,8 +318,14 @@ export async function startClinicCheckout(params: {
   let pixQrCode: string | null = null;
   let pixQrCodeBase64: string | null = null;
   let pixExpiresAt: string | null = null;
+  let boletoDigitableLine: string | null = null;
+  let boletoBarcode: string | null = null;
+  let boletoPdfUrl: string | null = null;
+  let boletoExpiresAt: string | null = null;
   let mpPaymentId: string | null = null;
   let mpPreapprovalId: string | null = null;
+  let mpStatusInitial = 'pending';
+  let activatedImmediately = false;
   let mpRaw: unknown = {};
 
   if (params.paymentMethod === 'CARD_RECURRING') {
@@ -307,9 +338,11 @@ export async function startClinicCheckout(params: {
       frequencyType: 'months',
       backUrl: `${baseUrl}/painel/assinatura?mp_status=returned&invoice=${invoiceId}`,
       idempotencyKey: `preapproval-${invoiceId}`,
+      cardTokenId: params.cardTokenId || null,
     });
     mpPreapprovalId = pre.id;
     checkoutUrl = pre.checkoutUrl;
+    mpStatusInitial = String(pre.status || 'pending').toLowerCase();
     mpRaw = pre.raw;
 
     await sql`
@@ -323,8 +356,8 @@ export async function startClinicCheckout(params: {
       description,
       externalReference: invoiceId,
       payerEmail,
-      payerFirstName: String(clinic.responsavel || clinic.nome_fantasia || 'Clínica'),
-      payerDocument: String(clinic.cnpj || clinic.cpf_responsavel || ''),
+      payerFirstName: String(params.payerName || clinic.responsavel || clinic.nome_fantasia || 'Clínica'),
+      payerDocument: String(params.payerDocument || clinic.cnpj || clinic.cpf_responsavel || ''),
       notificationUrl: webhookUrl,
       idempotencyKey: `pix-${invoiceId}`,
       expiresInHours: 24,
@@ -334,22 +367,59 @@ export async function startClinicCheckout(params: {
     pixQrCodeBase64 = pix.qrCodeBase64;
     pixExpiresAt = pix.expiresAt;
     checkoutUrl = pix.ticketUrl;
+    mpStatusInitial = String(pix.status || 'pending').toLowerCase();
     mpRaw = pix.raw;
   } else {
-    const pref = await createMpCheckoutPreference({
-      title: description,
-      description: `${description} — ${String(clinic.nome_fantasia)}`,
-      amount: pricing.finalAmount,
-      externalReference: invoiceId,
-      payerEmail,
-      backUrlSuccess: `${baseUrl}/painel/assinatura?mp_status=approved&invoice=${invoiceId}`,
-      backUrlPending: `${baseUrl}/painel/assinatura?mp_status=pending&invoice=${invoiceId}`,
-      backUrlFailure: `${baseUrl}/painel/assinatura?mp_status=failure&invoice=${invoiceId}`,
-      notificationUrl: webhookUrl,
-      idempotencyKey: `pref-${invoiceId}`,
-    });
-    checkoutUrl = pref.checkoutUrl;
-    mpRaw = pref.raw;
+    // BOLETO — Checkout Transparente nativo via /v1/payments (bolbradesco)
+    const doc = String(params.payerDocument || clinic.cnpj || clinic.cpf_responsavel || '').replace(/\D/g, '');
+    const zipCode = String(params.payerAddress?.zipCode || clinic.cep || obAddr?.address_cep || '').replace(/\D/g, '');
+    const streetName = String(params.payerAddress?.streetName || clinic.logradouro || obAddr?.address_street || '').trim();
+    const streetNumber = String(params.payerAddress?.streetNumber || clinic.numero || obAddr?.address_number || 'S/N').trim();
+    const neighborhood = String(params.payerAddress?.neighborhood || clinic.bairro || obAddr?.address_neighborhood || 'Centro').trim();
+    const city = String(params.payerAddress?.city || clinic.cidade || obAddr?.address_city || '').trim();
+    const federalUnit = String(params.payerAddress?.federalUnit || clinic.estado || obAddr?.address_state || '').trim().toUpperCase().slice(0, 2);
+
+    const hasBoletoData = (doc.length === 11 || doc.length === 14) && zipCode.length === 8 && Boolean(streetName && city && federalUnit.length === 2);
+
+    if (hasBoletoData) {
+      const boleto = await createMpBoletoPayment({
+        amount: pricing.finalAmount,
+        description: `${description} — ${String(clinic.nome_fantasia)}`,
+        externalReference: invoiceId,
+        payerEmail,
+        payerFullName: String(params.payerName || clinic.responsavel || clinic.razao_social || clinic.nome_fantasia || 'Clínica Benavera'),
+        payerDocument: doc,
+        payerAddress: { zipCode, streetName, streetNumber, neighborhood, city, federalUnit },
+        notificationUrl: webhookUrl,
+        idempotencyKey: `boleto-${invoiceId}`,
+        expiresInDays: 3,
+      });
+      mpPaymentId = boleto.id;
+      boletoDigitableLine = boleto.digitableLine;
+      boletoBarcode = boleto.barcode;
+      boletoPdfUrl = boleto.pdfUrl;
+      boletoExpiresAt = boleto.expiresAt;
+      checkoutUrl = boleto.pdfUrl;
+      mpStatusInitial = String(boleto.status || 'pending').toLowerCase();
+      mpRaw = boleto.raw;
+    } else if (params.allowHostedFallback) {
+      const pref = await createMpCheckoutPreference({
+        title: description,
+        description: `${description} — ${String(clinic.nome_fantasia)}`,
+        amount: pricing.finalAmount,
+        externalReference: invoiceId,
+        payerEmail,
+        backUrlSuccess: `${baseUrl}/painel/assinatura?mp_status=approved&invoice=${invoiceId}`,
+        backUrlPending: `${baseUrl}/painel/assinatura?mp_status=pending&invoice=${invoiceId}`,
+        backUrlFailure: `${baseUrl}/painel/assinatura?mp_status=failure&invoice=${invoiceId}`,
+        notificationUrl: webhookUrl,
+        idempotencyKey: `pref-${invoiceId}`,
+      });
+      checkoutUrl = pref.checkoutUrl;
+      mpRaw = pref.raw;
+    } else {
+      throw new Error('Para emitir o boleto bancário transparente, informe CPF/CNPJ e endereço completo (CEP, rua, cidade e UF).');
+    }
   }
 
   await sql`
@@ -357,16 +427,32 @@ export async function startClinicCheckout(params: {
     SET
       mp_payment_id = COALESCE(${mpPaymentId}, mp_payment_id),
       mp_preapproval_id = COALESCE(${mpPreapprovalId}, mp_preapproval_id),
-      mp_status = 'pending',
+      mp_status = ${mpStatusInitial},
       checkout_url = ${checkoutUrl},
       pix_qr_code = ${pixQrCode},
       pix_qr_code_base64 = ${pixQrCodeBase64},
       pix_expires_at = ${pixExpiresAt},
+      boleto_digitable_line = ${boletoDigitableLine},
+      boleto_barcode = ${boletoBarcode},
+      boleto_pdf_url = ${boletoPdfUrl},
+      boleto_expires_at = ${boletoExpiresAt},
       external_id = COALESCE(${mpPaymentId || mpPreapprovalId}, external_id),
       payload = payload || ${JSON.stringify({ mp: mpRaw })}::jsonb,
       updated_at = NOW()
     WHERE id = ${invoiceId}::uuid
   `;
+
+  // Se foi Cartão Recorrente Transparente com cardTokenId e o Mercado Pago já retornou 'authorized', ativa na hora!
+  if (params.paymentMethod === 'CARD_RECURRING' && params.cardTokenId && mpStatusInitial === 'authorized') {
+    await applyPaidInvoice({
+      invoiceId,
+      mpPreapprovalId,
+      paymentMethod: 'CARD_RECURRING',
+      rawPayload: mpRaw,
+      actorName: 'Mercado Pago (Checkout Transparente)',
+    });
+    activatedImmediately = true;
+  }
 
   await logModuleAudit({
     clinicId: params.clinicId,
@@ -380,23 +466,27 @@ export async function startClinicCheckout(params: {
       cycle: params.cycle,
       amount: pricing.finalAmount,
       coupon: pricing.appliedCoupon,
+      transparentCard: Boolean(params.cardTokenId),
+      activatedImmediately,
     },
   });
 
-  if (params.sendInvoiceEmail) {
+  if (params.sendInvoiceEmail && !activatedImmediately) {
     sendSubscriptionInvoiceEmail({
       to: payerEmail,
       clinicName: String(clinic.nome_fantasia),
+      clinicId: params.clinicId,
       planName: String(plan.name),
       amount: pricing.finalAmount,
       dueDate,
       paymentUrl: checkoutUrl || `${baseUrl}/painel/assinatura`,
-      pixCopyPaste: pixQrCode,
+      pixCopyPaste: pixQrCode || boletoDigitableLine,
     }).catch(err => console.warn('[Email Fatura SaaS]', err));
   }
 
   return {
     freeActivated: false,
+    activatedImmediately,
     invoiceId,
     subscriptionId,
     amount: pricing.finalAmount,
@@ -404,10 +494,15 @@ export async function startClinicCheckout(params: {
     discountAmount: pricing.discountAmount,
     appliedCoupon: pricing.appliedCoupon,
     paymentMethod: params.paymentMethod,
+    mpStatus: mpStatusInitial,
     checkoutUrl,
     pixQrCode,
     pixQrCodeBase64,
     pixExpiresAt,
+    boletoDigitableLine,
+    boletoBarcode,
+    boletoPdfUrl,
+    boletoExpiresAt,
   };
 }
 
