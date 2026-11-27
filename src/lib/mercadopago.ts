@@ -63,6 +63,15 @@ export function sanitizeMercadoPagoUrl(raw: unknown): string | null {
   }
 }
 
+export class MercadoPagoApiError extends Error {
+  readonly status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'MercadoPagoApiError';
+    this.status = status;
+  }
+}
+
 async function mpRequest<T>(
   path: string,
   options: {
@@ -107,7 +116,7 @@ async function mpRequest<T>(
       (typeof json.message === 'string' && json.message) ||
       (typeof json.error === 'string' && json.error) ||
       `Erro Mercado Pago HTTP ${res.status}`;
-    throw new Error(msg);
+    throw new MercadoPagoApiError(msg, res.status);
   }
 
   return json as T;

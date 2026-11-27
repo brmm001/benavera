@@ -14,6 +14,7 @@ import {
   getMpPayment,
   getMpPreapproval,
   isMercadoPagoConfigured,
+  MercadoPagoApiError,
 } from './mercadopago';
 import {
   sendSubscriptionGraceWarningEmail,
@@ -883,6 +884,16 @@ export async function processMercadoPagoWebhook(params: {
     `;
     return { processed: true, action };
   } catch (err) {
+    // IDs fictícios do botão "Simular notificação" do Mercado Pago (ex: id=123456) retornam 404 na API oficial.
+    // Como a assinatura HMAC já foi validada acima, respondemos 200 sem gerar retry infinito.
+    if (err instanceof MercadoPagoApiError && err.status === 404) {
+      await sql`
+        UPDATE mp_webhook_events
+        SET processed = TRUE, processed_at = NOW(), error = 'resource_not_found_404'
+        WHERE id = ${evtId}::uuid
+      `;
+      return { processed: true, action: 'resource_not_found' };
+    }
     const msg = err instanceof Error ? err.message : 'Erro desconhecido';
     await sql`UPDATE mp_webhook_events SET error = ${msg} WHERE id = ${evtId}::uuid`;
     throw err;
