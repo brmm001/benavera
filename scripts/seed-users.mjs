@@ -72,21 +72,9 @@ async function main() {
   }
 
   // ── PARCEIROS ──
-  console.log('\n🏦 Parceiros financeiros...');
-  const partners = [
-    { id: IDS.partner1, nome: 'CredFacil', nome_legal: 'CredFacil Financeira S.A.', cnpj: '11.222.333/0001-44', ativo: true, prioridade: 10, ticket_minimo: 2000, ticket_maximo: 50000, prazo_maximo: 48, comissao: 0.02, modo: 'MANUAL' },
-    { id: IDS.partner2, nome: 'MedCredit', nome_legal: 'MedCredit Soluções Financeiras LTDA', cnpj: '55.666.777/0001-88', ativo: true, prioridade: 20, ticket_minimo: 5000, ticket_maximo: 80000, prazo_maximo: 60, comissao: 0.025, modo: 'MANUAL' },
-    { id: IDS.partner3, nome: 'SaúdePay', nome_legal: 'SaúdePay Intermediadora LTDA', cnpj: '99.888.777/0001-22', ativo: true, prioridade: 30, ticket_minimo: 1000, ticket_maximo: 30000, prazo_maximo: 36, comissao: 0.018, modo: 'SANDBOX' },
-  ];
-
-  for (const p of partners) {
-    await sql`
-      INSERT INTO financial_partners (id, nome, nome_legal, cnpj, ativo, prioridade, ticket_minimo, ticket_maximo, prazo_maximo, comissao_benavera_percent, modo)
-      VALUES (${p.id}, ${p.nome}, ${p.nome_legal}, ${p.cnpj}, ${p.ativo}, ${p.prioridade}, ${p.ticket_minimo}, ${p.ticket_maximo}, ${p.prazo_maximo}, ${p.comissao}, ${p.modo}::partner_mode)
-      ON CONFLICT (id) DO NOTHING
-    `;
-    console.log(`  ✓ ${p.nome}`);
-  }
+  // Financeiras reais são provisionadas via migrations oficiais (Parcelex / Konsiga).
+  // Removidos parceiros fictícios (CredFacil, MedCredit, SaúdePay) para nunca poluir o painel.
+  console.log('\n🏦 Parceiros financeiros: usando apenas parceiros reais configurados via migration.');
 
   // ── PACIENTES ──
   console.log('\n🧑 Pacientes...');

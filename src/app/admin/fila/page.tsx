@@ -116,8 +116,8 @@ export default function FilaPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#fafafa' }}>
-                  {['Código', 'Paciente', 'Clínica', 'Valor', 'Procedimento', 'Etapa', 'Tempo', 'Analista', 'Ação'].map(h => (
-                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #f1f5f9', whiteSpace: 'nowrap' }}>
+                  {['Código', 'Paciente (dados digitados)', 'Clínica', 'Valores digitados', 'Procedimento', 'Etapa', 'Tempo', 'Ação'].map(h => (
+                    <th key={h} style={{ padding: '12px 14px', textAlign: 'left', fontSize: '11.5px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #f1f5f9', whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
                   ))}
@@ -129,42 +129,50 @@ export default function FilaPage() {
                   const time = timeSince(app.created_at);
                   return (
                     <tr key={app.id}
-                      style={{ borderBottom: i < apps.length - 1 ? '1px solid #f8fafc' : 'none', transition: 'background 0.15s', cursor: 'pointer' }}
+                      style={{ borderBottom: i < apps.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background 0.15s', cursor: 'pointer' }}
                       onClick={() => router.push(`/admin/solicitacoes/${app.id}`)}
-                      onMouseEnter={e => (e.currentTarget.style.background = '#fafafa')}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
-                      <td style={{ padding: '14px 16px' }}>
+                      <td style={{ padding: '14px 14px', whiteSpace: 'nowrap' }}>
                         <span style={{ fontSize: '13px', fontWeight: '700', color: '#4040ca', fontFamily: 'monospace' }}>
                           {app.protocol}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '14px', fontWeight: '600', color: '#1c1d4c', whiteSpace: 'nowrap' }}>
-                        {app.patient_nome?.split(' ').slice(0, 2).join(' ') || '—'}
+                      <td style={{ padding: '14px 14px', minWidth: '210px' }}>
+                        <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#1c1d4c' }}>{app.patient_nome || '—'}</div>
+                        <div style={{ fontSize: '11.5px', color: '#334155', fontFamily: 'monospace' }}>CPF: {app.patient_cpf || '—'}</div>
+                        <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                          {[app.patient_celular, app.patient_email].filter(Boolean).join(' · ') || '—'}
+                        </div>
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '13px', color: '#64748b', whiteSpace: 'nowrap' }}>
-                        {app.clinic_nome}
+                      <td style={{ padding: '14px 14px', fontSize: '13px', color: '#334155' }}>
+                        <div style={{ fontWeight: '600' }}>{app.clinic_nome}</div>
+                        {app.creator_name && <div style={{ fontSize: '11.5px', color: '#94a3b8' }}>por {app.creator_name}</div>}
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: '600', color: '#1c1d4c', whiteSpace: 'nowrap' }}>
-                        {formatCurrency(app.valor_financiado)}
+                      <td style={{ padding: '14px 14px', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '14px', fontWeight: '800', color: '#059669' }}>
+                          {formatCurrency(app.valor_financiado)}
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                          Total: {formatCurrency(app.valor_tratamento)}{Number(app.entrada || 0) > 0 ? ` · Entr.: ${formatCurrency(app.entrada)}` : ''}
+                        </div>
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '13px', color: '#64748b', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {app.procedimento}
+                      <td style={{ padding: '14px 14px', fontSize: '13px', color: '#334155', minWidth: '140px' }}>
+                        <div style={{ fontWeight: '600' }}>{app.procedimento || '—'}</div>
+                        <div style={{ fontSize: '11.5px', color: '#94a3b8' }}>{app.categoria || '—'}</div>
                       </td>
-                      <td style={{ padding: '14px 16px' }}>
+                      <td style={{ padding: '14px 14px' }}>
                         <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', color: st.color, background: st.bg, whiteSpace: 'nowrap' }}>
                           {st.label}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '14px 14px', whiteSpace: 'nowrap' }}>
                         <span style={{ fontSize: '13px', fontWeight: '700', color: time.overSLA ? '#dc2626' : '#64748b' }}>
                           {time.overSLA ? '⚠ ' : ''}{time.text}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '13px', color: '#64748b' }}>
-                        {app.analyst_name || '—'}
-                      </td>
-                      <td style={{ padding: '14px 16px' }}>
+                      <td style={{ padding: '14px 14px', whiteSpace: 'nowrap' }}>
                         <span style={{ fontSize: '13px', color: '#6370f1', fontWeight: '700' }}>Abrir →</span>
                       </td>
                     </tr>

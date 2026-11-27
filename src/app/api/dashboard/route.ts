@@ -1,17 +1,17 @@
 // app/api/dashboard/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getSession, isBenaveraStaff } from '@/lib/auth';
 import { sql } from '@/lib/benavera-db';
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
 
-  const isBenaveraStaff = session.role === 'BENAVERA_ADMIN' || session.role === 'BENAVERA_ANALYST';
+  const staff = isBenaveraStaff(session.role);
   const clinicId = session.clinicId;
 
   try {
-    if (isBenaveraStaff) {
+    if (staff) {
       // Dashboard do backoffice Benavera
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -34,13 +34,39 @@ export async function GET(request: NextRequest) {
         WHERE created_at >= NOW() - INTERVAL '30 days'
       `;
 
-      const avgTime = await sql`
-        SELECT
-          AVG(EXTRACT(EPOCH FROM (pre_analysis_completed_at - created_at))/60) as avg_pre_analysis_min,
-          AVG(EXTRACT(EPOCH FROM (proposal_generated_at - created_at))/60) as avg_to_proposal_min
-        FROM applications
-        WHERE pre_analysis_completed_at IS NOT NULL
-      `;
+      const [avgTime, recentApps, recentDigitalProposals] = await Promise.all([
+        sql`
+          SELECT
+            AVG(EXTRACT(EPOCH FROM (pre_analysis_completed_at - created_at))/60) as avg_pre_analysis_min,
+            AVG(EXTRACT(EPOCH FROM (proposal_generated_at - created_at))/60) as avg_to_proposal_min
+          FROM applications
+          WHERE pre_analysis_completed_at IS NOT NULL
+        `,
+        sql`
+          SELECT
+            a.id, a.protocol, a.categoria, a.procedimento,
+            a.valor_tratamento, a.entrada, a.valor_financiado, a.status::text AS status, a.created_at,
+            p.nome AS patient_nome, p.cpf AS patient_cpf, p.celular AS patient_celular, p.email AS patient_email,
+            c.nome_fantasia AS clinic_nome,
+            u.name AS creator_name
+          FROM applications a
+          LEFT JOIN patients p ON p.id = a.patient_id
+          LEFT JOIN clinics c ON c.id = a.clinic_id
+          LEFT JOIN users u ON u.id = a.created_by_user_id
+          ORDER BY a.created_at DESC
+          LIMIT 15
+        `,
+        sql`
+          SELECT
+            dp.id, dp.patient_name, dp.patient_phone, dp.patient_email,
+            dp.procedimentos, dp.subtotal, dp.desconto, dp.total, dp.status, dp.created_at,
+            c.nome_fantasia AS clinic_nome
+          FROM clinic_digital_proposals dp
+          LEFT JOIN clinics c ON c.id = dp.clinic_id
+          ORDER BY dp.created_at DESC
+          LIMIT 10
+        `,
+      ]);
 
       return NextResponse.json({
         type: 'benavera',
@@ -54,6 +80,8 @@ export async function GET(request: NextRequest) {
         taxa_aprovacao: Number(volumeStats[0]?.taxa_aprovacao || 0),
         avg_pre_analysis_min: Number(avgTime[0]?.avg_pre_analysis_min || 0),
         avg_to_proposal_min: Number(avgTime[0]?.avg_to_proposal_min || 0),
+        recent_applications: recentApps,
+        recent_digital_proposals: recentDigitalProposals,
       });
     } else {
       // Dashboard da clínica

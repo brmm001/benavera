@@ -85,3 +85,43 @@ export async function PATCH(
     return NextResponse.json({ error: 'Erro ao atualizar parceiro.' }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+  if (!hasPermission(session.role, 'MANAGE_PARTNERS')) {
+    return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 });
+  }
+
+  const { id } = await params;
+
+  try {
+    const refs = await sql`
+      SELECT
+        (SELECT COUNT(*) FROM funding_attempts WHERE partner_id = ${id})::int AS attempts,
+        (SELECT COUNT(*) FROM proposals WHERE partner_id = ${id})::int AS proposals,
+        (SELECT COUNT(*) FROM payouts WHERE partner_id = ${id})::int AS payouts
+    `;
+    const r = refs[0];
+    if (r && (r.attempts > 0 || r.proposals > 0 || r.payouts > 0)) {
+      return NextResponse.json(
+        { error: 'Este parceiro já possui propostas ou repasses registrados. Desative-o em vez de excluir.' },
+        { status: 409 }
+      );
+    }
+
+    const deleted = await sql`
+      DELETE FROM financial_partners WHERE id = ${id} RETURNING id, nome
+    `;
+    if (!deleted[0]) {
+      return NextResponse.json({ error: 'Parceiro não encontrado.' }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, removed: deleted[0] });
+  } catch (err) {
+    console.error('[Partners DELETE]', err);
+    return NextResponse.json({ error: 'Erro ao remover parceiro.' }, { status: 500 });
+  }
+}

@@ -1,105 +1,84 @@
 // app/api/applications/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getSession, isBenaveraStaff } from '@/lib/auth';
 import { sql } from '@/lib/benavera-db';
 import { createApplication, NewApplicationsBlockedError } from '@/lib/application-service';
+
+function maskCpfIfNeeded(cpf: unknown): string {
+  const s = String(cpf || '');
+  return s.replace(/(\d{3})\.?(\d{3})\.?(\d{3})-?(\d{2})/, '$1.***.***-$4');
+}
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status');
-  const search = searchParams.get('search');
-  const limit = parseInt(searchParams.get('limit') || '50');
-  const clinicId = searchParams.get('clinicId');
+  const status = searchParams.get('status') || null;
+  const searchRaw = (searchParams.get('search') || '').trim();
+  const searchWild = searchRaw ? `%${searchRaw}%` : null;
+  const limit = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') || '50', 10) || 50));
+  const clinicIdParam = searchParams.get('clinicId') || null;
 
   try {
-    let rows;
-    const isBenaveraStaff = session.role === 'BENAVERA_ADMIN' || session.role === 'BENAVERA_ANALYST';
+    const staff = isBenaveraStaff(session.role);
 
     // Multi-tenant: clínica só vê suas próprias solicitações
-    const effectiveClinicId = isBenaveraStaff
-      ? (clinicId || null)
-      : session.clinicId;
+    const effectiveClinicId = staff ? clinicIdParam : session.clinicId;
 
-    if (effectiveClinicId && status && search) {
-      const searchWild = `%${search}%`;
-      rows = await sql`
-        SELECT a.*, p.nome as patient_nome, p.cpf as patient_cpf, c.nome_fantasia as clinic_nome,
-               u.name as creator_name
-        FROM applications a
-        LEFT JOIN patients p ON p.id = a.patient_id
-        LEFT JOIN clinics c ON c.id = a.clinic_id
-        LEFT JOIN users u ON u.id = a.created_by_user_id
-        WHERE a.clinic_id = ${effectiveClinicId} AND a.status = ${status}::application_status
-          AND (p.nome ILIKE ${searchWild} OR p.cpf ILIKE ${searchWild} OR a.protocol ILIKE ${searchWild})
-        ORDER BY a.created_at DESC LIMIT ${limit}
-      `;
-    } else if (effectiveClinicId && status) {
-      rows = await sql`
-        SELECT a.*, p.nome as patient_nome, p.cpf as patient_cpf, c.nome_fantasia as clinic_nome,
-               u.name as creator_name
-        FROM applications a
-        LEFT JOIN patients p ON p.id = a.patient_id
-        LEFT JOIN clinics c ON c.id = a.clinic_id
-        LEFT JOIN users u ON u.id = a.created_by_user_id
-        WHERE a.clinic_id = ${effectiveClinicId} AND a.status = ${status}::application_status
-        ORDER BY a.created_at DESC LIMIT ${limit}
-      `;
-    } else if (effectiveClinicId && search) {
-      const searchWild = `%${search}%`;
-      rows = await sql`
-        SELECT a.*, p.nome as patient_nome, p.cpf as patient_cpf, c.nome_fantasia as clinic_nome,
-               u.name as creator_name
-        FROM applications a
-        LEFT JOIN patients p ON p.id = a.patient_id
-        LEFT JOIN clinics c ON c.id = a.clinic_id
-        LEFT JOIN users u ON u.id = a.created_by_user_id
-        WHERE a.clinic_id = ${effectiveClinicId}
-          AND (p.nome ILIKE ${searchWild} OR p.cpf ILIKE ${searchWild} OR a.protocol ILIKE ${searchWild})
-        ORDER BY a.created_at DESC LIMIT ${limit}
-      `;
-    } else if (effectiveClinicId) {
-      rows = await sql`
-        SELECT a.*, p.nome as patient_nome, p.cpf as patient_cpf, c.nome_fantasia as clinic_nome,
-               u.name as creator_name
-        FROM applications a
-        LEFT JOIN patients p ON p.id = a.patient_id
-        LEFT JOIN clinics c ON c.id = a.clinic_id
-        LEFT JOIN users u ON u.id = a.created_by_user_id
-        WHERE a.clinic_id = ${effectiveClinicId}
-        ORDER BY a.created_at DESC LIMIT ${limit}
-      `;
-    } else if (status) {
-      // Staff Benavera sem filtro de clínica — ver tudo
-      rows = await sql`
-        SELECT a.*, p.nome as patient_nome, p.cpf as patient_cpf, c.nome_fantasia as clinic_nome,
-               u.name as creator_name, analyst.name as analyst_name
-        FROM applications a
-        LEFT JOIN patients p ON p.id = a.patient_id
-        LEFT JOIN clinics c ON c.id = a.clinic_id
-        LEFT JOIN users u ON u.id = a.created_by_user_id
-        LEFT JOIN users analyst ON analyst.id = a.assigned_analyst_id
-        WHERE a.status = ${status}::application_status
-        ORDER BY a.created_at ASC LIMIT ${limit}
-      `;
-    } else {
-      rows = await sql`
-        SELECT a.*, p.nome as patient_nome, p.cpf as patient_cpf, c.nome_fantasia as clinic_nome,
-               u.name as creator_name, analyst.name as analyst_name
-        FROM applications a
-        LEFT JOIN patients p ON p.id = a.patient_id
-        LEFT JOIN clinics c ON c.id = a.clinic_id
-        LEFT JOIN users u ON u.id = a.created_by_user_id
-        LEFT JOIN users analyst ON analyst.id = a.assigned_analyst_id
-        ORDER BY a.created_at DESC LIMIT ${limit}
-      `;
-    }
+    const rows = await sql`
+      SELECT
+        a.*,
+        p.nome AS patient_nome,
+        p.cpf AS patient_cpf,
+        p.data_nascimento AS patient_nasc,
+        p.celular AS patient_celular,
+        p.email AS patient_email,
+        p.cidade AS patient_cidade,
+        p.estado AS patient_estado,
+        p.renda_mensal AS patient_renda,
+        p.profissao AS patient_profissao,
+        c.nome_fantasia AS clinic_nome,
+        c.cnpj AS clinic_cnpj,
+        c.telefone AS clinic_telefone,
+        c.whatsapp AS clinic_whatsapp,
+        c.cidade AS clinic_cidade,
+        c.estado AS clinic_estado,
+        u.name AS creator_name,
+        u.email AS creator_email,
+        analyst.name AS analyst_name
+      FROM applications a
+      LEFT JOIN patients p ON p.id = a.patient_id
+      LEFT JOIN clinics c ON c.id = a.clinic_id
+      LEFT JOIN users u ON u.id = a.created_by_user_id
+      LEFT JOIN users analyst ON analyst.id = a.assigned_analyst_id
+      WHERE (${effectiveClinicId}::uuid IS NULL OR a.clinic_id = ${effectiveClinicId}::uuid)
+        AND (${status}::text IS NULL OR a.status::text = ${status})
+        AND (
+          ${searchWild}::text IS NULL
+          OR p.nome ILIKE ${searchWild}
+          OR p.cpf ILIKE ${searchWild}
+          OR p.celular ILIKE ${searchWild}
+          OR p.email ILIKE ${searchWild}
+          OR a.protocol ILIKE ${searchWild}
+          OR a.procedimento ILIKE ${searchWild}
+          OR a.categoria ILIKE ${searchWild}
+          OR c.nome_fantasia ILIKE ${searchWild}
+        )
+      ORDER BY a.created_at DESC
+      LIMIT ${limit}
+    `;
+
+    const applications = staff
+      ? rows
+      : rows.map(r => ({
+          ...r,
+          patient_cpf: maskCpfIfNeeded(r.patient_cpf),
+        }));
 
     let allowNewApplications = true;
     let newApplicationsBlockReason: string | null = null;
-    if (!isBenaveraStaff && session.clinicId) {
+    if (!staff && session.clinicId) {
       const clinicMeta = await sql`
         SELECT c.allow_new_applications, c.new_applications_block_reason,
                cs.status AS sub_status, cs.is_exempt AS sub_exempt, cs.current_period_end AS sub_period_end
@@ -120,11 +99,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      applications: rows,
-      allowNewApplications,
-      newApplicationsBlockReason,
-    });
+    return NextResponse.json(
+      {
+        applications,
+        allowNewApplications,
+        newApplicationsBlockReason,
+      },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (err) {
     console.error('[Applications GET]', err);
     return NextResponse.json({ error: 'Erro ao buscar solicitações.' }, { status: 500 });

@@ -161,40 +161,69 @@ export default function AdminSolicitacaoDetailPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px' }}>
         {/* Main */}
         <div>
-          {/* Dados do paciente */}
+          {/* Resumo em destaque: Valores e dados digitados pela clínica */}
+          <div style={{ background: 'linear-gradient(135deg, #1c1d4c, #312e81)', color: 'white', borderRadius: '14px', padding: '22px 24px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#c7d2fe', marginBottom: '12px' }}>
+              Valores digitados pela clínica ({app.clinic_nome || 'Clínica'})
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
+              <div>
+                <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.65)' }}>Valor do tratamento</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', marginTop: '2px' }}>{formatCurrency(app.valor_tratamento)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.65)' }}>Entrada informada</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', marginTop: '2px' }}>{formatCurrency(app.entrada)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11.5px', color: '#6ee7b7' }}>Valor a financiar</div>
+                <div style={{ fontSize: '22px', fontWeight: '900', color: '#6ee7b7', marginTop: '2px' }}>{formatCurrency(app.valor_financiado)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.65)' }}>Procedimento / Categoria</div>
+                <div style={{ fontSize: '14px', fontWeight: '700', marginTop: '4px' }}>{app.procedimento || '—'}</div>
+                <div style={{ fontSize: '11.5px', color: '#c7d2fe' }}>{app.categoria || '—'}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Dados do paciente e clínica digitados */}
           <div style={{ background: 'white', borderRadius: '14px', padding: '24px', border: '1px solid #f1f5f9', marginBottom: '20px' }}>
-            <h2 style={{ margin: '0 0 20px', fontSize: '15px', fontWeight: '700', color: '#1c1d4c' }}>Paciente</h2>
+            <h2 style={{ margin: '0 0 18px', fontSize: '15px', fontWeight: '700', color: '#1c1d4c' }}>Dados do paciente (digitados pela clínica)</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               {[
-                ['Nome', app.patient_nome],
+                ['Nome completo', app.patient_nome],
                 ['CPF', app.patient_cpf],
-                ['Celular', app.patient_celular],
+                ['Data de nasc.', app.patient_nasc ? new Date(app.patient_nasc).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—'],
+                ['Celular / WhatsApp', app.patient_celular],
                 ['E-mail', app.patient_email],
-                ['Nasc.', app.patient_nasc ? new Date(app.patient_nasc).toLocaleDateString('pt-BR') : '—'],
-                ['Clínica', app.clinic_nome],
+                ['Renda mensal', app.patient_renda ? formatCurrency(app.patient_renda) : '—'],
+                ['Profissão / Vínculo', [app.patient_profissao, app.patient_vinculo].filter(Boolean).join(' · ') || '—'],
+                ['Endereço', [app.patient_logradouro, app.patient_numero, app.patient_complemento, app.patient_bairro].filter(Boolean).join(', ') || '—'],
+                ['Cidade / UF / CEP', [app.patient_cidade, app.patient_estado, app.patient_cep].filter(Boolean).join(' · ') || '—'],
               ].map(([l, v]) => (
                 <div key={l}>
                   <p style={{ margin: '0 0 2px', fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{l}</p>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#334155', fontWeight: '500' }}>{v || '—'}</p>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#334155', fontWeight: '600', wordBreak: 'break-word' }}>{v || '—'}</p>
                 </div>
               ))}
             </div>
 
             <div style={{ height: '1px', background: '#f1f5f9', margin: '20px 0' }} />
 
-            <h2 style={{ margin: '0 0 16px', fontSize: '15px', fontWeight: '700', color: '#1c1d4c' }}>Tratamento</h2>
+            <h2 style={{ margin: '0 0 16px', fontSize: '15px', fontWeight: '700', color: '#1c1d4c' }}>Clínica e origem do envio</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               {[
-                ['Procedimento', app.procedimento],
-                ['Categoria', app.categoria],
-                ['Valor total', formatCurrency(app.valor_tratamento)],
-                ['Entrada', formatCurrency(app.entrada)],
-                ['Financiado', formatCurrency(app.valor_financiado)],
-                ['Analista', app.analyst_name || '—'],
+                ['Clínica', app.clinic_nome],
+                ['CNPJ / CPF clínica', app.clinic_cnpj],
+                ['Contato clínica', [app.clinic_whatsapp || app.clinic_telefone, app.clinic_email].filter(Boolean).join(' · ') || '—'],
+                ['Localidade clínica', [app.clinic_cidade, app.clinic_estado].filter(Boolean).join(' / ') || '—'],
+                ['Digitado por', [app.creator_name, app.creator_email].filter(Boolean).join(' · ') || '—'],
+                ['Consentimento LGPD', data.consent ? `${data.consent.consent_version} · ${formatDateTime(data.consent.created_at)}` : 'Registrado'],
               ].map(([l, v]) => (
                 <div key={l}>
                   <p style={{ margin: '0 0 2px', fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{l}</p>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#334155', fontWeight: '500' }}>{v || '—'}</p>
+                  <p style={{ margin: 0, fontSize: '13.5px', color: '#334155', fontWeight: '500', wordBreak: 'break-word' }}>{v || '—'}</p>
                 </div>
               ))}
             </div>

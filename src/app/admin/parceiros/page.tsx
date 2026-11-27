@@ -182,6 +182,23 @@ export default function AdminParceirosPage() {
     }
   };
 
+  const handleDelete = async (p: Partner) => {
+    if (!confirm(`Remover permanentemente a financeira "${p.nome}" do painel?`)) return;
+    setTogglingId(p.id);
+    setBanner(null);
+    try {
+      const res = await fetch(`/api/partners/${p.id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Não foi possível remover o parceiro.');
+      setBanner({ type: 'ok', text: `Parceiro ${p.nome} removido do painel.` });
+      await fetchPartners();
+    } catch (err: unknown) {
+      setBanner({ type: 'err', text: err instanceof Error ? err.message : 'Erro ao remover.' });
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const formatCurrency = (val?: number | null) => {
     if (!val) return 'R$ 0,00';
     return Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -366,6 +383,16 @@ export default function AdminParceirosPage() {
                     >
                       Editar Parâmetros →
                     </button>
+                    {!hasApiAdapter && (
+                      <button
+                        type="button"
+                        disabled={togglingId === p.id}
+                        onClick={() => handleDelete(p)}
+                        style={{ background: 'none', border: 'none', color: '#dc2626', fontWeight: '600', cursor: 'pointer', fontSize: '12px' }}
+                      >
+                        Remover
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -472,7 +499,7 @@ export default function AdminParceirosPage() {
                   required
                   value={form.nome}
                   onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                  placeholder="Ex: Santander Saúde / FIDC Alpha"
+                  placeholder="Ex: Nome da instituição financeira parceira"
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
                 />
               </div>

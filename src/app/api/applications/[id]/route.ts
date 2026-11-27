@@ -1,6 +1,6 @@
 // app/api/applications/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getSession, isBenaveraStaff } from '@/lib/auth';
 import { sql } from '@/lib/benavera-db';
 
 export async function GET(
@@ -17,8 +17,14 @@ export async function GET(
       SELECT a.*,
         p.nome as patient_nome, p.cpf as patient_cpf, p.data_nascimento as patient_nasc,
         p.celular as patient_celular, p.email as patient_email,
+        p.cep as patient_cep, p.logradouro as patient_logradouro, p.numero as patient_numero,
+        p.complemento as patient_complemento, p.bairro as patient_bairro,
+        p.cidade as patient_cidade, p.estado as patient_estado,
+        p.renda_mensal as patient_renda, p.profissao as patient_profissao, p.vinculo as patient_vinculo,
         c.nome_fantasia as clinic_nome, c.cnpj as clinic_cnpj,
-        u.name as creator_name,
+        c.telefone as clinic_telefone, c.whatsapp as clinic_whatsapp, c.email as clinic_email,
+        c.cidade as clinic_cidade, c.estado as clinic_estado,
+        u.name as creator_name, u.email as creator_email,
         analyst.name as analyst_name
       FROM applications a
       LEFT JOIN patients p ON p.id = a.patient_id
@@ -33,10 +39,16 @@ export async function GET(
     const app = rows[0];
 
     // Multi-tenant: clínica só pode ver suas próprias solicitações
-    const isBenaveraStaff = session.role === 'BENAVERA_ADMIN' || session.role === 'BENAVERA_ANALYST';
-    if (!isBenaveraStaff && String(app.clinic_id) !== session.clinicId) {
+    const staff = isBenaveraStaff(session.role);
+    if (!staff && String(app.clinic_id) !== session.clinicId) {
       return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
     }
+
+    // Buscar consentimento LGPD registrado
+    const consentRows = await sql`
+      SELECT consent_version, ip_address, created_at FROM consent_records
+      WHERE application_id = ${id} ORDER BY created_at DESC LIMIT 1
+    `;
 
     // Buscar proposals
     const proposals = await sql`
@@ -69,7 +81,7 @@ export async function GET(
     `;
 
     // Mascarar CPF para clínica
-    if (!isBenaveraStaff && app.patient_cpf) {
+    if (!staff && app.patient_cpf) {
       const cpf = String(app.patient_cpf);
       app.patient_cpf = cpf.replace(/(\d{3})\.\d{3}\.\d{3}-(\d{2})/, '$1.***.***-$2');
     }
@@ -80,6 +92,7 @@ export async function GET(
       events,
       attempts,
       documents,
+      consent: consentRows[0] || null,
     });
   } catch (err) {
     console.error('[Application GET by ID]', err);
