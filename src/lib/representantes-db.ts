@@ -37,6 +37,8 @@ export interface Representante {
   periodo_meses: number | null;
   mensalidade_percent: number;
   bonus_ativacao: number;
+  max_discount_percent: number;
+  max_trial_days: number;
   ativo: boolean;
   notif_email: boolean;
   observacoes: string | null;
@@ -58,6 +60,8 @@ function mapRep(r: Record<string, unknown>): Representante {
     periodo_meses: r.periodo_meses === null || r.periodo_meses === undefined ? null : Number(r.periodo_meses),
     mensalidade_percent: Number(r.mensalidade_percent ?? 0),
     bonus_ativacao: Number(r.bonus_ativacao ?? 0),
+    max_discount_percent: Number(r.max_discount_percent ?? 0),
+    max_trial_days: Number(r.max_trial_days ?? 0),
     ativo: Boolean(r.ativo),
     notif_email: r.notif_email !== false,
     observacoes: (r.observacoes as string) ?? null,
@@ -110,6 +114,8 @@ export interface RepresentanteInput {
   periodo_meses?: number | null;
   mensalidade_percent?: number;
   bonus_ativacao?: number;
+  max_discount_percent?: number;
+  max_trial_days?: number;
   observacoes?: string | null;
 }
 
@@ -117,6 +123,13 @@ function clampPercent(n: unknown, fallback: number): number {
   const v = Number(n);
   if (!Number.isFinite(v)) return fallback;
   return Math.min(100, Math.max(0, Math.round(v * 1000) / 1000));
+}
+
+function cleanDays(n: unknown, fallback = 0): number {
+  if (n === null || n === undefined || n === '') return fallback;
+  const v = Math.floor(Number(n));
+  if (!Number.isFinite(v) || v < 0) return fallback;
+  return Math.min(365, v);
 }
 
 function cleanPeriodo(n: unknown): number | null {
@@ -158,12 +171,14 @@ export async function createRepresentante(
       const rows = await sql`
         INSERT INTO representantes
           (user_id, nome, email, documento, telefone, chave_pix, tipo_pix, codigo_indicacao,
-           comissao_percent, periodo_meses, mensalidade_percent, bonus_ativacao, observacoes)
+           comissao_percent, periodo_meses, mensalidade_percent, bonus_ativacao,
+           max_discount_percent, max_trial_days, observacoes)
         VALUES
           (${userId}, ${nome}, ${email}, ${input.documento ?? null}, ${input.telefone ?? null},
            ${input.chave_pix ?? null}, ${input.tipo_pix ?? null}, ${codigo},
            ${clampPercent(input.comissao_percent, 1)}, ${cleanPeriodo(input.periodo_meses)},
            ${clampPercent(input.mensalidade_percent, 0)}, ${Math.max(0, Number(input.bonus_ativacao) || 0)},
+           ${clampPercent(input.max_discount_percent, 0)}, ${cleanDays(input.max_trial_days, 0)},
            ${input.observacoes ?? null})
         RETURNING *
       `;
@@ -195,6 +210,8 @@ export async function updateRepresentante(id: string, input: Partial<Representan
     periodo_meses: input.periodo_meses !== undefined ? cleanPeriodo(input.periodo_meses) : c.periodo_meses,
     mensalidade_percent: input.mensalidade_percent !== undefined ? clampPercent(input.mensalidade_percent, c.mensalidade_percent) : c.mensalidade_percent,
     bonus_ativacao: input.bonus_ativacao !== undefined ? Math.max(0, Number(input.bonus_ativacao) || 0) : c.bonus_ativacao,
+    max_discount_percent: input.max_discount_percent !== undefined ? clampPercent(input.max_discount_percent, c.max_discount_percent) : c.max_discount_percent,
+    max_trial_days: input.max_trial_days !== undefined ? cleanDays(input.max_trial_days, c.max_trial_days) : c.max_trial_days,
     observacoes: input.observacoes !== undefined ? input.observacoes : c.observacoes,
     ativo: input.ativo !== undefined ? Boolean(input.ativo) : c.ativo,
   };
@@ -205,6 +222,7 @@ export async function updateRepresentante(id: string, input: Partial<Representan
       chave_pix = ${next.chave_pix}, tipo_pix = ${next.tipo_pix},
       comissao_percent = ${next.comissao_percent}, periodo_meses = ${next.periodo_meses},
       mensalidade_percent = ${next.mensalidade_percent}, bonus_ativacao = ${next.bonus_ativacao},
+      max_discount_percent = ${next.max_discount_percent}, max_trial_days = ${next.max_trial_days},
       observacoes = ${next.observacoes}, ativo = ${next.ativo}, updated_at = NOW()
     WHERE id = ${id}
     RETURNING *
@@ -484,13 +502,16 @@ export async function listPagamentos(representanteId: string) {
   }));
 }
 
-export async function listComissoes(representanteId: string, status?: string | null) {
+export async function listComissoes(representanteId: string, status?: string | null, tipo?: string | null) {
   const st = status && status !== 'all' ? status : null;
+  const tp = tipo && tipo !== 'all' ? tipo : null;
   const rows = await sql`
     SELECT c.id, c.tipo, c.status, c.base_valor, c.percent, c.valor, c.competencia, c.liberada_em,
            c.clinic_id, cl.nome_fantasia AS clinica, c.pagamento_id
     FROM representante_comissoes c JOIN clinics cl ON cl.id = c.clinic_id
-    WHERE c.representante_id = ${representanteId} AND (${st}::text IS NULL OR c.status = ${st})
+    WHERE c.representante_id = ${representanteId}
+      AND (${st}::text IS NULL OR c.status = ${st})
+      AND (${tp}::text IS NULL OR c.tipo = ${tp})
     ORDER BY c.competencia DESC NULLS LAST, c.created_at DESC
     LIMIT 1000
   `;
@@ -568,6 +589,13 @@ export interface DashboardData {
     comissaoPaga: number;
     comissaoTotal: number;
     comissaoMesAtual: number;
+    comissaoFinanciamentoAReceber: number;
+    comissaoFinanciamentoPaga: number;
+    comissaoFinanciamentoTotal: number;
+    comissaoMensalidadeAReceber: number;
+    comissaoMensalidadePaga: number;
+    comissaoMensalidadeTotal: number;
+    comissaoBonusTotal: number;
   };
   serieMensal: { mes: string; label: string; propostas: number; volume: number; comissao: number; comissaoPaga: number }[];
   funil: { etapa: string; valor: number }[];
@@ -654,6 +682,10 @@ export async function getDashboard(representanteId: string, periodo: Periodo = '
   const now = new Date();
   const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const sum = (st: ComissaoStatus) => comissoes.filter(c => c.status === st).reduce((s, c) => s + c.valor, 0);
+  const sumTipo = (tp: ComissaoTipo, st?: ComissaoStatus) =>
+    comissoes
+      .filter(c => c.tipo === tp && (st ? c.status === st : c.status !== 'CANCELADA'))
+      .reduce((s, c) => s + c.valor, 0);
   const comissaoMesAtual = comissoes
     .filter(c => c.status !== 'CANCELADA' && c.competencia?.slice(0, 7) === mesAtual)
     .reduce((s, c) => s + c.valor, 0);
@@ -753,6 +785,13 @@ export async function getDashboard(representanteId: string, periodo: Periodo = '
       comissaoPaga: sum('PAGA'),
       comissaoTotal: sum('PREVISTA') + sum('A_RECEBER') + sum('PAGA'),
       comissaoMesAtual,
+      comissaoFinanciamentoAReceber: sumTipo('FINANCIAMENTO', 'A_RECEBER'),
+      comissaoFinanciamentoPaga: sumTipo('FINANCIAMENTO', 'PAGA'),
+      comissaoFinanciamentoTotal: sumTipo('FINANCIAMENTO'),
+      comissaoMensalidadeAReceber: sumTipo('MENSALIDADE', 'A_RECEBER'),
+      comissaoMensalidadePaga: sumTipo('MENSALIDADE', 'PAGA'),
+      comissaoMensalidadeTotal: sumTipo('MENSALIDADE'),
+      comissaoBonusTotal: sumTipo('BONUS'),
     },
     serieMensal: serie,
     funil: [

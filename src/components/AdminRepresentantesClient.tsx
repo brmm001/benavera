@@ -11,7 +11,7 @@ export function AdminRepresentantesClient({ initial }: { initial: RepresentanteR
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [created, setCreated] = useState<{ email: string; senha: string } | null>(null);
-  const [f, setF] = useState({ nome: '', email: '', telefone: '', documento: '', comissao_percent: '1', periodo_meses: '', bonus_ativacao: '0', mensalidade_percent: '0' });
+  const [f, setF] = useState({ nome: '', email: '', telefone: '', documento: '', comissao_percent: '1', periodo_meses: '', bonus_ativacao: '0', mensalidade_percent: '0', max_discount_percent: '0', max_trial_days: '0' });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   async function create(e: React.FormEvent) {
@@ -25,6 +25,8 @@ export function AdminRepresentantesClient({ initial }: { initial: RepresentanteR
           comissao_percent: Number(f.comissao_percent.replace(',', '.')),
           mensalidade_percent: Number(f.mensalidade_percent.replace(',', '.')),
           bonus_ativacao: Number(f.bonus_ativacao.replace(',', '.')),
+          max_discount_percent: Number(f.max_discount_percent.replace(',', '.')),
+          max_trial_days: Math.floor(Number(f.max_trial_days) || 0),
           periodo_meses: f.periodo_meses === '' ? null : Number(f.periodo_meses),
         }),
       });
@@ -65,7 +67,9 @@ export function AdminRepresentantesClient({ initial }: { initial: RepresentanteR
             <div><label className="rep-label">Comissão (% do valor financiado) *</label><input className="rep-input" required inputMode="decimal" value={f.comissao_percent} onChange={set('comissao_percent')} /></div>
             <div><label className="rep-label">Período de comissão (meses)</label><input className="rep-input" inputMode="numeric" placeholder="vazio = vitalício" value={f.periodo_meses} onChange={set('periodo_meses')} /></div>
             <div><label className="rep-label">Bônus por clínica ativada (R$)</label><input className="rep-input" inputMode="decimal" value={f.bonus_ativacao} onChange={set('bonus_ativacao')} /></div>
-            <div><label className="rep-label">% sobre mensalidade (em breve)</label><input className="rep-input" inputMode="decimal" value={f.mensalidade_percent} onChange={set('mensalidade_percent')} /></div>
+            <div><label className="rep-label">% sobre mensalidade SaaS</label><input className="rep-input" inputMode="decimal" value={f.mensalidade_percent} onChange={set('mensalidade_percent')} /></div>
+            <div><label className="rep-label">Desconto máx. no link (%)</label><input className="rep-input" inputMode="decimal" value={f.max_discount_percent} onChange={set('max_discount_percent')} /></div>
+            <div><label className="rep-label">Carência/Trial máx. (dias)</label><input className="rep-input" inputMode="numeric" value={f.max_trial_days} onChange={set('max_trial_days')} /></div>
           </div>
           <p style={{ fontSize: 12, color: '#94a3b8', margin: '10px 0 0' }}>O período conta a partir da data em que cada clínica é vinculada. Esses valores são o padrão; cada vínculo pode ter condições próprias.</p>
           <button className="rep-btn" style={{ marginTop: 14 }} disabled={saving}>{saving ? 'Criando…' : 'Criar representante'}</button>

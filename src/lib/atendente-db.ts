@@ -540,13 +540,43 @@ export async function getAtendenteById(id: string) {
 
 export async function updateAtendenteConfig(
   id: string,
-  data: { lead_limit?: number; receiving_leads?: boolean; ativo?: boolean }
+  data: {
+    lead_limit?: number;
+    receiving_leads?: boolean;
+    ativo?: boolean;
+    mensalidade_percent?: number;
+    comissao_periodo_meses?: number | null;
+    max_discount_percent?: number;
+    max_trial_days?: number;
+  }
 ): Promise<boolean> {
+  const hasPeriodo = data.comissao_periodo_meses !== undefined;
+  const cleanPeriodo =
+    data.comissao_periodo_meses === null || data.comissao_periodo_meses === undefined || Number(data.comissao_periodo_meses) <= 0
+      ? null
+      : Math.min(600, Math.floor(Number(data.comissao_periodo_meses)));
+  const cleanMensal =
+    data.mensalidade_percent !== undefined && Number.isFinite(Number(data.mensalidade_percent))
+      ? Math.min(100, Math.max(0, Math.round(Number(data.mensalidade_percent) * 1000) / 1000))
+      : null;
+  const cleanMaxDisc =
+    data.max_discount_percent !== undefined && Number.isFinite(Number(data.max_discount_percent))
+      ? Math.min(100, Math.max(0, Math.round(Number(data.max_discount_percent) * 100) / 100))
+      : null;
+  const cleanMaxTrial =
+    data.max_trial_days !== undefined && Number.isFinite(Number(data.max_trial_days))
+      ? Math.min(365, Math.max(0, Math.floor(Number(data.max_trial_days))))
+      : null;
+
   const result = await sql`
     UPDATE users SET
       lead_limit = COALESCE(${data.lead_limit ?? null}, lead_limit),
       receiving_leads = COALESCE(${data.receiving_leads ?? null}, receiving_leads),
       ativo = COALESCE(${data.ativo ?? null}, ativo),
+      mensalidade_percent = COALESCE(${cleanMensal}, mensalidade_percent),
+      comissao_periodo_meses = CASE WHEN ${hasPeriodo} THEN ${cleanPeriodo}::int ELSE comissao_periodo_meses END,
+      max_discount_percent = COALESCE(${cleanMaxDisc}, max_discount_percent),
+      max_trial_days = COALESCE(${cleanMaxTrial}, max_trial_days),
       updated_at = NOW()
     WHERE id = ${id}::uuid AND role = 'BENAVERA_COMERCIAL'
     RETURNING id

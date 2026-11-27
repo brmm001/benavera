@@ -38,6 +38,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       periodo_meses: body.periodo_meses,
       mensalidade_percent: body.mensalidade_percent,
       bonus_ativacao: body.bonus_ativacao,
+      max_discount_percent: body.max_discount_percent,
+      max_trial_days: body.max_trial_days,
       observacoes: body.observacoes,
       ativo: typeof body.ativo === 'boolean' ? body.ativo : undefined,
     });

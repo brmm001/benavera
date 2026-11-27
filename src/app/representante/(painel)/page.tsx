@@ -51,9 +51,11 @@ export default async function RepresentanteDashboard({ searchParams }: { searchP
       )}
 
       <div className="rep-grid rep-kpis">
-        <Kpi label="Comissão a receber" value={brl(k.comissaoAReceber)} hint="Repasses concluídos, aguardando pagamento" color="#4338ca" />
+        <Kpi label="Comissão a receber" value={brl(k.comissaoAReceber)} hint="Repasses e mensalidades liberados" color="#4338ca" />
         <Kpi label="Comissão paga" value={brl(k.comissaoPaga)} hint="Total já recebido" color="#047857" />
-        <Kpi label="Comissão prevista" value={brl(k.comissaoPrevista)} hint="Repasses ainda em andamento" color="#b45309" />
+        <Kpi label="Mensalidades SaaS" value={brl(k.comissaoMensalidadeTotal)} hint={`A receber: ${brl(k.comissaoMensalidadeAReceber)} · Paga: ${brl(k.comissaoMensalidadePaga)}`} color="#059669" />
+        <Kpi label="Financiamentos" value={brl(k.comissaoFinanciamentoTotal)} hint={`A receber: ${brl(k.comissaoFinanciamentoAReceber)} · Paga: ${brl(k.comissaoFinanciamentoPaga)}`} color="#1d4ed8" />
+        <Kpi label="Comissão prevista" value={brl(k.comissaoPrevista)} hint="Operações ainda em andamento" color="#b45309" />
         <Kpi label="Comissão no mês" value={brl(k.comissaoMesAtual)} hint={`Total acumulado: ${brl(k.comissaoTotal)}`} />
       </div>
 

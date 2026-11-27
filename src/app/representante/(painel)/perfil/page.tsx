@@ -20,15 +20,22 @@ export default async function RepresentantePerfil() {
       <p className="rep-sub">Clínicas que se cadastrarem por este link ficam vinculadas a você automaticamente.</p>
 
       <div className="rep-card" style={{ marginBottom: 18 }}>
-        <h3>Seu link de indicação</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
+          <h3 style={{ margin: 0 }}>Seu link de indicação padrão</h3>
+          <a href="/representante/links" className="rep-btn small" style={{ textDecoration: 'none' }}>⚡ Gerar link com plano + assinatura →</a>
+        </div>
         <RepresentantePerfilForm mode="link" link={link} codigo={ctx.rep.codigo_indicacao} />
       </div>
 
       <div className="rep-card" style={{ marginBottom: 18 }}>
-        <h3>Condições de comissionamento</h3>
-        <p style={{ margin: 0, fontSize: 14, color: '#475569', lineHeight: 1.6 }}>
-          <strong>{pct(ctx.rep.comissao_percent, 2)}</strong> sobre o valor financiado de cada repasse concluído · Período: <strong>{periodoLabel(ctx.rep.periodo_meses)}</strong>
+        <h3>Condições de comissionamento e alçadas</h3>
+        <p style={{ margin: 0, fontSize: 14, color: '#475569', lineHeight: 1.7 }}>
+          Financiamentos: <strong>{pct(ctx.rep.comissao_percent, 2)}</strong> sobre o valor financiado ·
+          Mensalidades SaaS: <strong>{pct(ctx.rep.mensalidade_percent, 2)}</strong> sobre faturas pagas ·
+          Período: <strong>{periodoLabel(ctx.rep.periodo_meses)}</strong>
           {ctx.rep.bonus_ativacao > 0 && <> · Bônus por clínica ativada: <strong>R$ {ctx.rep.bonus_ativacao.toFixed(2).replace('.', ',')}</strong></>}
+          <br />
+          Alçada em links de assinatura: desconto até <strong>{pct(ctx.rep.max_discount_percent, 2)}</strong> · carência/teste até <strong>{ctx.rep.max_trial_days} dias</strong>.
           <br /><span style={{ color: '#94a3b8' }}>As condições de cada clínica ficam registradas no momento do vínculo. Em caso de dúvida, fale com a Benavera.</span>
         </p>
       </div>

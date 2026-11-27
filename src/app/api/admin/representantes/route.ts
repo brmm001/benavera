@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
       periodo_meses: body.periodo_meses,
       mensalidade_percent: body.mensalidade_percent,
       bonus_ativacao: body.bonus_ativacao,
+      max_discount_percent: body.max_discount_percent,
+      max_trial_days: body.max_trial_days,
       observacoes: body.observacoes ?? null,
     });
     if (!result.success) return NextResponse.json({ error: result.error }, { status: 400 });

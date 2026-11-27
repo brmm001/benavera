@@ -7,6 +7,7 @@ import { useState } from 'react';
 
 const NAV = [
   { href: '/representante', label: 'Visão geral', icon: '▦', exact: true },
+  { href: '/representante/links', label: 'Links de assinatura', icon: '⚡' },
   { href: '/representante/clinicas', label: 'Minhas clínicas', icon: '🏥' },
   { href: '/representante/financeiro', label: 'Financeiro', icon: '💰' },
   { href: '/representante/perfil', label: 'Perfil & link', icon: '🔗' },

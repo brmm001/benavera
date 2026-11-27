@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 
 const NAV_ITEMS = [
   { href: '/atendente', label: 'Início', icon: '⊞', exact: true },
+  { href: '/atendente/links', label: 'Links de Assinatura', icon: '⚡' },
   { href: '/atendente/leads', label: 'Meus Leads', icon: '🎯' },
   { href: '/atendente/clinicas', label: 'Minhas Clínicas', icon: '🏥' },
   { href: '/atendente/comissoes', label: 'Minhas Comissões', icon: '💰' },

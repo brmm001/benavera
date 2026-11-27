@@ -12,6 +12,7 @@ import {
 import type { CommissionStatus } from '@/lib/atendente-db';
 import { sql } from '@/lib/benavera-db';
 import { sendAtendenteCommissionEmail } from '@/lib/email';
+import { listAtendenteSaasComissoes, updateAtendenteSaasComissaoStatus } from '@/lib/seller-links';
 
 const VALID_STATUSES: CommissionStatus[] = ['pendente', 'aprovada', 'paga', 'recusada', 'estornada'];
 
@@ -32,9 +33,10 @@ export async function GET(request: NextRequest) {
   const atendente_id = searchParams.get('atendente_id') || undefined;
 
   try {
-    const [comissoes, regras] = await Promise.all([
+    const [comissoes, regras, saas] = await Promise.all([
       getAllComissoes({ status, atendente_id }),
       getCommissionRules(),
+      listAtendenteSaasComissoes({ atendenteUserId: atendente_id }),
     ]);
 
     const totais = comissoes.reduce((acc, c) => {
@@ -42,7 +44,14 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, number>);
 
-    return NextResponse.json({ success: true, comissoes, totais, regras });
+    return NextResponse.json({
+      success: true,
+      comissoes,
+      totais,
+      regras,
+      saasComissoes: saas.comissoes,
+      saasTotais: saas.totais,
+    });
   } catch (e) {
     console.error('[API Admin Comissoes GET]', e);
     return NextResponse.json({ error: 'Erro ao carregar comissões.' }, { status: 500 });
@@ -91,7 +100,22 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { id, status, justificativa } = body;
+    const { id, status, justificativa, kind, comprovante_url } = body;
+
+    if (kind === 'saas') {
+      if (!id || !['PAGA', 'CANCELADA', 'A_RECEBER'].includes(String(status))) {
+        return NextResponse.json({ error: 'id e status SaaS válido (PAGA, CANCELADA ou A_RECEBER) são obrigatórios.' }, { status: 400 });
+      }
+      const ok = await updateAtendenteSaasComissaoStatus({
+        id: String(id),
+        status: String(status) as 'PAGA' | 'CANCELADA' | 'A_RECEBER',
+        observacao: justificativa ?? null,
+        comprovanteUrl: comprovante_url ?? null,
+        pagoPor: session!.name,
+      });
+      if (!ok) return NextResponse.json({ error: 'Comissão SaaS não encontrada.' }, { status: 404 });
+      return NextResponse.json({ success: true });
+    }
 
     if (!id || !status) {
       return NextResponse.json({ error: 'id e status são obrigatórios.' }, { status: 400 });

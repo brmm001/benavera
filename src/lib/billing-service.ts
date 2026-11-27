@@ -212,12 +212,19 @@ export async function startClinicCheckout(params: {
   const currentSub = subRows[0] || null;
   const obAddr = obRows[0] || null;
 
-  const coupon = params.couponCode ? await validateAndLoadCoupon(params.couponCode) : null;
+  const samePlan = currentSub && String(currentSub.plan_id || '') === String(plan.id);
+  const effectiveCouponCode =
+    params.couponCode !== undefined
+      ? params.couponCode
+      : samePlan && ['PENDING_PAYMENT', 'TRIAL'].includes(String(currentSub?.status || '')) && currentSub?.coupon_code
+        ? String(currentSub.coupon_code)
+        : null;
+
+  const coupon = effectiveCouponCode ? await validateAndLoadCoupon(effectiveCouponCode) : null;
   if (params.couponCode && !coupon) {
     throw new Error('Cupom inválido, expirado ou esgotado.');
   }
 
-  const samePlan = currentSub && String(currentSub.plan_id || '') === String(plan.id);
   const pricing = calculateSubscriptionPricing({
     plan: {
       price_monthly: Number(plan.price_monthly || 0),
@@ -648,15 +655,17 @@ export async function applyPaidInvoice(params: {
     },
   });
 
-  // Gerar comissão MENSALIDADE para representante vinculado (idempotente) e notificar por e-mail
+  // Gerar comissão MENSALIDADE para representante e atendente vinculados (idempotente) e notificar por e-mail
   try {
     await syncComissoes(null);
+    const { syncAtendenteSaasComissoes } = await import('./seller-links');
+    await syncAtendenteSaasComissoes(null);
     const { notifyRepresentanteUnlockedCommission } = await import('./email-reports');
     await notifyRepresentanteUnlockedCommission({
       clinicId,
       tipo: 'MENSALIDADE',
       refId: params.invoiceId,
-    }).catch(() => {});
+    }).catch(() => { });
   } catch (repErr) {
     console.error('[Billing] Falha ao sincronizar comissão de mensalidade:', repErr);
   }
@@ -1102,7 +1111,7 @@ export async function cancelClinicSubscription(params: {
       accessUntilDate: nextPeriodEndIso ? new Date(nextPeriodEndIso).toLocaleDateString('pt-BR') : null,
       cancelledByLabel: byLabel,
       reason: params.reason || null,
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   return {

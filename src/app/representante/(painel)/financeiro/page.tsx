@@ -9,43 +9,60 @@ const FILTROS = [
   { v: 'PAGA', l: 'Pagas' }, { v: 'CANCELADA', l: 'Canceladas' },
 ];
 
-export default async function RepresentanteFinanceiro({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+const TIPOS = [
+  { v: 'all', l: 'Todos os tipos' },
+  { v: 'MENSALIDADE', l: 'Mensalidades SaaS' },
+  { v: 'FINANCIAMENTO', l: 'Financiamentos' },
+  { v: 'BONUS', l: 'Bônus' },
+];
+
+export default async function RepresentanteFinanceiro({ searchParams }: { searchParams: Promise<{ status?: string; tipo?: string }> }) {
   const ctx = await getRepresentanteSession();
   if (!ctx) return null;
   const sp = await searchParams;
   const status = FILTROS.some(f => f.v === sp.status) ? sp.status! : 'all';
+  const tipo = TIPOS.some(t => t.v === sp.tipo) ? sp.tipo! : 'all';
 
   await syncComissoes(ctx.rep.id);
   const [todas, comissoes, pagamentos] = await Promise.all([
-    listComissoes(ctx.rep.id, 'all'),
-    listComissoes(ctx.rep.id, status),
+    listComissoes(ctx.rep.id, 'all', 'all'),
+    listComissoes(ctx.rep.id, status, tipo),
     listPagamentos(ctx.rep.id),
   ]);
   const soma = (st: string) => todas.filter(c => c.status === st).reduce((s, c) => s + c.valor, 0);
+  const somaTipo = (tp: string, st?: string) =>
+    todas.filter(c => c.tipo === tp && (st ? c.status === st : c.status !== 'CANCELADA')).reduce((s, c) => s + c.valor, 0);
 
   return (
     <div className="rep-page">
       <h1 className="rep-h1">Financeiro</h1>
-      <p className="rep-sub">Extrato de comissões e pagamentos. Regra: {pct(ctx.rep.comissao_percent, 2)} sobre o valor financiado, liberada quando o repasse da clínica é concluído.</p>
+      <p className="rep-sub">
+        Extrato separado de comissões e pagamentos. Regras padrão: <strong>{pct(ctx.rep.comissao_percent, 2)}</strong> sobre financiamentos
+        {ctx.rep.mensalidade_percent > 0 && <> · <strong>{pct(ctx.rep.mensalidade_percent, 2)}</strong> sobre mensalidades SaaS pagas</>}.
+      </p>
 
       <div className="rep-grid rep-kpis">
-        <div className="rep-card"><div className="rep-kpi-label">A receber</div><div className="rep-kpi-value" style={{ color: '#4338ca' }}>{brl(soma('A_RECEBER'))}</div></div>
-        <div className="rep-card"><div className="rep-kpi-label">Prevista</div><div className="rep-kpi-value" style={{ color: '#b45309' }}>{brl(soma('PREVISTA'))}</div></div>
-        <div className="rep-card"><div className="rep-kpi-label">Já recebido</div><div className="rep-kpi-value" style={{ color: '#047857' }}>{brl(soma('PAGA'))}</div></div>
+        <div className="rep-card"><div className="rep-kpi-label">A receber (total)</div><div className="rep-kpi-value" style={{ color: '#4338ca' }}>{brl(soma('A_RECEBER'))}</div></div>
+        <div className="rep-card"><div className="rep-kpi-label">Mensalidades SaaS</div><div className="rep-kpi-value" style={{ color: '#059669' }}>{brl(somaTipo('MENSALIDADE'))}</div><div className="rep-kpi-hint">A receber: {brl(somaTipo('MENSALIDADE', 'A_RECEBER'))} · Paga: {brl(somaTipo('MENSALIDADE', 'PAGA'))}</div></div>
+        <div className="rep-card"><div className="rep-kpi-label">Financiamentos</div><div className="rep-kpi-value" style={{ color: '#1d4ed8' }}>{brl(somaTipo('FINANCIAMENTO'))}</div><div className="rep-kpi-hint">A receber: {brl(somaTipo('FINANCIAMENTO', 'A_RECEBER'))} · Paga: {brl(somaTipo('FINANCIAMENTO', 'PAGA'))}</div></div>
+        <div className="rep-card"><div className="rep-kpi-label">Já recebido</div><div className="rep-kpi-value" style={{ color: '#047857' }}>{brl(soma('PAGA'))}</div><div className="rep-kpi-hint">Prevista: {brl(soma('PREVISTA'))}</div></div>
       </div>
 
       <div className="rep-card" style={{ marginBottom: 18 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
           <h3 style={{ margin: 0 }}>Extrato de comissões</h3>
-          <a className="rep-btn ghost small" style={{ textDecoration: 'none' }} href={`/api/representante/comissoes/export?status=${status}`}>⬇ Exportar CSV</a>
+          <a className="rep-btn ghost small" style={{ textDecoration: 'none' }} href={`/api/representante/comissoes/export?status=${status}&tipo=${tipo}`}>⬇ Exportar CSV</a>
+        </div>
+        <div className="rep-filters" style={{ marginBottom: 8 }}>
+          {TIPOS.map(t => <a key={t.v} href={`/representante/financeiro?status=${status}&tipo=${t.v}`} className={`rep-chip ${tipo === t.v ? 'on' : ''}`}>{t.l}</a>)}
         </div>
         <div className="rep-filters">
-          {FILTROS.map(f => <a key={f.v} href={`/representante/financeiro?status=${f.v}`} className={`rep-chip ${status === f.v ? 'on' : ''}`}>{f.l}</a>)}
+          {FILTROS.map(f => <a key={f.v} href={`/representante/financeiro?status=${f.v}&tipo=${tipo}`} className={`rep-chip ${status === f.v ? 'on' : ''}`}>{f.l}</a>)}
         </div>
         {comissoes.length === 0 ? <div className="rep-empty">Nenhuma comissão neste filtro.</div> : (
           <div className="rep-table-wrap">
             <table className="rep-table">
-              <thead><tr><th>Competência</th><th>Clínica</th><th>Tipo</th><th>Base (financiado)</th><th>%</th><th>Comissão</th><th>Status</th></tr></thead>
+              <thead><tr><th>Competência</th><th>Clínica</th><th>Tipo</th><th>Base</th><th>%</th><th>Comissão</th><th>Status</th></tr></thead>
               <tbody>
                 {comissoes.map(c => {
                   const s = STATUS_COMISSAO[c.status];

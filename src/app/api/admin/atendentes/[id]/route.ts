@@ -31,9 +31,20 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { lead_limit, receiving_leads, ativo } = body;
+  const {
+    lead_limit, receiving_leads, ativo,
+    mensalidade_percent, comissao_periodo_meses, max_discount_percent, max_trial_days,
+  } = body;
 
-  const updated = await updateAtendenteConfig(id, { lead_limit, receiving_leads, ativo });
+  const updated = await updateAtendenteConfig(id, {
+    lead_limit,
+    receiving_leads,
+    ativo,
+    mensalidade_percent,
+    comissao_periodo_meses,
+    max_discount_percent,
+    max_trial_days,
+  });
   if (!updated) return NextResponse.json({ error: 'Atendente não encontrado.' }, { status: 404 });
   return NextResponse.json({ success: true });
 }

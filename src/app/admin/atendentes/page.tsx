@@ -11,10 +11,26 @@ type Atendente = {
   ativo: boolean;
   receiving_leads: boolean;
   lead_limit: number;
+  mensalidade_percent?: number;
+  comissao_periodo_meses?: number | null;
+  max_discount_percent?: number;
+  max_trial_days?: number;
   last_login_at?: string;
   active_clinic_leads: number;
   total_clinicas: number;
   created_at: string;
+};
+
+type SaasComissaoAtendente = {
+  id: string;
+  atendente_name: string;
+  clinica_nome: string;
+  cycle: string;
+  base_valor: number;
+  percent: number;
+  valor: number;
+  status: 'PREVISTA' | 'A_RECEBER' | 'PAGA' | 'CANCELADA';
+  competencia: string | null;
 };
 
 type DistStats = {
@@ -147,11 +163,16 @@ export default function AdminAtendentesPage() {
   const [atendentes, setAtendentes] = useState<Atendente[]>([]);
   const [distStats, setDistStats] = useState<DistStats | null>(null);
   const [comissoes, setComissoes] = useState<Comissao[]>([]);
+  const [saasComissoes, setSaasComissoes] = useState<SaasComissaoAtendente[]>([]);
+  const [saasTotais, setSaasTotais] = useState({ a_receber: 0, paga: 0, prevista: 0, cancelada: 0 });
   const [rules, setRules] = useState<CommissionRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNovoAtendente, setShowNovoAtendente] = useState(false);
   const [showNovaRegra, setShowNovaRegra] = useState(false);
-  const [novoForm, setNovoForm] = useState({ name: '', email: '', password: '', lead_limit: 30 });
+  const [novoForm, setNovoForm] = useState({
+    name: '', email: '', password: '', lead_limit: 30,
+    mensalidade_percent: '0', comissao_periodo_meses: '', max_discount_percent: '0', max_trial_days: '0',
+  });
   const [regraForm, setRegraForm] = useState({ nome: '', evento: 'cadastro_validado', valor: '' });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -177,6 +198,8 @@ export default function AdminAtendentesPage() {
     setAtendentes(a.atendentes || []);
     setDistStats(d.stats || null);
     setComissoes(c.comissoes || []);
+    setSaasComissoes(c.saasComissoes || []);
+    setSaasTotais(c.saasTotais || { a_receber: 0, paga: 0, prevista: 0, cancelada: 0 });
     setRules(c.regras || []);
     setLoading(false);
   }, []);
@@ -201,12 +224,23 @@ export default function AdminAtendentesPage() {
     setAtendentes(prev => prev.map(a => a.id === id ? { ...a, ativo: !current } : a));
   }
 
-  async function handleUpdateLimit(id: string, limit: number) {
+  async function handleUpdateAtendenteField(id: string, patch: Record<string, unknown>) {
     await fetch(`/api/admin/atendentes/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lead_limit: limit }),
+      body: JSON.stringify(patch),
     });
+  }
+
+  async function handleSaasComissaoStatus(id: string, status: 'PAGA' | 'CANCELADA' | 'A_RECEBER') {
+    setUpdatingId(id);
+    await fetch('/api/admin/comissoes', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: 'saas', id, status }),
+    });
+    setUpdatingId(null);
+    fetchAll();
   }
 
   async function handleCriarAtendente(e: React.FormEvent) {
@@ -216,12 +250,21 @@ export default function AdminAtendentesPage() {
     try {
       const res = await fetch('/api/admin/atendentes', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(novoForm),
+        body: JSON.stringify({
+          ...novoForm,
+          mensalidade_percent: Number(String(novoForm.mensalidade_percent).replace(',', '.')) || 0,
+          comissao_periodo_meses: novoForm.comissao_periodo_meses === '' ? null : Number(novoForm.comissao_periodo_meses),
+          max_discount_percent: Number(String(novoForm.max_discount_percent).replace(',', '.')) || 0,
+          max_trial_days: Math.floor(Number(novoForm.max_trial_days) || 0),
+        }),
       });
       const data = await res.json();
       if (data.success) {
         setShowNovoAtendente(false);
-        setNovoForm({ name: '', email: '', password: '', lead_limit: 30 });
+        setNovoForm({
+          name: '', email: '', password: '', lead_limit: 30,
+          mensalidade_percent: '0', comissao_periodo_meses: '', max_discount_percent: '0', max_trial_days: '0',
+        });
         setSaveError(null);
         fetchAll();
       } else {
@@ -319,10 +362,27 @@ export default function AdminAtendentesPage() {
                       onChange={e => setNovoForm(p => ({...p, [f]: e.target.value}))} style={inputStyle} />
                   </div>
                 ))}
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '4px' }}>Limite de leads ativos</label>
-                  <input type="number" min={1} max={200} value={novoForm.lead_limit}
-                    onChange={e => setNovoForm(p => ({...p, lead_limit: Number(e.target.value)}))} style={inputStyle} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '4px' }}>Limite de leads</label>
+                    <input type="number" min={1} max={200} value={novoForm.lead_limit}
+                      onChange={e => setNovoForm(p => ({...p, lead_limit: Number(e.target.value)}))} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '4px' }}>% Mensalidade SaaS</label>
+                    <input type="text" inputMode="decimal" value={novoForm.mensalidade_percent}
+                      onChange={e => setNovoForm(p => ({...p, mensalidade_percent: e.target.value}))} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '4px' }}>Desconto máx. link (%)</label>
+                    <input type="text" inputMode="decimal" value={novoForm.max_discount_percent}
+                      onChange={e => setNovoForm(p => ({...p, max_discount_percent: e.target.value}))} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '4px' }}>Carência máx. (dias)</label>
+                    <input type="number" min={0} max={365} value={novoForm.max_trial_days}
+                      onChange={e => setNovoForm(p => ({...p, max_trial_days: e.target.value}))} style={inputStyle} />
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                   <button type="button" onClick={() => { setShowNovoAtendente(false); setSaveError(null); }} style={{ flex: 1, padding: '10px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px' }}>Cancelar</button>
@@ -361,9 +421,37 @@ export default function AdminAtendentesPage() {
                     <span style={{ fontSize: '12px', color: '#64748b' }}>Limite:</span>
                     <input
                       type="number" min={1} max={200} defaultValue={a.lead_limit}
-                      onBlur={e => handleUpdateLimit(a.id, Number(e.target.value))}
-                      style={{ width: '60px', padding: '5px 8px', fontSize: '13px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}
+                      onBlur={e => handleUpdateAtendenteField(a.id, { lead_limit: Number(e.target.value) })}
+                      style={{ width: '58px', padding: '5px 8px', fontSize: '13px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}
                     />
+                  </div>
+
+                  {/* Alçadas SaaS */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: '#047857', fontWeight: 600 }}>
+                      % SaaS:
+                      <input
+                        type="number" min={0} max={100} step="0.5" defaultValue={Number(a.mensalidade_percent || 0)}
+                        onBlur={e => handleUpdateAtendenteField(a.id, { mensalidade_percent: Number(e.target.value) })}
+                        style={{ width: '58px', padding: '5px 6px', fontSize: '12.5px', border: '1px solid #a7f3d0', borderRadius: '6px', textAlign: 'center' }}
+                      />
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: '#4338ca', fontWeight: 600 }}>
+                      Desc.%:
+                      <input
+                        type="number" min={0} max={100} step="0.5" defaultValue={Number(a.max_discount_percent || 0)}
+                        onBlur={e => handleUpdateAtendenteField(a.id, { max_discount_percent: Number(e.target.value) })}
+                        style={{ width: '56px', padding: '5px 6px', fontSize: '12.5px', border: '1px solid #c7d2fe', borderRadius: '6px', textAlign: 'center' }}
+                      />
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: '#b45309', fontWeight: 600 }}>
+                      Trial(d):
+                      <input
+                        type="number" min={0} max={365} defaultValue={Number(a.max_trial_days || 0)}
+                        onBlur={e => handleUpdateAtendenteField(a.id, { max_trial_days: Number(e.target.value) })}
+                        style={{ width: '54px', padding: '5px 6px', fontSize: '12.5px', border: '1px solid #fde68a', borderRadius: '6px', textAlign: 'center' }}
+                      />
+                    </label>
                   </div>
 
                   {/* Toggle receber leads */}
@@ -703,9 +791,57 @@ export default function AdminAtendentesPage() {
             </div>
           </div>
 
-          {/* Lista de comissões */}
+          {/* Seção separada: Comissões Automáticas de Mensalidades SaaS */}
+          <div style={{ marginBottom: '28px', padding: '20px', background: '#f0fdf4', borderRadius: '14px', border: '1px solid #bbf7d0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#065f46' }}>💳 Comissões de Mensalidades SaaS (Automáticas)</h2>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#047857' }}>
+                  A receber: <strong>{fmtCurrency(saasTotais.a_receber)}</strong> · Pagas: <strong>{fmtCurrency(saasTotais.paga)}</strong>
+                </p>
+              </div>
+            </div>
+            {saasComissoes.length === 0 ? (
+              <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Nenhuma comissão de mensalidade SaaS gerada para atendentes ainda.</p>
+            ) : (
+              saasComissoes.map(sc => (
+                <div key={sc.id} style={{ ...cardStyle, marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '220px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                        <strong style={{ fontSize: '14px', color: '#0f172a' }}>{sc.clinica_nome}</strong>
+                        <span style={{
+                          padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 700,
+                          background: sc.status === 'PAGA' ? '#d1fae5' : sc.status === 'A_RECEBER' ? '#e0e7ff' : '#e2e8f0',
+                          color: sc.status === 'PAGA' ? '#047857' : sc.status === 'A_RECEBER' ? '#4338ca' : '#64748b',
+                        }}>{sc.status}</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                        {sc.atendente_name} · Mensalidade {fmtCurrency(sc.base_valor)} × {sc.percent.toFixed(2).replace('.', ',')}% · Comp.: {sc.competencia || '—'}
+                      </p>
+                    </div>
+                    <strong style={{ fontSize: '18px', color: '#047857' }}>{fmtCurrency(sc.valor)}</strong>
+                    {sc.status === 'A_RECEBER' && (
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button onClick={() => handleSaasComissaoStatus(sc.id, 'PAGA')} disabled={updatingId === sc.id}
+                          style={{ padding: '6px 12px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                          Marcar paga
+                        </button>
+                        <button onClick={() => handleSaasComissaoStatus(sc.id, 'CANCELADA')} disabled={updatingId === sc.id}
+                          style={{ padding: '6px 12px', background: '#fef2f2', color: '#ef4444', border: '1px solid #fca5a5', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Lista de comissões por evento (manuais) */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
-            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1c1d4c' }}>Comissões</h2>
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1c1d4c' }}>🎯 Comissões por Evento (Manuais)</h2>
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {['all', 'pendente', 'aprovada', 'paga', 'recusada'].map(v => (
                 <button key={v} onClick={() => setComissaoFiltroStatus(v)} style={{

@@ -16,7 +16,7 @@ function fmtDate(iso: string) {
 interface DashboardData {
   leads: { total: number; novos: number; };
   clinicas: { total: number; em_negociacao: number; vinculadas: number; };
-  comissoes: { pendente: number; aprovada: number; paga: number; };
+  comissoes: { pendente: number; aprovada: number; paga: number; saasAReceber: number; saasPaga: number; };
   proximos_contatos: Array<{
     id: string; tipo: string; conteudo: string; proxima_data: string; clinica?: string;
   }>;
@@ -63,6 +63,8 @@ export default function AtendenteDashboard() {
           pendente: totaisCom.pendente || 0,
           aprovada: totaisCom.aprovada || 0,
           paga: totaisCom.paga || 0,
+          saasAReceber: Number(comissoesR.saasTotais?.a_receber || 0),
+          saasPaga: Number(comissoesR.saasTotais?.paga || 0),
         },
         proximos_contatos: notes
           .filter((n: { proxima_data: string | null }) => n.proxima_data)
@@ -120,10 +122,10 @@ export default function AtendenteDashboard() {
             <div style={{ ...cardStyle, borderLeft: '3px solid #f59e0b' }}>
               <p style={{ margin: '0 0 6px', fontSize: '12px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>A Receber</p>
               <p style={{ margin: '0 0 4px', fontSize: '24px', fontWeight: '800', color: '#1c1d4c' }}>
-                {fmtCurrency(data?.comissoes.aprovada || 0)}
+                {fmtCurrency((data?.comissoes.aprovada || 0) + (data?.comissoes.saasAReceber || 0))}
               </p>
-              <p style={{ margin: 0, fontSize: '12px', color: '#f59e0b', fontWeight: '600' }}>
-                {fmtCurrency(data?.comissoes.pendente || 0)} pendente
+              <p style={{ margin: 0, fontSize: '12px', color: '#059669', fontWeight: '600' }}>
+                SaaS: {fmtCurrency(data?.comissoes.saasAReceber || 0)} · Eventos: {fmtCurrency(data?.comissoes.aprovada || 0)}
               </p>
             </div>
 
@@ -131,9 +133,11 @@ export default function AtendenteDashboard() {
             <div style={{ ...cardStyle, borderLeft: '3px solid #4ade80' }}>
               <p style={{ margin: '0 0 6px', fontSize: '12px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Já Recebido</p>
               <p style={{ margin: '0 0 4px', fontSize: '24px', fontWeight: '800', color: '#1c1d4c' }}>
-                {fmtCurrency(data?.comissoes.paga || 0)}
+                {fmtCurrency((data?.comissoes.paga || 0) + (data?.comissoes.saasPaga || 0))}
               </p>
-              <p style={{ margin: 0, fontSize: '12px', color: '#4ade80', fontWeight: '600' }}>em comissões pagas</p>
+              <p style={{ margin: 0, fontSize: '12px', color: '#4ade80', fontWeight: '600' }}>
+                SaaS: {fmtCurrency(data?.comissoes.saasPaga || 0)} · Eventos: {fmtCurrency(data?.comissoes.paga || 0)}
+              </p>
             </div>
           </div>
 
@@ -169,6 +173,7 @@ export default function AtendenteDashboard() {
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {[
+                  { href: '/atendente/links', label: 'Gerar link de assinatura', emoji: '⚡', color: '#4040ca' },
                   { href: '/atendente/leads', label: 'Ver meus leads', emoji: '🎯', color: '#6370f1' },
                   { href: '/atendente/clinicas', label: 'Ver minhas clínicas', emoji: '🏥', color: '#10b981' },
                   { href: '/atendente/clinicas/nova', label: 'Cadastrar nova clínica', emoji: '➕', color: '#059669' },

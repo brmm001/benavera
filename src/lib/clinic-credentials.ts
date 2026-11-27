@@ -93,6 +93,8 @@ export async function provisionClinicAccountFromOnboarding(
       UPDATE clinics
       SET
         ativo = TRUE,
+        allow_new_applications = TRUE,
+        new_applications_block_reason = NULL,
         person_type = ${personType},
         nome_fantasia = COALESCE(${onboarding.trade_name || null}, nome_fantasia),
         razao_social = COALESCE(${clinicLegalName || null}, razao_social),
@@ -125,6 +127,8 @@ export async function provisionClinicAccountFromOnboarding(
         UPDATE clinics
         SET
           ativo = TRUE,
+          allow_new_applications = TRUE,
+          new_applications_block_reason = NULL,
           person_type = ${personType},
           nome_fantasia = COALESCE(${onboarding.trade_name || null}, nome_fantasia),
           razao_social = COALESCE(${clinicLegalName || null}, razao_social),

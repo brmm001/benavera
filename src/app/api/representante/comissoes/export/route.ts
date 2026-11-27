@@ -15,9 +15,10 @@ export async function GET(request: NextRequest) {
 
   await syncComissoes(ctx.rep.id);
   const status = request.nextUrl.searchParams.get('status');
-  const rows = await listComissoes(ctx.rep.id, status);
+  const tipo = request.nextUrl.searchParams.get('tipo');
+  const rows = await listComissoes(ctx.rep.id, status, tipo);
 
-  const header = ['Competência', 'Clínica', 'Tipo', 'Base (valor financiado)', 'Percentual', 'Comissão', 'Status'];
+  const header = ['Competência', 'Clínica', 'Tipo', 'Base (valor)', 'Percentual', 'Comissão', 'Status'];
   const lines = [header.map(csv).join(';')];
   for (const r of rows) {
     lines.push([

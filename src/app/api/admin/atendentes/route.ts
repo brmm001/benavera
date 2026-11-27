@@ -38,7 +38,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, email, password, lead_limit, receiving_leads } = body;
+    const {
+      name, email, password, lead_limit, receiving_leads,
+      mensalidade_percent, comissao_periodo_meses, max_discount_percent, max_trial_days,
+    } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: 'Nome, e-mail e senha são obrigatórios.' }, { status: 400 });
@@ -51,12 +54,26 @@ export async function POST(request: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
+    const cleanMensal = Math.min(100, Math.max(0, Number(mensalidade_percent) || 0));
+    const cleanPeriodo =
+      comissao_periodo_meses === '' || comissao_periodo_meses === null || comissao_periodo_meses === undefined
+        ? null
+        : Math.min(600, Math.max(1, Math.floor(Number(comissao_periodo_meses))));
+    const cleanMaxDisc = Math.min(100, Math.max(0, Number(max_discount_percent) || 0));
+    const cleanMaxTrial = Math.min(365, Math.max(0, Math.floor(Number(max_trial_days) || 0)));
 
     const rows = await sql`
-      INSERT INTO users (name, email, password_hash, role, ativo, lead_limit, receiving_leads)
-      VALUES (${name.trim()}, ${email.toLowerCase().trim()}, ${passwordHash},
-        'BENAVERA_COMERCIAL', TRUE, ${lead_limit ?? 30}, ${receiving_leads ?? true})
-      RETURNING id, name, email, role, ativo, lead_limit, receiving_leads, created_at
+      INSERT INTO users (
+        name, email, password_hash, role, ativo, lead_limit, receiving_leads,
+        mensalidade_percent, comissao_periodo_meses, max_discount_percent, max_trial_days
+      )
+      VALUES (
+        ${name.trim()}, ${email.toLowerCase().trim()}, ${passwordHash},
+        'BENAVERA_COMERCIAL', TRUE, ${lead_limit ?? 30}, ${receiving_leads ?? true},
+        ${cleanMensal}, ${cleanPeriodo}, ${cleanMaxDisc}, ${cleanMaxTrial}
+      )
+      RETURNING id, name, email, role, ativo, lead_limit, receiving_leads,
+                mensalidade_percent, comissao_periodo_meses, max_discount_percent, max_trial_days, created_at
     `;
 
     if (rows[0]) {
